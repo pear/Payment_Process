@@ -32,7 +32,7 @@ require_once 'Payment/Process/Common.php';
  * @version @version@
  */
 class Payment_Process_Dummy extends Payment_Process_Common {
-	/**
+    /**
      * Default options for this class.
      *
      * @access private
@@ -40,22 +40,22 @@ class Payment_Process_Dummy extends Payment_Process_Common {
      * @see Payment_Process::setOptions()
      */
     var $_defaultOptions = array(
-    	'randomResult' => true,
+        'randomResult' => true,
         'returnCode' => PAYMENT_PROCESS_RESULT_APPROVED,
         'returnMessage' => "Dummy payment approved"
     );
 
     var $_returnValues = array(
-    	array(
-        	'code' => PAYMENT_PROCESS_RESULT_APPROVED,
+        array(
+            'code' => PAYMENT_PROCESS_RESULT_APPROVED,
             'message' => "Approved"
         ),
         array(
-        	'code' => PAYMENT_PROCESS_RESULT_DECLINED,
+            'code' => PAYMENT_PROCESS_RESULT_DECLINED,
             'message' => "Declined"
         ),
         array(
-        	'code' => PAYMENT_PROCESS_RESULT_OTHER,
+            'code' => PAYMENT_PROCESS_RESULT_OTHER,
             'message' => "System error"
         )
     );
@@ -70,19 +70,25 @@ class Payment_Process_Dummy extends Payment_Process_Common {
         // Sanity check
         if (PEAR::isError($res = $this->validate())) {
             return($res);
-            $n = rand(0, count($this->_returnValues) - 1);
-            $code = &$this->_returnValues[$n]['code'];
-            $message = &$this->_returnValues[$n]['message'];
         }
 
         if ($this->_options['randomResult']) {
-        	srand(microtime());
+            srand(microtime());
+            $n = rand(0, count($this->_returnValues) - 1);
+            $code = &$this->_returnValues[$n]['code'];
+            $message = &$this->_returnValues[$n]['message'];
         } else {
-        	$code = &$this->_options['returnCode'];
+            $code = &$this->_options['returnCode'];
             $message = &$this->_options['returnMessage'];
         }
 
-        return Payment_Process_Result::factory(null, $this->_options['returnCode'], $this->_options['returnMessage']);
+        return Payment_Process_Result::factory('Dummy');
+    }
+}
+
+class Payment_Process_Result_Dummy extends Payment_Process_Result {
+    function Payment_Process_Result_Dummy()
+    {
     }
 }
 ?>
