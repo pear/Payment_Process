@@ -168,11 +168,6 @@ class Payment_Process_Common extends Payment_Process {
         echo '----------- PREPARE ----------'."\n";
         echo print_r($this->_data);
         echo '----------- PREPARE ----------'."\n";
-
-        // TODO - Why is this here? Joe Stump <joe@joestump.net> 
-        if ($this->_options['testTransaction']) {
-            $this->_data['testTransaction'] = $this->_options['testTransaction'];
-        }
                                                                                 
         return true;
     }
@@ -185,7 +180,7 @@ class Payment_Process_Common extends Payment_Process {
     * @param mixed $payment Object of Payment_Process_Type
     * @return bool
     */
-    function setPayment($payment) 
+    function setPayment($payment)
     {
         if (Payment_Process_Type::isValid($payment)) {
             foreach ($this->_fieldMap as $generic => $specific) {
