@@ -61,21 +61,32 @@ class Payment_Process_Type_CreditCard extends Payment_Process_Type
     }
     // }}} 
     // {{{ _validateExpDate()
+    /**
+     * Validate the card's expiration date.
+     *
+     * @todo Fix YxK issues; an expyear of '99' will come up as valid.
+     * @author Joe Stump <joe@joestump.net>
+     * @return boolean true on success, false otherwise
+     */
     function _validateExpDate()
     {
-        list($month,$year) = explode('/',$this->expDate);
+        list($month, $year) = explode('/', $this->expDate);
+        if (!is_numeric($month) || !is_numeric($year)) {
+            return false;
+        }
+        
         $monthOptions = array('min'     => 1,
                               'max'     => 12,
                               'decimal' => false);
                                                                                 
-        $yearOptions  = array('min'     => date("Y"),
+        $yearOptions  = array('min'     => date("y"),
                               'decimal' => false);
 
-        if (Validate::number($month,$monthOptions) &&
-            Validate::number($year,$yearOptions)) {
+        if (Validate::number($month, $monthOptions) &&
+            Validate::number($year, $yearOptions)) {
 
-            if (($month >= date("m") && $year == date("Y")) ||
-                ($year > date("Y"))) {
+            if (($month >= date("m") && $year == date("y")) ||
+                ($year > date("y"))) {
                 return true;
             }
         }
