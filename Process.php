@@ -29,6 +29,8 @@ define('PAYMENT_PROCESS_ERROR_NOFIELD', -101);
 define('PAYMENT_PROCESS_ERROR_NOPROCESSOR', -102);
 define('PAYMENT_PROCESS_ERROR_INCOMPLETE', -1);
 define('PAYMENT_PROCESS_ERROR_INVAILD', -2);
+define('PAYMENT_PROCESS_ERROR_AVS',-3);
+define('PAYMENT_PROCESS_ERROR_CVV',-4);
 
 // Transaction actions
 // A normal transaction
@@ -613,19 +615,19 @@ class Payment_Process_Result {
     {
         if ($this->_request->options['avsCheck'] === true) {
             if ($this->getAVSCode() != PAYMENT_PROCESS_AVS_MATCH) {
-                return PEAR::raiseError('AVS check failed');
+                return PEAR::raiseError('AVS check failed',PAYMENT_PROCESS_ERROR_AVS);
             }
         }    
 
         if ($this->_request->options['cvvCheck'] === true && 
             $this->_request->_payment->_driver == PAYMENT_PROCESS_TYPE_CREDITCARD) {
             if ($this->getCvvCode() != PAYMENT_PROCESS_CVV_MATCH) {
-                return PEAR::raiseError('CVV check failed');
+                return PEAR::raiseError('CVV check failed',PAYMENT_PROCESS_ERROR_CVV);
             }
         }
 
         if ($this->getCode() != PAYMENT_PROCESS_RESULT_APPROVED) {
-            return PEAR::raiseError('Card was not approved / Error occurred'); 
+            return PEAR::raiseError('Card was not approved / Error occurred',PAYMENT_PROCESS_RESULT_DECLINED); 
         } 
 
         return true;
