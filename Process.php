@@ -560,7 +560,20 @@ class Payment_Process {
         }
         return @in_array($value, $valid);
     }
-    
+
+    /**
+     * Prepare the POST data.
+     *
+     * This function handles translating the data set in the front-end to the
+     * format needed by the back-end. The prepared data is stored in $this->_data.
+     * If a '_handleField' method exists in this class (e.g. '_handleCardNumber()'),
+     * that function is called and /must/ set $this->_data correctly. If no field-
+     * handler function exists, the data from the front-end is mapped into $_data
+     * using $this->_fieldMap.
+     *
+     * @access private
+     * @return array Data to POST
+     */
     function _prepare()
     {
         $this->_data = array();
