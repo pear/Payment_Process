@@ -23,9 +23,11 @@ require_once 'Payment/Process.php';
 require_once 'Payment/Process/Common.php';
 require_once 'Net/Curl.php';
 
-$GLOBALS['_Payment_Process_AuthorizeNet'][PAYMENT_PROCESS_ACTION_NORMAL] = 'AUTH_CAPTURE';
-$GLOBALS['_Payment_Process_AuthorizeNet'][PAYMENT_PROCESS_ACTION_AUTHONLY] = 'AUTH_ONLY';
-$GLOBALS['_Payment_Process_AuthorizeNet'][PAYMENT_PROCESS_ACTION_POSTAUTH] = 'PRIOR_AUTH_CAPTURE';
+$GLOBALS['_Payment_Process_AuthorizeNet'] = array(
+    PAYMENT_PROCESS_ACTION_NORMAL   => 'AUTH_CAPTURE',
+    PAYMENT_PROCESS_ACTION_AUTHONLY => 'AUTH_ONLY',
+    PAYMENT_PROCESS_ACTION_POSTAUTH => 'PRIOR_AUTH_CAPTURE'
+);
 
 
 //define('PAYMENT_PROCESS_RESULT_DPILINK_APPROVAL', 00);
@@ -144,6 +146,7 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
             print_r($this->_data);
             echo "----------- DATA -----------\n";
         }
+
         // Sanity check
         $result = $this->validate();
         if(PEAR::isError($result)) {
@@ -190,9 +193,6 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
 
 
         $this->_responseBody = trim($result);
-
-//        echo $this->_responseBody."\n";
-
         $this->_processed = true;
 
         // Restore error handling
@@ -201,6 +201,7 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
         $response = &Payment_Process_Result::factory($this->_driver,$this->_responseBody);
         if(!PEAR::isError($response))
         {
+          $response->_request = & $this;
           $response->parse();
         }
 
