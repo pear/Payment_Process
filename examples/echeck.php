@@ -3,10 +3,7 @@
   require_once('Payment/Process.php');
 
   $options = array();
-  $options['x_test_request'] = 'TRUE';
   $options['x_delim_data'] = 'TRUE';
-  $options['avsCheck'] = true;
-  $options['cvvCheck'] = true;
 
   $process = & Payment_Process::factory('AuthorizeNet',$options);
   if (!PEAR::isError($process)) {
@@ -14,20 +11,20 @@
       $process->login = 'username';
       $process->password = 'password';
       $process->action = PAYMENT_PROCESS_ACTION_AUTHONLY;
-      $process->amount = 1.00;
+      $process->amount = 9.95;
 
-      $card = & Payment_Process_Type::factory(PAYMENT_PROCESS_TYPE_CREDITCARD);
-      if (!PEAR::isError($card)) {
-          $card->type = PAYMENT_PROCESS_CC_VISA;
-          $card->invoiceNumber = 112345145;
-          $card->customerId = 1461264151;
-          $card->cardNumber = '4111111111111111';
-          $card->expDate = '01/2005';
-          $card->zip = '48197';
-          $card->cvv = '768';
+      $check = & Payment_Process_Type::factory('eCheck');
+      if (!PEAR::isError($check)) {
+          $check->invoiceNumber = 112345145;
+          $check->customerId = 1461264151;
+          $check->name = 'Jose Perez';
+          $check->type = PAYMENT_PROCESS_CK_CHECKING;
+          $check->bankName = 'Bank of USA';
+          $check->accountNumber = '2222222222';
+          $check->routingCode = '2222222222';
 
-          if (Payment_Process_Type::isValid($card)) {
-              if(!$process->setPayment($card)) {
+          if (Payment_Process_Type::isValid($check)) {
+              if(!$process->setPayment($check)) {
                   die("Unable to set payment\n");
               }
 
