@@ -94,7 +94,7 @@ class Payment_Process_Common extends Payment_Process {
      */
     function _validateAction()
     {
-        return (isset($GLOBALS['_Payment_Process_'.$this->_driver][$this->type]));
+        return (isset($GLOBALS['_Payment_Process_'.$this->_driver][$this->action]));
     }
 
     /**
