@@ -16,7 +16,7 @@
       $process->action = PAYMENT_PROCESS_ACTION_AUTHONLY;
       $process->amount = 1.00;
 
-      $card = & Payment_Process_Type::factory(PAYMENT_PROCESS_TYPE_CREDITCARD);
+      $card = & Payment_Process_Type::factory('CreditCard');
       if (!PEAR::isError($card)) {
           $card->type = PAYMENT_PROCESS_CC_VISA;
           $card->invoiceNumber = 112345145;
