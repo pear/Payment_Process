@@ -175,10 +175,8 @@ class Payment_Process_Common extends Payment_Process {
          *         to do something more than simple mapping.
          */
         foreach ($this->_fieldMap as $generic => $specific) {
-            //$this->debug("Handling mapping from {$generic} to {$specific}");
             $func = '_handle'.ucfirst($generic);
             if (method_exists($this, $func)) {
-                //$this->debug("Calling {$func} to handle {$generic}");
                 $result = $this->$func();
                 if (PEAR::isError($result)) {
                     return $result;
@@ -191,10 +189,16 @@ class Payment_Process_Common extends Payment_Process {
                 // but it could.
                 if (!isset($this->_data[$specific])) {
                     $this->_data[$specific] = $this->$generic;
+
+                    // Form of payments data overrides those set in the 
+                    // Payment_Process_Common.
+                    if(isset($this->_payment->$generic))
+                    {
+                      $this->_data[$specific] = $this->_payment->$generic;
+                    }
                 }
             }
         }
-
 
         if ($this->_options['debug']) {
             echo '----------- PREPARE ----------'."\n";
