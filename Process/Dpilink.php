@@ -22,36 +22,36 @@ require_once 'Payment/Process/Common.php';
 //require_once 'HTTP/Request.php';
 require_once 'Net/Curl.php';
 
-// DPILink transaction types
+// Transfirst transaction types
 // Request authorization only - no funds are transferred.
-define('PAYMENT_PROCESS_ACTION_DPILINK_AUTH', 30);
+define('PAYMENT_PROCESS_ACTION_TRANSFIRST_AUTH', 30);
 // Transfer funds from a previous authorization.
-define('PAYMENT_PROCESS_ACTION_DPILINK_SETTLE', 40);
+define('PAYMENT_PROCESS_ACTION_TRANSFIRST_SETTLE', 40);
 // Authorize & transfer funds
-define('PAYMENT_PROCESS_ACTION_DPILINK_AUTHSETTLE', 32);
+define('PAYMENT_PROCESS_ACTION_TRANSFIRST_AUTHSETTLE', 32);
 // Debit the indicated amount to a previously-charged card.
-define('PAYMENT_PROCESS_ACTION_DPILINK_CREDIT', 20);
+define('PAYMENT_PROCESS_ACTION_TRANSFIRST_CREDIT', 20);
 // Cancel authorization
-define('PAYMENT_PROCESS_ACTION_DPILINK_VOID', 61);
+define('PAYMENT_PROCESS_ACTION_TRANSFIRST_VOID', 61);
 
-define('PAYMENT_PROCESS_RESULT_DPILINK_APPROVAL', 00);
-define('PAYMENT_PROCESS_RESULT_DPILINK_DECLINE', 05);
-define('PAYMENT_PROCESS_RESULT_DPILINK_INVALIDAMOUNT', 13);
-define('PAYMENT_PROCESS_RESULT_DPILINK_INVALIDCARDNO', 14);
-define('PAYMENT_PROCESS_RESULT_DPILINK_REENTER', 19);
+define('PAYMENT_PROCESS_RESULT_TRANSFIRST_APPROVAL', 00);
+define('PAYMENT_PROCESS_RESULT_TRANSFIRST_DECLINE', 05);
+define('PAYMENT_PROCESS_RESULT_TRANSFIRST_INVALIDAMOUNT', 13);
+define('PAYMENT_PROCESS_RESULT_TRANSFIRST_INVALIDCARDNO', 14);
+define('PAYMENT_PROCESS_RESULT_TRANSFIRST_REENTER', 19);
 
 // Map actions
-$GLOBALS['_Payment_Process_Dpilink'] = array(
-    PAYMENT_PROCESS_ACTION_NORMAL => PAYMENT_PROCESS_ACTION_DPILINK_AUTHSETTLE,
-    PAYMENT_PROCESS_ACTION_AUTHONLY => PAYMENT_PROCESS_ACTION_DPILINK_AUTH,
-    PAYMENT_PROCESS_ACTION_POSTAUTH => PAYMENT_PROCESS_ACTION_DPILINK_SETTLE
+$GLOBALS['_Payment_Process_Transfirst'] = array(
+    PAYMENT_PROCESS_ACTION_NORMAL => PAYMENT_PROCESS_ACTION_TRANSFIRST_AUTHSETTLE,
+    PAYMENT_PROCESS_ACTION_AUTHONLY => PAYMENT_PROCESS_ACTION_TRANSFIRST_AUTH,
+    PAYMENT_PROCESS_ACTION_POSTAUTH => PAYMENT_PROCESS_ACTION_TRANSFIRST_SETTLE
 );
 
 /**
- * Payment_Process_Dpilink
+ * Payment_Process_Transfirst
  *
- * This is a processor for TransFirst's DPILink merchant payment gateway.
- * (http://www.dpicorp.com/)
+ * This is a processor for TransFirst's merchant payment gateway, formerly known
+ * as DPILink. (http://www.transfirst.com/)
  *
  * *** WARNING ***
  * This is BETA code. While I have tested it and it appears to work for me, I
@@ -62,12 +62,12 @@ $GLOBALS['_Payment_Process_Dpilink'] = array(
  * @author Ian Eure <ieure@php.net>
  * @version @version@
  */
-class Payment_Process_Dpilink extends Payment_Process_Common {
+class Payment_Process_Transfirst extends Payment_Process_Common {
     /**
      * Front-end -> back-end field map.
      *
      * This array contains the mapping from front-end fields (defined in
-     * the Payment_Process class) to the field names DPILink requires.
+     * the Payment_Process class) to the field names Transfirst requires.
      *
      * @see _prepare()
      * @access private
@@ -101,7 +101,7 @@ class Payment_Process_Dpilink extends Payment_Process_Common {
      * @access private
      */
     var $_defaultOptions = array(
-        'authorizeUri' => "https://www.dpisecure.com/dpilink/authpd.asp"
+        'authorizeUri' => "https://epaysecure.transfirst.com/eLink/authpd.asp"
     );
 
     /**
@@ -126,7 +126,7 @@ class Payment_Process_Dpilink extends Payment_Process_Common {
      * @see Payment_Process::setOptions()
      * @return void
      */
-    function Payment_Process_Dpilink($options = false)
+    function Payment_Process_Transfirst($options = false)
     {
         $this->setOptions($options);
         $this->_makeRequired('login', 'password', 'action', 'invoiceNumber', 'customerId', 'amount', 'cardNumber', 'expDate');
@@ -171,7 +171,7 @@ class Payment_Process_Dpilink extends Payment_Process_Common {
         }
         $req->type = 'POST';
         $req->fields = $this->_prepareQueryString();
-        $req->userAgent = 'PEAR Payment_Process_Dpilink 0.1';
+        $req->userAgent = 'PEAR Payment_Process_Transfirst 0.1';
         $res = &$req->execute();
         $req->close();
         if (PEAR::isError($res)) {
@@ -186,7 +186,7 @@ class Payment_Process_Dpilink extends Payment_Process_Common {
 
         $response = trim($res);
         print "Response: {$response}\n";
-        $result = &Payment_Process_Result::factory('Dpilink', $response);
+        $result = &Payment_Process_Result::factory('Transfirst', $response);
         $result->_request = &$this;
         $this->_result = &$result;
 
@@ -217,7 +217,7 @@ class Payment_Process_Dpilink extends Payment_Process_Common {
     /**
      * Get transaction sequence.
      *
-     * 'Sequence' is what DPILink calls their transaction ID/approval code. This
+     * 'Sequence' is what Transfirst calls their transaction ID/approval code. This
      * function returns that code from a processed transaction.
      *
      * @return mixed  Sequence ID, or PEAR_Error if the transaction hasn't been
@@ -290,7 +290,7 @@ class Payment_Process_Dpilink extends Payment_Process_Common {
     /**
      * Validate the merchant account login.
      *
-     * The DPILink docs specify that the login is exactly eight digits.
+     * The Transfirst docs specify that the login is exactly eight digits.
      *
      * @access private
      * @return boolean true if valid, false otherwise
@@ -307,7 +307,7 @@ class Payment_Process_Dpilink extends Payment_Process_Common {
     /**
      * Validate the merchant account password.
      *
-     * The DPILink docs specify that the password is a string between 6 and 10
+     * The Transfirst docs specify that the password is a string between 6 and 10
      * characters in length.
      *
      * @access private
@@ -370,14 +370,14 @@ class Payment_Process_Dpilink extends Payment_Process_Common {
     }
 }
 
-class Payment_Process_Result_Dpilink extends Payment_Process_Result {
+class Payment_Process_Result_Transfirst extends Payment_Process_Result {
 
     /**
-     * DPILink status codes.
+     * Transfirst status codes.
      *
-     * This array holds every possible status returned by the DPILink gateway.
+     * This array holds every possible status returned by the Transfirst gateway.
      *
-     * See the DPILink documentation for more details on each response.
+     * See the Transfirst documentation for more details on each response.
      *
      * @see getStatusText()
      * @access private
@@ -416,7 +416,7 @@ class Payment_Process_Result_Dpilink extends Payment_Process_Result {
         '96' => "System malfunction",
         '98' => "No matching transaction to void",
         '99' => "System timeout",
-        'L0' => "General System Error - Contact DPI Account Exec.",
+        'L0' => "General System Error - Contact Transfirst Account Exec.",
         'L1' => "Invalid or missing account number",
         'L2' => "Invalid or missing password",
         'L3' => "Expiration Date is not formatted correctly",
@@ -483,20 +483,20 @@ class Payment_Process_Result_Dpilink extends Payment_Process_Result {
     );
     
     var $_fieldMap = array(
-        0  => '_null',                    // DPI Internal Message Format
-        1  => '_acctNo',                  // DPI Account number
+        0  => '_null',                    // TF Internal Message Format
+        1  => '_acctNo',                  // TF Account number
         2  => '_transactionCode',         // The transaction code from the request message passed by the original request.
-        3  => 'transactionId',            // Assigned by DPI used to uniquely identify transaction.
+        3  => 'transactionId',            // Assigned by TF used to uniquely identify transaction.
         4  => '_mailOrder',               // Mail Order Identifier
         5  => '_ccAcctNo',                // The credit card account number passed by the original request.
         6  => '_ccExpDate',               // The Expiration Date passed by the original request. The field is formatted YYMM (Year, Month)
-        7  => '_authAmount',              // An eight-digit value, which denotes the dollar amount passed to DPI, without a decimal. ( DDDDDDCC )
+        7  => '_authAmount',              // An eight-digit value, which denotes the dollar amount passed to TF, without a decimal. ( DDDDDDCC )
         8  => '_authDate',                // A six-digit value, which denotes the date the authorization, was attempted.  The field is formatted YYMMDD. (Year, Month, Date)
         9  => '_authTime',                // A six-digit value, which denotes the time the authorization, was attempted.  The field is formatted HHMMSS.  (Hour, Minute, Second)
         10 => 'messageCode',              // A two-digit value, which indicates the result of the authorization request.  Used to determine if the card was authorized, declined or timed out.
         11 => 'customerId',               // The Customer Number passed by the original request
         12 => 'invoiceNumber',            // The Order Number passed by the original request.
-        13 => '_urn',                     // A number that uniquely identifies an individual transaction.  Assigned by DPI and can be used when referencing a specific transaction.
+        13 => '_urn',                     // A number that uniquely identifies an individual transaction.  Assigned by TF and can be used when referencing a specific transaction.
         14 => '_authResponse',            // A number provided by the issuing bank indicating the authorization is valid and funds have been reserved for transfer to the merchant’s account at a later time.
         15 => '_authSource',              // A code that defines the source where an authorization was captured.
         16 => '_authCharacteristic',      // A code that defines the qualification level for the authorized transaction.
@@ -515,7 +515,7 @@ class Payment_Process_Result_Dpilink extends Payment_Process_Result {
      * @param  string  $rawResponse  The raw response from the gateway
      * @return mixed boolean true on success, PEAR_Error on failure
      */
-    function Payment_Process_Result_Dpilink($rawResponse)
+    function Payment_Process_Result_Transfirst($rawResponse)
     {
         $res = $this->_validateResponse($rawResponse);
         if (!$res || PEAR::isError($res)) {
@@ -545,7 +545,7 @@ class Payment_Process_Result_Dpilink extends Payment_Process_Result {
     }
 
     /**
-     * Parse DPILink R1 response string.
+     * Parse Transfirst (DPILink) R1 response string.
      *
      * This function parses the response the gateway sends back, which is in
      * pipe-delimited format.
