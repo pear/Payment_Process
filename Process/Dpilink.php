@@ -350,9 +350,88 @@ class Payment_Process_Dpilink extends Payment_Process {
         }
         return false;
     }
+
+    /**
+     * Validate the invoice number.
+     *
+     * Invoice number must be a 5-character long alphanumeric string.
+     *
+     * @return boolean true on success, false otherwise
+     */
+    function _validateInvoiceNumber()
+    {
+    	$opts = array(
+        	'format' => VALIDATE_NUM . VALIDATE_ALPHA,
+            'min_length' => 5,
+            'max_length' => 5
+        );
+    	return Validate::string($this->invoiceNumber, $opts);
+    }
+
+    /**
+     * Validate the invoice number.
+     *
+     * Invoice no. must be a 15-character long alphanumeric string.
+     *
+     * @return boolean true on success, false otherwise
+     */
+    function _validateCustomerId()
+    {
+    	$opts = array(
+        	'format' => VALIDATE_NUM . VALIDATE_ALPHA,
+            'min_length' => 15,
+            'max_length' => 15
+        );
+		return Validate::string($this->customerId, $opts);
+    }
+
+    /**
+     * Validate the charge amount.
+     *
+     * Charge amount must be 8 characters long, double-precision.
+     *
+     * @return boolean true on success, false otherwise
+     */
+    function _validateAmount()
+    {
+		$opts = array(
+        	'decimal' => '.',
+            'dec_prec' => 2,
+            'min' => 1.00,
+            'max' => 99999.99
+        );
+        return Validate::number($this->amount, $opts);
+    }
+
+    /**
+     * Validate the zip code.
+     *
+     * The zip is optional, but is required if AVS is enabled.
+     *
+     * @return boolean true on success, false otherwise
+     */
+    function _validateZip()
+    {
+    	if (isset($this->zip)) {
+            $opts = array(
+                'format' => VALIDATE_NUM . VALIDATE_ALPHA,
+                'min_length' => 0,
+                'max_length' => 9
+            );
+            return Validate::string($this->zip, $opts);
+        }
+        return true;
+    }
 }
 
 class Payment_Process_Result_Dpilink extends Payment_Process_Result {
+	/**
+     * The raw response body from the gateway.
+     *
+     * @access private
+     * @type string
+     * @see setResponse()
+     */
     var $_responseBody;
 
     /**
@@ -416,10 +495,25 @@ class Payment_Process_Result_Dpilink extends Payment_Process_Result {
         'V9' => "Already posted"
     );
 
+    /**
+     * Set the response from the gateway.
+     *
+     * @param  string  $resp  The raw response from the gateway
+     * @return mixed boolean true on success, PEAR_Error on failure
+     */
     function setResponse($resp)
     {
-    	$this->_responseBody = $resp;
-        $this->_parseResponse();
+
+        $res = $this->_validateResponse($resp);
+        if (!$res || PEAR::isError($res)) {
+            if (!$res) {
+            	$res = PEAR::raiseError("Unable to validate response body");
+            }
+            return $res;
+        }
+
+        $this->_responseBody = $resp;
+        $res = $this->_parseResponse();
     }
 
     /**
@@ -434,14 +528,76 @@ class Payment_Process_Result_Dpilink extends Payment_Process_Result {
     }
 
     /**
-     * Parse response string.
+     * Parse the response body.
+     *
+     * This is just a wrapper which chooses the correct parser for the reponse
+     * version.
+     *
+     * @see _parseR1Response()
+     * @return mixed boolean true on success, PEAR_Error on failure
+     */
+    function _parseResponse()
+    {
+    	$version = $this->_responseVersion();
+        $func = '_parse'.$version.'Response';
+        if (!method_exists($this, $func)) {
+        	return PEAR::raiseError("Unable to parse response version $version");
+        }
+
+        return $this->$func();
+    }
+
+    /**
+     * Validate the response body.
+     *
+     * This is just a wrapper which chooses the correct validator for the reponse
+     * version.
+     *
+     * @see _validateR1Response()
+     * @return mixed boolean true on success, PEAR_Error on failure
+     */
+    function _validateResponse($resp)
+    {
+    	$version = $this->_responseVersion($resp);
+    	$func = '_validate'.$version.'Response';
+        if (!method_exists($this, $func)) {
+        	return PEAR::raiseError("Unable to validate response version $version");
+        }
+
+        return $this->$func($resp);
+    }
+
+    /**
+     * Get the response format version.
+     *
+     * @return string Response version
+     */
+    function _responseVersion($resp = false)
+    {
+    	$resp = $resp ? $resp : $this->_responseBody;
+    	list($version) = split('\|', $resp);
+
+        /* According to the documentation, the first field should containt the
+         * response format version. During testing, however, I got a blank field.
+         * The docs also say that it's a numeric field, but should contain 'R1.'
+         * Hmm.
+         * Sometimes the version is also 'R '. Sigh.
+         */
+        if (!strlen($version) || $version == 'R ')
+        	$version = 'R1';
+
+        return $version;
+    }
+
+    /**
+     * Parse R1 response string.
      *
      * This function parses the response the gateway sends back, which is in
      * pipe-delimited format.
      *
      * @return void
      */
-    function _parseResponse()
+    function _parseR1Response()
     {
         list(
         	$this->_format, $this->_acctNo, $this->_transactionCode,
@@ -454,8 +610,33 @@ class Payment_Process_Result_Dpilink extends Payment_Process_Result {
             $this->_avsResponse, $this->_storeNum, $this->_cvv2
         ) = split('\|', $this->_responseBody);
 
-        $this->message = $this->_getStatusText($this->_transactionStatus);
+        $this->_setPublicFields();
+    }
 
+    /**
+     * Validate a R1 response.
+     *
+     * @return boolean
+     */
+    function _validateR1Response($resp)
+    {
+    	if (strlen($resp) > 160)
+        	return false;
+
+        // FIXME - add more tests
+
+		return true;
+    }
+
+    /**
+     * Set the publicly visible fields from the private ones.
+     *
+     * @return void
+     */
+    function _setPublicFields()
+    {
+        $this->message = $this->_getStatusText($this->_transactionStatus);
+        $this->transactionId = $this->_transactionId;
         switch ($this->_transactionStatus) {
         	case '00':
             	$this->code = PAYMENT_PROCESS_RESULT_APPROVED;
