@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
-<!-- $Id: package.xml,v 1.21 2005-03-22 09:06:11 ieure Exp $ -->
+<!-- $Id: package.xml,v 1.22 2005-03-22 19:03:18 ieure Exp $ -->
 <package version="1.0">
     <name>Payment_Process</name>
     <summary>Unified payment processor</summary>
@@ -35,6 +35,7 @@
             * Closed bug #2896
             * Added a Bibit driver written by Robin Ericsson <lobbin@localhost.nu>
             * Remove 'Offline' driver, as it depended on Validate code which doesn't exist in any released version of the Validate package. Use the 'Dummy' driver for testing.
+            * Fix typo in `RESULT_INVALID' constant declaration and use. (Bug #3919)
         ]]></notes>
         <filelist>
             <dir name="/" baseinstalldir="Payment">
