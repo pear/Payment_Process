@@ -531,10 +531,12 @@ class Payment_Process_Result {
      */
     function Payment_Process_Result($code = false, $message = false)
     {
-        if ($code)
+        if ($code) {
             $this->code = $code;
-		if ($message)
+        }
+		if ($message) {
             $this->message = $message;
+        }
     }
 
     /**
