@@ -399,6 +399,7 @@ class Payment_Process {
     /**
      * Determines if a field exists.
      *
+     * @author Ian Eure <ieure@php.net>
      * @param  string  $field  Field to check
      * @return boolean true if field exists, false otherwise
      */
@@ -413,6 +414,8 @@ class Payment_Process {
      * This function returns an array containing all the possible fields which
      * may be set.
      *
+     * @author Ian Eure <ieure@php.net>
+     * @access public
      * @return array Array of valid fields.
      */
     function getFields()
@@ -429,6 +432,7 @@ class Payment_Process {
     /**
      * Set class options.
      *
+     * @author Ian Eure <ieure@php.net>
      * @param  Array  $options         Options to set
      * @param  Array  $defaultOptions  Default options
      * @return void
@@ -442,6 +446,7 @@ class Payment_Process {
     /**
      * Get an option value.
      *
+     * @author Ian Eure <ieure@php.net>
      * @param  string  $option  Option to get
      * @return mixed Option value
      */
@@ -449,6 +454,20 @@ class Payment_Process {
     {
         return @$this->_options[$option];
     }
+
+    /**
+     * Set an option value
+     *
+     * @author Joe Stump <joe@joestump.net>
+     * @access public
+     * @param string $option Option name to set
+     * @param mixed $value Value to set
+     */
+    function setOption($option,$value)
+    {
+        return ($this->_options[$option] = $value);
+    }
+
 
     /**
      * Validate a credit card number.
