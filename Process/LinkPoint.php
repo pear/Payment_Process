@@ -21,11 +21,12 @@
 require_once 'Payment/Process.php';
 require_once 'Payment/Process/Common.php';
 require_once 'Net/Curl.php';
+require_once 'XML/Parser.php';
 
 $GLOBALS['_Payment_Process_LinkPoint'] = array(
-    PAYMENT_PROCESS_ACTION_NORMAL   => 'AUTH_CAPTURE',
-    PAYMENT_PROCESS_ACTION_AUTHONLY => 'AUTH_ONLY',
-    PAYMENT_PROCESS_ACTION_POSTAUTH => 'PRIOR_AUTH_CAPTURE'
+    PAYMENT_PROCESS_ACTION_NORMAL   => 'SALE',
+    PAYMENT_PROCESS_ACTION_AUTHONLY => 'PREAUTH',
+    PAYMENT_PROCESS_ACTION_POSTAUTH => 'POSTAUTH'
 );
 
 /**
@@ -54,23 +55,22 @@ class Payment_Process_LinkPoint extends Payment_Process_Common {
      */
     var $_fieldMap = array(
         // Required
-        'login' => 'x_login',
-        'password' => 'x_password',
-        'action' => 'x_type',
-        'invoiceNumber' => 'x_invoice_num',
+        'login' => 'configfile',
+        'action' => 'ordertype',
+        'invoiceNumber' => 'oid',
         'customerId' => 'x_cust_id',
-        'amount' => 'x_amount',
+        'amount' => 'chargetotal',
         'name' => '',
-        'zip' => 'x_zip',
+        'zip' => 'zip',
         // Optional
-        'company' => 'x_company',
-        'address' => 'x_address',
-        'city' => 'x_city',
-        'state' => 'x_state',
-        'country' => 'x_country',
-        'phone' => 'x_phone',
-        'email' => 'x_email',
-        'ip' => 'x_customer_ip',
+        'company' => 'company',
+        'address' => 'address1',
+        'city' => 'city',
+        'state' => 'state',
+        'country' => 'country',
+        'phone' => 'phone',
+        'email' => 'email',
+        'ip' => 'ip',
     );
 
     /**
@@ -83,19 +83,21 @@ class Payment_Process_LinkPoint extends Payment_Process_Common {
 
            'CreditCard' => array(
 
-                    'cardNumber' => 'x_card_num',
-                    'cvv' => 'x_card_code',
-                    'expDate' => 'x_exp_date'
+                    'cardNumber' => 'cardnumber',
+                    'cvv' => 'cvm',
+                    'expDate' => 'expDate'
 
            ),
 
            'eCheck' => array(
 
-                    'routingCode' => 'x_bank_aba_code',
-                    'accountNumber' => 'x_bank_acct_num',
-                    'type' => 'x_bank_acct_type',
-                    'bankName' => 'x_bank_name',
-                    'name' => 'x_bank_acct_name'
+                    'routingCode' => 'routing',
+                    'accountNumber' => 'account',
+                    'type' => 'type',
+                    'bankName' => 'bank',
+                    'name' => 'name',
+                    'driversLicense' => 'dl',
+                    'driversLicenseState' => 'dlstate'
 
            )
     );
@@ -107,13 +109,9 @@ class Payment_Process_LinkPoint extends Payment_Process_Common {
      * @access private
      */
     var $_defaultOptions = array(
-         'authorizeUri' => 'https://secure.authorize.net/gateway/transact.dll',
-         'x_delim_data' => 'TRUE',
-         'x_relay' => 'FALSE',
-         'x_email_customer' => 'FALSE',
-         'x_test_request' => 'FALSE',
-         'x_currency_code' => 'USD',
-         'x_version' => '3.1'
+         'host' => 'secure.linkpt.net',
+         'port' => '1129', 
+         'result' => 'LIVE'
     );
 
     /**
@@ -150,7 +148,12 @@ class Payment_Process_LinkPoint extends Payment_Process_Common {
      */
     function &process()
     {
-        if($this->_options['debug'] === true) {
+        if (!strlen($this->_options['keyfile']) || 
+            !file_exists($this->_options['keyfile'])) {
+            return PEAR::raiseError('Invalid key file');
+        }
+
+        if ($this->_options['debug'] === true) {
             echo "----------- DATA -----------\n";
             print_r($this->_data);
             echo "----------- DATA -----------\n";
@@ -158,7 +161,7 @@ class Payment_Process_LinkPoint extends Payment_Process_Common {
 
         // Sanity check
         $result = $this->validate();
-        if(PEAR::isError($result)) {
+        if (PEAR::isError($result)) {
             return $result;
         }
 
@@ -171,19 +174,27 @@ class Payment_Process_LinkPoint extends Payment_Process_Common {
         // Don't die partway through
         PEAR::pushErrorHandling(PEAR_ERROR_RETURN);
 
-        if($this->_options['debug'] === true) {
+        if ($this->_options['debug'] === true) {
             print_r($this->_options);
         }
 
-        $fields = $this->_prepareQueryString();
-        $curl = & new Net_Curl($this->_options['authorizeUri']);
+        $xml = $this->_prepareQueryString();
+        if (PEAR::isError($xml)) {
+            return $xml;
+        }
+
+        $url = 'https://'.$this->_options['host'].':'.$this->_options['port'].
+               '/LSGSXML';
+
+        $curl = & new Net_Curl($url);
         if (PEAR::isError($curl)) {
             PEAR::popErrorHandling();
             return $curl;
         }
 
         $curl->type = 'PUT';
-        $curl->fields = $fields;
+        $curl->fields = $xml;
+        $curl->sslCert = $this->_options['keyfile'];
         if($this->_options['debug'] === true) {
             echo "------------ CURL FIELDS -------------\n";
             print_r($curl->fields); 
@@ -207,7 +218,9 @@ class Payment_Process_LinkPoint extends Payment_Process_Common {
         // Restore error handling
         PEAR::popErrorHandling();
 
-        $response = &Payment_Process_Result::factory($this->_driver,$this->_responseBody);
+        $response = &Payment_Process_Result::factory($this->_driver,
+                                                     $this->_responseBody);
+
         if(!PEAR::isError($response))
         {
           $response->_request = & $this;
@@ -218,15 +231,17 @@ class Payment_Process_LinkPoint extends Payment_Process_Common {
 
     }
 
+    // {{{ _createXMLRequest()
     /**
-     * Get (completed) transaction status.
-     *
-     * @return string Two-digit status returned from gateway.
-     */
-    function getStatus()
+    * _createXMLRequest
+    *
+    * @author Joe Stump <joe@joestump.net>
+    * @access private
+    */
+    function _createXMLRequest() 
     {
-        return false;
     }
+    // }}} 
 
     /**
      * Prepare the POST query string.
@@ -239,62 +254,76 @@ class Payment_Process_LinkPoint extends Payment_Process_Common {
 
         $data = array_merge($this->_options,$this->_data);
 
+        $xml  = '<!-- Payment_Process order -->'."\n";
+        $xml .= '<order>'."\n";
+        $xml .= '<merchantinfo>'."\n";
+        $xml .= '  <configfile>'.$data['configfile'].'</configfile>'."\n";
+        $xml .= '  <keyfile>'.$data['keyfile'].'</keyfile>'."\n";
+        $xml .= '  <host>'.$data['authorizeUri'].'</host>'."\n";
+        $xml .= '  <appname>PEAR Payment_Process</appname>'."\n";
+        $xml .= '</merchantinfo>'."\n";
+        $xml .= '<orderoptions>'."\n";
+        $xml .= '  <ordertype>'.$data['ordertype'].'</ordertype>'."\n";
+        $xml .= '  <result>'.$data['result'].'</result>'."\n";
+        $xml .= '</orderoptions>'."\n";
+        $xml .= '<payment>'."\n";
+        $xml .= '  <chargetotal>'.$data['chargetotal'].'</chargetotal>'."\n";
+        $xml .= '</payment>'."\n";
+
         // Set payment method to eCheck if our payment type is eCheck.
         // Default is Credit Card.
         $data['x_method'] = 'CC';
-        if($this->_payment->getType() == 'eCheck')
+        switch ($this->_payment->getType()) 
         {
-          $data['x_method'] = 'ECHECK';
-          switch($this->_payment->type)
-          {
-            case PAYMENT_PROCESS_CK_CHECKING:
-              $data['x_bank_acct_type'] = 'CHECKING';
-              break;
-            case PAYMENT_PROCESS_CK_SAVINGS:
-              $data['x_bank_acct_type'] = 'SAVINGS';
-              break;
-          }
+            case 'eCheck':
+                return PEAR::raiseError('eCheck not currently supported',
+                                        PAYMENT_PROCESS_ERROR_NOTIMPLEMENTED);
+
+                $xml .= '<telecheck>'."\n";
+                $xml .= '  <routing></routing>'."\n";
+                $xml .= '  <account></account>'."\n";
+                $xml .= '  <checknumber></checknumber>'."\n";
+                $xml .= '  <bankname></bankname>'."\n";
+                $xml .= '  <bankstate></bankstate>'."\n";
+                $xml .= '  <dl></dl>'."\n";
+                $xml .= '  <dlstate></dlstate>'."\n";
+                $xml .= '  <accounttype>pc|ps|bc|bs</accounttype>'."\n";
+                $xml .= '<telecheck>'."\n";
+                break;
+            case 'CreditCard':
+                $xml .= '<creditcard>'."\n";
+                $xml .= '  <cardnumber>'.$data['cardnumber'].'</cardnumber>'."\n";
+                list($month,$year) = explode('/',$data['expDate']);
+                if (strlen($year) == 4) {
+                    $year = substr($year,2);
+                }
+
+                $xml .= '  <cardexpmonth>'.$month.'</cardexpmonth>'."\n";
+                $xml .= '  <cardexpyear>'.$year.'</cardexpyear>'."\n";
+                if (strlen($data['cvm'])) {
+                    $xml .= '  <cvmvalue>'.$data['cvm'].'</cvmvalue>'."\n";
+                    $xml .= '  <cvmindicator>provided</cvmindicator>'."\n";
+                }
+                $xml .= '</creditcard>'."\n";
         }
+        $xml .= '</order>'."\n";
 
         if($this->_options['debug'] === true) {
             echo "--------- PREPARE QS DATA -----------\n";
-            print_r($this->_data);
             print_r($data);
+            echo "\n".$xml."\n";
             echo "--------- PREPARE QS DATA -----------\n";
         }
-        $return = array();
-        $sets = array();
-        foreach ($data as $key => $val) {
-            if (eregi('^x_',$key) && strlen($val)) {
-                $return[$key] = $val;
-                $sets[] = $key.'='.urlencode($val);
-            }
-        }
 
-        $this->_options['authorizeUri'] .= '?'.implode('&',$sets);
-
-        return $return;
-    }
-
-    /**
-    * _handleName
-    *
-    * @author Joe Stump <joe@joestump.net>
-    * @access private
-    */
-    function _handleName()
-    {
-      $parts = explode(' ',$this->_payment->name);
-      $this->_data['x_first_name'] = array_shift($parts);
-      $this->_data['x_last_name'] = implode(' ',$parts); 
+        return $xml;
     }
 }
 
 class Payment_Process_Result_LinkPoint extends Payment_Process_Result {
 
-    var $_statusCodeMap = array('1' => PAYMENT_PROCESS_RESULT_APPROVED,
-                                '2' => PAYMENT_PROCESS_RESULT_DECLINED,
-                                '3' => PAYMENT_PROCESS_RESULT_OTHER);
+    var $_statusCodeMap = array('APPROVED' => PAYMENT_PROCESS_RESULT_APPROVED,
+                                'DECLINED' => PAYMENT_PROCESS_RESULT_DECLINED,
+                                'FRAUD' => PAYMENT_PROCESS_RESULT_FRAUD);
 
     /**
      * LinkPoint status codes
@@ -307,220 +336,56 @@ class Payment_Process_Result_LinkPoint extends Payment_Process_Result {
      * @see getStatusText()
      * @access private
      */
-    var $_statusCodeMessages = array(
-          '1' => 'This transaction has been approved.',
-          '2' => 'This transaction has been declined.',
-          '3' => 'This transaction has been declined.',
-          '4' => 'This transaction has been declined.',
-          '5' => 'A valid amount is required.',
-          '6' => 'The credit card number is invalid.',
-          '7' => 'The credit card expiration date is invalid.',
-          '8' => 'The credit card has expired.',
-          '9' => 'The ABA code is invalid.',
-          '10' => 'The account number is invalid.',
-          '11' => 'A duplicate transaction has been submitted.',
-          '12' => 'An authorization code is required but not present.',
-          '13' => 'The merchant Login ID is invalid or the account is inactive.',
-          '14' => 'The Referrer or Relay Response URL is invalid.',
-          '15' => 'The transaction ID is invalid.',
-          '16' => 'The transaction was not found.',
-          '17' => 'The merchant does not accept this type of credit card.',
-          '18' => 'ACH transactions are not accepted by this merchant.',
-          '19' => 'An error occurred during processing. Please try again in 5 minutes.',
-          '20' => 'An error occurred during processing. Please try again in 5 minutes.',
-          '21' => 'An error occurred during processing. Please try again in 5 minutes.',
-          '22' => 'An error occurred during processing. Please try again in 5 minutes.',
-          '23' => 'An error occurred during processing. Please try again in 5 minutes.',
-          '24' => 'The Nova Bank Number or Terminal ID is incorrect. Call Merchant Service Provider.',
-          '25' => 'An error occurred during processing. Please try again in 5 minutes.',
-          '26' => 'An error occurred during processing. Please try again in 5 minutes.',
-          '27' => 'The transaction resulted in an AVS mismatch. The address provided does not match billing address of cardholder.',
-          '28' => 'The merchant does not accept this type of credit card.',
-          '29' => 'The PaymentTech identification numbers are incorrect. Call Merchant Service Provider.',
-          '30' => 'The configuration with the processor is invalid. Call Merchant Service Provider.',
-          '31' => 'The FDC Merchant ID or Terminal ID is incorrect. Call Merchant Service Provider.',
-          '32' => 'The merchant password is invalid or not present.',
-          '33' => 'Missing required field',
-          '34' => 'The VITAL identification numbers are incorrect. Call Merchant Service Provider.',
-          '35' => 'An error occurred during processing. Call Merchant Service Provider.',
-          '36' => 'The authorization was approved, but settlement failed.',
-          '37' => 'The credit card number is invalid.',
-          '38' => 'The Global Payment System identification numbers are incorrect. Call Merchant Service Provider.',
-          '39' => 'The supplied currency code is either invalid, not supported, not allowed for this merchant or doesn\'t have an exchange rate.',
-          '40' => 'This transaction must be encrypted.',
-          '41' => 'FraudScreen.net fraud score is higher than threshold set by merchant',
-          '42' => 'There is missing or invalid information in a required field.',
-          '43' => 'The merchant was incorrectly set up at the processor. Call your Merchant Service Provider.',
-          '44' => 'This transaction has been declined. Card Code filter error!',
-          '45' => 'This transaction has been declined. Card Code / AVS filter error!',
-          '46' => 'Your session has expired or does not exist. You must log in to continue working.',
-          '47' => 'The amount requested for settlement may not be greater than the original amount authorized.',
-          '48' => 'This processor does not accept partial reversals.',
-          '49' => 'A transaction amount greater than $99,999 will not be accepted.',
-          '50' => 'This transaction is awaiting settlement and cannot be refunded.',
-          '51' => 'The sum of all credits against this transaction is greater than the original transaction amount.',
-          '52' => 'The transaction was authorized, but the client could not be notified; the transaction will not be settled.',
-          '53' => 'The transaction type was invalid for ACH transactions.',
-          '54' => 'The referenced transaction does not meet the criteria for issuing a credit.',
-          '55' => 'The sum of credits against the referenced transaction would exceed the original debit amount.',
-          '56' => 'This merchant accepts ACH transactions only; no credit card transactions are accepted.',
-          '57' => 'An error occurred in processing. Please try again in 5 minutes.',
-          '58' => 'An error occurred in processing. Please try again in 5 minutes.',
-          '59' => 'An error occurred in processing. Please try again in 5 minutes.',
-          '60' => 'An error occurred in processing. Please try again in 5 minutes.',
-          '61' => 'An error occurred in processing. Please try again in 5 minutes.',
-          '62' => 'An error occurred in processing. Please try again in 5 minutes.',
-          '63' => 'An error occurred in processing. Please try again in 5 minutes.',
-          '64' => 'The referenced transaction was not approved.',
-          '65' => 'This transaction has been declined.',
-          '66' => 'The transaction did not meet gateway security guidelines.',
-          '67' => 'The given transaction type is not supported for this merchant.',
-          '68' => 'The version parameter is invalid.',
-          '69' => 'The transaction type is invalid. The value submitted in x_type was invalid.',
-          '70' => 'The transaction method is invalid.',
-          '71' => 'The bank account type is invalid.',
-          '72' => 'The authorization code is invalid.',
-          '73' => 'The driver\'s license date of birth is invalid.',
-          '74' => 'The duty amount is invalid.',
-          '75' => 'The freight amount is invalid.',
-          '76' => 'The tax amount is invalid.',
-          '77' => 'The SSN or tax ID is invalid.',
-          '78' => 'The Card Code (CVV2/CVC2/CID) is invalid.',
-          '79' => 'The driver\'s license number is invalid.',
-          '80' => 'The driver\'s license state is invalid.',
-          '81' => 'The merchant requested an integration method not compatible with the AIM API.',
-          '82' => 'The system no longer supports version 2.5; requests cannot be posted to scripts.',
-          '83' => 'The requested script is either invalid or no longer supported.',
-          '84' => 'This reason code is reserved or not applicable to this API.',
-          '85' => 'This reason code is reserved or not applicable to this API.',
-          '86' => 'This reason code is reserved or not applicable to this API.',
-          '87' => 'This reason code is reserved or not applicable to this API.',
-          '88' => 'This reason code is reserved or not applicable to this API.',
-          '89' => 'This reason code is reserved or not applicable to this API.',
-          '90' => 'This reason code is reserved or not applicable to this API.',
-          '91' => 'Version 2.5 is no longer supported.',
-          '92' => 'The gateway no longer supports the requested method of integration.',
-          '93' => 'A valid country is required.',
-          '94' => 'The shipping state or country is invalid.',
-          '95' => 'A valid state is required.',
-          '96' => 'This country is not authorized for buyers.',
-          '97' => 'This transaction cannot be accepted.',
-          '98' => 'This transaction cannot be accepted.',
-          '99' => 'This transaction cannot be accepted.',
-          '100' => 'The eCheck type is invalid.',
-          '101' => 'The given name on the account and/or the account type does not match the actual account.',
-          '102' => 'This request cannot be accepted.',
-          '103' => 'This transaction cannot be accepted.',
-          '104' => 'This transaction is currently under review.',
-          '105' => 'This transaction is currently under review.',
-          '106' => 'This transaction is currently under review.',
-          '107' => 'This transaction is currently under review.',
-          '108' => 'This transaction is currently under review.',
-          '109' => 'This transaction is currently under review.',
-          '110' => 'This transaction is currently under review.',
-          '111' => 'A valid billing country is required.',
-          '112' => 'A valid billing state/provice is required.',
-          '116' => 'The authentication indicator is invalid.',
-          '117' => 'The cardholder authentication value is invalid.',
-          '118' => 'The combination of authentication indicator and cardholder authentication value is invalid.',
-          '119' => 'Transactions having cardholder authentication values cannot be marked as recurring.',
-          '120' => 'An error occurred during processing. Please try again.',
-          '121' => 'An error occurred during processing. Please try again.',
-          '122' => 'An error occurred during processing. Please try again.',
-          '127' => 'The transaction resulted in an AVS mismatch. The address provided does not match billing address of cardholder.',
-          '141' => 'This transaction has been declined.',
-          '145' => 'This transaction has been declined.',
-          '152' => 'The transaction was authorized, but the client could not be notified; the transaction will not be settled.',
-          '165' => 'This transaction has been declined.',
-          '170' => 'An error occurred during processing. Please contact the merchant.',
-          '171' => 'An error occurred during processing. Please contact the merchant.',
-          '172' => 'An error occurred during processing. Please contact the merchant.',
-          '173' => 'An error occurred during processing. Please contact the merchant.',
-          '174' => 'The transaction type is invalid. Please contact the merchant.',
-          '175' => 'The processor does not allow voiding of credits.',
-          '180' => 'An error occurred during processing. Please try again.',
-          '181' => 'An error occurred during processing. Please try again.',
-          '200' => 'This transaction has been declined.',
-          '201' => 'This transaction has been declined.',
-          '202' => 'This transaction has been declined.',
-          '203' => 'This transaction has been declined.',
-          '204' => 'This transaction has been declined.',
-          '205' => 'This transaction has been declined.',
-          '206' => 'This transaction has been declined.',
-          '207' => 'This transaction has been declined.',
-          '208' => 'This transaction has been declined.',
-          '209' => 'This transaction has been declined.',
-          '210' => 'This transaction has been declined.',
-          '211' => 'This transaction has been declined.',
-          '212' => 'This transaction has been declined.',
-          '213' => 'This transaction has been declined.',
-          '214' => 'This transaction has been declined.',
-          '215' => 'This transaction has been declined.',
-          '216' => 'This transaction has been declined.',
-          '217' => 'This transaction has been declined.',
-          '218' => 'This transaction has been declined.',
-          '219' => 'This transaction has been declined.',
-          '220' => 'This transaction has been declined.',
-          '221' => 'This transaction has been declined.',
-          '222' => 'This transaction has been declined.',
-          '223' => 'This transaction has been declined.',
-          '224' => 'This transaction has been declined.'
-    );
+    var $_statusCodeMessages = array();
 
     var $_avsCodeMap = array(
-        'A' => PAYMENT_PROCESS_AVS_MISMATCH,
-        'B' => PAYMENT_PROCESS_AVS_ERROR,
-        'E' => PAYMENT_PROCESS_AVS_ERROR,
-        'G' => PAYMENT_PROCESS_AVS_NOAPPLY,
-        'N' => PAYMENT_PROCESS_AVS_MISMATCH,
-        'P' => PAYMENT_PROCESS_AVS_NOAPPLY,
-        'R' => PAYMENT_PROCESS_AVS_ERROR,
-        'S' => PAYMENT_PROCESS_AVS_ERROR,
-        'U' => PAYMENT_PROCESS_AVS_ERROR,
-        'W' => PAYMENT_PROCESS_AVS_MISMATCH,
-        'X' => PAYMENT_PROCESS_AVS_MATCH,
-        'Y' => PAYMENT_PROCESS_AVS_MATCH,
-        'Z' => PAYMENT_PROCESS_AVS_MISMATCH
+        'YY' => PAYMENT_PROCESS_AVS_MATCH,
+        'YN' => PAYMENT_PROCESS_AVS_MISMATCH,
+        'YX' => PAYMENT_PROCESS_AVS_ERROR,
+        'NY' => PAYMENT_PROCESS_AVS_MISMATCH,
+        'XY' => PAYMENT_PROCESS_AVS_MISMATCH,
+        'NN' => PAYMENT_PROCESS_AVS_MISMATCH,
+        'NX' => PAYMENT_PROCESS_AVS_MISMATCH,
+        'XN' => PAYMENT_PROCESS_AVS_MISMATCH,
+        'XX' => PAYMENT_PROCESS_AVS_ERROR
     );
 
     var $_avsCodeMessages = array(
-        'A' => 'Address matches, ZIP does not',
-        'B' => 'Address information not provided',
-        'E' => 'AVS Error',
-        'G' => 'Non-U.S. Card Issuing Bank',
-        'N' => 'No match',
-        'P' => 'AVS not applicable',
-        'R' => 'Retry - System unavailable or timeout',
-        'S' => 'Service not supported by issuer',
-        'U' => 'Address information unavailable',
-        'W' => '9-digit zip matches, Address (street) does not',
-        'X' => 'Address and 9-digit zip match',
-        'Y' => 'Address and 5-digit zip match',
-        'Z' => '5-digit zip matches, Address (street) does not'
+        'YY' => 'Address matches, zip code matches',
+        'YN' => 'Address matches, zip code does not match',
+        'YX' => 'Address matches, zip code comparison not available',
+        'NY' => 'Address does not match, zip code matches',
+        'XY' => 'Address comparison not available, zip code matches',
+        'NN' => 'Address comparison does not match, zip code does not match',
+        'NX' => 'Address does not match, zip code comparison not available',
+        'XN' => 'Address comparison not available, zip code does not match',
+        'XX' => 'Address comparison not available, zip code comparison not available'
     );
 
     var $_cvvCodeMap = array('M' => PAYMENT_PROCESS_CVV_MATCH,
                              'N' => PAYMENT_PROCESS_CVV_MISMATCH,
                              'P' => PAYMENT_PROCESS_CVV_ERROR,
                              'S' => PAYMENT_PROCESS_CVV_ERROR,
-                             'U' => PAYMENT_PROCESS_CVV_ERROR
+                             'U' => PAYMENT_PROCESS_CVV_ERROR,
+                             'X' => PAYMENT_PROCESS_CVV_ERROR
     );
 
     var $_cvvCodeMessages = array(
-        'M' => 'CVV codes match',
-        'N' => 'CVV codes do not match',
-        'P' => 'CVV code was not processed',
-        'S' => 'CVV code should have been present',
-        'U' => 'Issuer unable to process request',
+        'M' => 'Card Code Match',
+        'N' => 'Card code does not match',
+        'P' => 'Not processed',
+        'S' => 'Merchant has indicated that the card code is not present on the card',
+        'U' => 'Issuer is not certified and/or has not proivded encryption keys',
+        'X' => 'No response from the credit card association was received'
     );
 
-    var $_fieldMap = array('0'  => 'code',
+    var $_fieldMap = array('r_approved'  => 'code',
                            '2'  => 'messageCode',
-                           '3'  => 'message',
-                           '4'  => 'approvalCode',
-                           '5'  => 'avsCode',
+                           'r_error'  => 'message',
+                           'r_code'  => 'approvalCode',
+                           'r_avs'  => 'avsCode',
                            '6'  => 'transactionId',
-                           '7'  => 'invoiceNumber',
+                           'r_ordernum'  => 'invoiceNumber',
                            '12' => 'customerId',
                            '39' => 'cvvCode'
     );
@@ -532,8 +397,47 @@ class Payment_Process_Result_LinkPoint extends Payment_Process_Result {
 
     function parse()
     {
-      $responseArray = explode(',',$this->_rawResponse);
-      $this->_mapFields($responseArray);
+//      $responseArray = explode(',',$this->_rawResponse);
+//      $this->_mapFields($responseArray);
+        echo $this->_rawResponse;
+
+    }
+}
+
+/*
+<r_avs>XXXX</r_avs><r_time>Fri Apr 30 14:18:28 2004</r_time><r_ref></r_ref><r_approved>DECLINED</r_approved><r_code></r_code><r_error>D:Declined:   X:</r_error><r_ordernum>450A904E-4092C2A2-785-1F5F6</r_ordernum><r_authresponse></r_authresponse><r_message></r_message><r_csp>CSI</r_csp><r_tdate>1083359908</r_tdate><r_vpasresponse></r_vpasresponse>
+
+*/
+
+/**
+ * XML_Parser_LinkPoint
+ * 
+ * @author Joe Stump <joe@joestump.net>
+ * @package Payment_Process
+ */
+class XML_Parser_LinkPoint extends XML_Parser
+{
+    var $response = array();
+    var $data = null;
+
+    function XML_Parser_LinkPoint()
+    {
+        $this->XML_Parser();
+    }
+
+    function startHandler($xp, $elem, &$attribs) 
+    {
+        $this->data[$elem] = $this->data;    
+    }
+
+    function endHandler($xp, $elem)
+    {
+        $this->data = null;
+    }
+
+    function defaultHandler($xp,$data) 
+    {
+        $this->data = $data;
     }
 }
 
