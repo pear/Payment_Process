@@ -22,7 +22,7 @@ require 'Payment/Process.php';
 
 // Set options. These are processor-specific.
 $options = array(
-	'randomResult' => true
+    'randomResult' => true
 );
 
 // Get an instance of the processor
@@ -30,28 +30,46 @@ $processor = Payment_Process::factory('Dummy', $options);
 
 // The data for our transaction.
 $data = array(
-	'login' => "1234567",
-    'password' => "foo",
+    'login' => "foo",
+    'password' => "bar",
     'action' => PAYMENT_PROCESS_ACTION_NORMAL,
-    'amount' => 15.00,
-    'type' => PAYMENT_PROCESS_TYPE_VISA,
-    'cardNumber' => "4111111111111111",
-    'expDate' => "99/99"
+    'amount' => 15.00
 );
+
+// The credit card information
+$cc = &Payment_Process_Type::factory('CreditCard');
+$cc->type = PAYMENT_PROCESS_CC_VISA;
+$cc->cardNumber = "4111111111111111";
+$cc->expDate = "99/99";
+$cc->cvv = "123";
+
+/* Alternately, you can use setFrom()
+$ccData = array(
+    'type' => PAYMENT_PROCESS_CC_VISA,
+    'cardNumber' => "4111111111111111",
+    'expDate' => "99/99",
+    'cvv' => 123
+);
+$cc->setFrom($ccData);
+*/
 
 // Process it
 $processor->setFrom($data);
+if (!$processor->setPayment(&$cc)) {
+    PEAR::raiseError("Payment data is invalid.");
+    die();
+}
 $result = $processor->process();
 
 if (PEAR::isError($result)) {
-	// process() returns a PEAR_Error if validation failed.
-	print "Validation failed: {$result->message}\n";
+    // process() returns a PEAR_Error if validation failed.
+    print "Validation failed: {$result->message}\n";
 } else if ($result->isSuccess()) {
-	// Transaction approved
-	print "Success: ";
+    // Transaction approved
+    print "Success: ";
 } else {
-	// Transaction declined
-	print "Failure: ";
+    // Transaction declined
+    print "Failure: ";
 }
 print $result->getMessage()."\n";
 
