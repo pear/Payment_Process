@@ -39,6 +39,7 @@ class Payment_Process_Type
 {
     var $_type = null;
     var $name;
+    var $company;
     var $address;
     var $city;
     var $state;

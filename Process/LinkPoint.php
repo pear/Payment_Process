@@ -301,6 +301,7 @@ class Payment_Process_LinkPoint extends Payment_Process_Common
 
         if (strlen($this->_payment->name)) {
             $xml .= '<billing>'."\n";
+            $xml .= '  <userid>'.$this->_payment->customerId.'</userid>'."\n";
             $xml .= '  <name>'.$this->_payment->name.'</name>'."\n";
             $xml .= '  <company>'.$this->_payment->company.'</company>'."\n";
             $xml .= '  <address1>'.$this->_payment->address.'</address1>'."\n";
