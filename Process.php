@@ -462,6 +462,10 @@ class Payment_Process {
  * The core result class that should be returned from each factories process
  * function. Based loosely on PEAR_Error (getCode/getMessage).
  *
+ * This class may be extended with a Processor-specific result class to handle
+ * the cases where the default return values don't provide enough information
+ * to the caller.
+ *
  * @author Joe Stump <joe@joestump.net>
  * @package Payment_Process
  */
@@ -507,12 +511,12 @@ class Payment_Process_Result {
      * @param  string  $message  Transaction result message.
      * @param  string  $code     Transaction result code.
      */
-    function Payment_Process_Result($message = false, $code = false)
+    function Payment_Process_Result($code = false, $message = false)
     {
-    	if ($message)
-            $this->message = $message;
         if ($code)
             $this->code = $code;
+		if ($message)
+            $this->message = $message;
     }
 
     /**
@@ -525,21 +529,26 @@ class Payment_Process_Result {
      * The back-end processors should return the instance returned by this, to
      * indicate a failure/success condition to their callers.
      *
+     * An optional type may be requested, for Processors which have a Result
+     * subclass.
+     *
      * @param  string  $type  Transaction result type.
      * @return mixed Payment_Process_Result instance, or PEAR_Error
      */
-    function &factory($type)
+    function &factory($type = false, $code = false, $message = false)
     {
-        // If the factory is returning a Payment_Process_Result instead
-        // of an error for DECLINED then we should turn ourselves into an error
-        if ($code == PAYMENT_PROCESS_RESULT_DECLINED) {
-            return PEAR::raiseError($message, $code);
+        // We assume that the result class is defined in the processor.
+        if ($type) {
+            $class = 'Payment_Process_Result_'.$type;
+        } else {
+        	$class = get_class($this);
         }
 
-        // We assume that the result class is defined in the processor.
-        $class = 'Payment_Process_Result_'.$type;
+        if (!class_exists($class)) {
+        	return PEAR::raiseError("Can't instantiate non-existent class \"$class\"", PAYMENT_PROCESS_ERROR_INVAILD);
+        }
 
-        return new $class($message, $code);
+        return new $class($code, $message);
     }
 
     /**
@@ -570,6 +579,28 @@ class Payment_Process_Result {
     function getTransactionID()
     {
         return $this->transactionID;
+    }
+
+    /**
+     * Was the transaction successful?
+     *
+     * @return boolean
+     */
+    function isSuccess()
+    {
+		return ! $this->isError();
+    }
+
+    /**
+     * Was the transaction unsuccessful?
+     *
+     * @return boolean
+     */
+    function isError()
+    {
+    	if ($this->code && $this->code != PAYMENT_PROCESS_RESULT_APPROVED)
+        	return true;
+        return false;
     }
 }
 
