@@ -164,6 +164,7 @@ class Payment_Process_Dpilink extends Payment_Process {
 
         $result = &Payment_Process_Result::factory('Dpilink');
         $result->setResponse($this->_responseBody);
+        $result->setRequest(&$this);
         $this->_result = &$result;
 
         return $result;
@@ -344,11 +345,11 @@ class Payment_Process_Dpilink extends Payment_Process {
      */
     function _validatePassword()
     {
-    	$len = strlen($this->password);
-    	if ($len >= 6 && $len <= 10) {
-        	return true;
-        }
-        return false;
+    	return Validate::string($this->password, array(
+        	'format' => VALIDATE_ALPHA . VALIDATE_NUM,
+            'min_length' => 6,
+            'max_length' => 10
+        ));
     }
 
     /**
@@ -360,12 +361,11 @@ class Payment_Process_Dpilink extends Payment_Process {
      */
     function _validateInvoiceNumber()
     {
-    	$opts = array(
+    	return Validate::string($this->invoiceNumber, array(
         	'format' => VALIDATE_NUM . VALIDATE_ALPHA,
             'min_length' => 5,
             'max_length' => 5
-        );
-    	return Validate::string($this->invoiceNumber, $opts);
+        ));
     }
 
     /**
@@ -377,12 +377,11 @@ class Payment_Process_Dpilink extends Payment_Process {
      */
     function _validateCustomerId()
     {
-    	$opts = array(
+		return Validate::string($this->customerId, array(
         	'format' => VALIDATE_NUM . VALIDATE_ALPHA,
             'min_length' => 15,
             'max_length' => 15
-        );
-		return Validate::string($this->customerId, $opts);
+        ));
     }
 
     /**
@@ -394,13 +393,12 @@ class Payment_Process_Dpilink extends Payment_Process {
      */
     function _validateAmount()
     {
-		$opts = array(
+        return Validate::number($this->amount, array(
         	'decimal' => '.',
             'dec_prec' => 2,
             'min' => 1.00,
             'max' => 99999.99
-        );
-        return Validate::number($this->amount, $opts);
+        ));
     }
 
     /**
@@ -412,13 +410,17 @@ class Payment_Process_Dpilink extends Payment_Process {
      */
     function _validateZip()
     {
-    	if (isset($this->zip)) {
-            $opts = array(
-                'format' => VALIDATE_NUM . VALIDATE_ALPHA,
-                'min_length' => 0,
-                'max_length' => 9
-            );
-            return Validate::string($this->zip, $opts);
+    	if ($this->performAvs || strlen($this->zip)) {
+			// Zip can be either 5 or 9 digits long. Validate seems to only
+            // handle e.g. 5-9, not 5,9, so we add this check here.
+            if (strlen($this->zip) != 5 && strlen($this->zip) != 9) {
+            	return false;
+            }
+			return Validate::string($this->zip, array(
+            	'format' => VALIDATE_NUM,
+                'max_length' => 9,
+                'min_length' => 5
+            ));
         }
         return true;
     }
@@ -495,6 +497,39 @@ class Payment_Process_Result_Dpilink extends Payment_Process_Result {
         'V9' => "Already posted"
     );
 
+    var $_avsCodes = array(
+    	'A' => "Address match",
+        'E' => "Ineligible",
+        'N' => "No match",
+        'R' => "Retry",
+        'S' => "Service unavailable",
+        'U' => "Address information unavailable",
+        'W' => "9-digit zip match",
+        'X' => "Address and 9-digit zip match",
+        'Y' => "Address and 5-digit zip match",
+        'Z' => "5-digit zip match"
+    );
+
+    var $_aciCodes = array(
+    	'A' => "CPS Qualified",
+        'E' => "CPS Qualified  -  Card Acceptor Data was submitted in the authorization  request.",
+        'M' => "Reserved - The card was not present and no AVS request for International transactions",
+        'N' => "Not CPS Qualified",
+        'V' => "CPS Qualified ? Included an address verification request in the authorization request."
+    );
+
+    var $_authSourceCodes = array(
+    	' ' => "Terminal doesn't support",
+        '0' => "Exception File",
+		'1' => "Stand in Processing, time-out response",
+        '2' => "Loss Control System (LCS) response provided",
+        '3' => "STIP, response provided, issuer suppress inquiry mode",
+        '4' => "STIP, response provided, issuer is down",
+        '5' => "Response provided by issuer",
+        '9' => "Automated referral service (ARS) stand-in"
+    );
+
+
     /**
      * Set the response from the gateway.
      *
@@ -525,6 +560,21 @@ class Payment_Process_Result_Dpilink extends Payment_Process_Result {
     function _getStatusText($status)
     {
         return @$this->_statusCodes[$status];
+    }
+
+    function getAVSResponse()
+    {
+    	return @$this->_avsCodes[$this->_avsResponse];
+    }
+
+    function getAuthSource()
+    {
+    	return @$this->_authSourceCodes[$this->_authSource];
+    }
+
+    function getAuthCharacteristic()
+    {
+    	return @$this->_aciCodes[$this->_authChar];
     }
 
     /**
@@ -636,6 +686,14 @@ class Payment_Process_Result_Dpilink extends Payment_Process_Result {
     function _setPublicFields()
     {
         $this->message = $this->_getStatusText($this->_transactionStatus);
+
+        $invalidAVS = array('A', 'E', 'N', 'R', 'S', 'U');
+    	// Make sure AVS was successful, if requested
+    	if ($this->_request->performAvs && in_array($this->_avsResponse, $invalidAVS)) {
+			// It failed.
+            $this->message .= " ".$this->getAvsResponse();
+        }
+
         $this->transactionId = $this->_transactionId;
         switch ($this->_transactionStatus) {
         	case '00':
