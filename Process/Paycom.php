@@ -314,7 +314,7 @@ class Payment_Process_Result_Paycom extends Payment_Process_Result {
     */
     function parse()
     {
-        $parts = explode('|',$this->_rawResponse);
+        $parts = explode('|',trim($this->_rawResponse));
  
         foreach ($parts as $part) {
             list($var,$val) = explode('=',$part);
@@ -326,7 +326,12 @@ class Payment_Process_Result_Paycom extends Payment_Process_Result {
         $this->code = $status;
         $this->messageCode = $status;
         $this->approvalCode = substr($response[0],1,strlen($response[1]));
-        $this->avsCode = substr($response[0],7,1);
+
+        if ($this->getCode() == PAYMENT_PROCESS_RESULT_APPROVED) { 
+            $this->avsCode = substr($response[0],7,1);
+        } else {
+            $this->avsCode = 'R'; // Default to error
+        }
 
         if (isset($auth_idx)) {
             $this->transactionId = $auth_idx;

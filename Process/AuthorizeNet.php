@@ -209,10 +209,9 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
         PEAR::popErrorHandling();
 
         $response = &Payment_Process_Result::factory($this->_driver,$this->_responseBody);
-        if(!PEAR::isError($response))
-        {
-          $response->_request = & $this;
-          $response->parse();
+        if (!PEAR::isError($response)) {
+            $response->_request = & $this;
+            $response->parse();
         }
 
         return $response;
@@ -285,9 +284,9 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
     */
     function _handleName()
     {
-      $parts = explode(' ',$this->_payment->name);
-      $this->_data['x_first_name'] = array_shift($parts);
-      $this->_data['x_last_name'] = implode(' ',$parts); 
+        $parts = explode(' ',$this->_payment->name);
+        $this->_data['x_first_name'] = array_shift($parts);
+        $this->_data['x_last_name'] = implode(' ',$parts); 
     }
 }
 
@@ -533,8 +532,8 @@ class Payment_Process_Result_AuthorizeNet extends Payment_Process_Result {
 
     function parse()
     {
-      $responseArray = explode(',',$this->_rawResponse);
-      $this->_mapFields($responseArray);
+        $responseArray = explode(',',$this->_rawResponse);
+        $this->_mapFields($responseArray);
     }
 }
 
