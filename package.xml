@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
-<!-- $Id: package.xml,v 1.16 2004-10-09 22:02:35 ieure Exp $ -->
+<!-- $Id: package.xml,v 1.17 2004-10-09 23:10:40 jstump Exp $ -->
 <package version="1.0">
     <name>Payment_Process</name>
     <summary>Unified payment processor</summary>
@@ -19,8 +19,13 @@
             <name>Joe Stump</name>
             <email>jstump@php.net</email>
         </maintainer>
+        <maintainer>
+            <user>rpeake</user>
+            <role>helper</role>
+            <name>Robert Peake</name>
+            <email>robert@peakepro.com</email>
+        </maintainer>
     </maintainers>
-    
     <release>
         <!-- This release hasn't happened yet. -->
         <version>0.5.8</version>
@@ -29,8 +34,9 @@
         <notes><![CDATA[
             * Fix bug #1732.
             * Fix bug #1733.
+            * Fix bug #1270.
             * Rename DPILink driver to Transfirst - the company changed it's name.
-            * Add TrustCommerce driver, submitted by Robert Peake <robert.peake@trustcommerce.com> 
+            * Add TrustCommerce driver, submitted by Robert Peake <robert@peakepro.com> 
         ]]></notes>
         <filelist>
             <dir name="/" baseinstalldir="Payment">
@@ -49,14 +55,16 @@
                     </dir>
                 </dir>
             </dir>
-            <dir name="examples" baseinstalldir="doc/Payment_Process">
-                <file role="php">Payment_Process-example.php</file>
-                <file role="php">creditcard.php</file>
-                <file role="php">echeck.php</file>
+            <dir name="examples" baseinstalldir="docs/Payment_Process">
+                <file role="doc">Payment_Process-example.php</file>
+                <file role="doc">creditcard.php</file>
+                <file role="doc">echeck.php</file>
+                <file role="doc">TrustCommerce_creditcard.php</file>
             </dir>
         </filelist>
         <deps>
             <dep type="pkg" optional="yes" rel="ge" version="0.2">Net_Curl</dep>
+            <dep type="pkg" optional="yes" rel="ge" version="1.2.0">PHP_Compat</dep>
             <dep type="pkg" optional="no" rel="ge" version="0.2.0">Validate</dep>
         </deps>
     </release>

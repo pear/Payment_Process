@@ -60,6 +60,7 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
         'invoiceNumber' => 'x_invoice_num',
         'customerId' => 'x_cust_id',
         'amount' => 'x_amount',
+        'description' => 'x_description',
         'name' => '',
         'zip' => 'x_zip',
         // Optional
