@@ -84,7 +84,6 @@ class Payment_Process_Type_CreditCard extends Payment_Process_Type
 
         if (Validate::number($month, $monthOptions) &&
             Validate::number($year, $yearOptions)) {
-
             if (($month >= date("m") && $year == date("y")) ||
                 ($year > date("y"))) {
                 return true;
@@ -94,7 +93,6 @@ class Payment_Process_Type_CreditCard extends Payment_Process_Type
         return false;
     }
     // }}} 
-
 }
 
 ?>

@@ -68,6 +68,7 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
         'invoiceNumber' => 'x_invoice_num',
         'customerId' => 'x_cust_id',
         'amount' => 'x_amount',
+        'name' => '',
         'cardNumber' => 'x_card_num',
         'expDate' => 'x_exp_date',
         'zip' => 'x_zip',
@@ -264,7 +265,7 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
     */
     function _handleName()
     {
-      $parts = explode(' ',$this->name);
+      $parts = explode(' ',$this->_payment->name);
       $this->_data['x_first_name'] = array_shift($parts);
       $this->_data['x_last_name'] = implode(' ',$parts); 
     }
