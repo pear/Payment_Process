@@ -260,6 +260,7 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
             print_r($data);
             echo "--------- PREPARE QS DATA -----------\n";
         }
+
         $return = array();
         $sets = array();
         foreach ($data as $key => $val) {

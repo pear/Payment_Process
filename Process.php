@@ -300,6 +300,7 @@ class Payment_Process {
                 unset($vars[$idx]);
             }
         }
+
         return $vars;
     }
 

@@ -192,9 +192,8 @@ class Payment_Process_Common extends Payment_Process {
 
                     // Form of payments data overrides those set in the
                     // Payment_Process_Common.
-                    if(isset($this->_payment->$generic))
-                    {
-                      $this->_data[$specific] = $this->_payment->$generic;
+                    if (isset($this->_payment->$generic)) {
+                        $this->_data[$specific] = $this->_payment->$generic;
                     }
                 }
             }
