@@ -195,14 +195,6 @@ class Payment_Process_Common extends Payment_Process {
             }
         }
 
-        // Map over the payment specific fiels. Check out $_typeFieldMap 
-        // for more information.
-        $paymentType = $this->_payment->getType();
-        foreach ($this->_typeFieldMap[$paymentType] as $key => $val) {
-            if(!isset($this->_data[$val])) {
-                $this->_data[$val] = $this->_payment->$key;
-            }
-        }
 
         if ($this->_options['debug']) {
             echo '----------- PREPARE ----------'."\n";
@@ -216,6 +208,11 @@ class Payment_Process_Common extends Payment_Process {
     /**
     * Set payment
     *
+    * Returns false if payment could not be set. This usually means the
+    * payment type is not valid  or that the payment type is valid, but did
+    * not validate. It could also mean that the payment type is not supported
+    * by the given processor.
+    *
     * @author Joe Stump <joe@joestump.net>
     * @access public
     * @param mixed $payment Object of Payment_Process_Type
@@ -227,10 +224,15 @@ class Payment_Process_Common extends Payment_Process {
             count($this->_typeFieldMap[$payment->getType()])) {
         
             if (Payment_Process_Type::isValid($payment)) {
+
+
                 $this->_payment = $payment;
-                foreach ($this->_fieldMap as $generic => $specific) {
-                    if(isset($payment->$generic)) {
-                        $this->_data[$specific] = $payment->$generic;
+                // Map over the payment specific fiels. Check out 
+                // $_typeFieldMap for more information.
+                $paymentType = $payment->getType();
+                foreach ($this->_typeFieldMap[$paymentType] as $key => $val) {
+                    if(!isset($this->_data[$val])) {
+                        $this->_data[$val] = $this->_payment->$key;
                     }
                 }
 

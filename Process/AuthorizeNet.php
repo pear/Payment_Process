@@ -53,13 +53,6 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
      * @see _prepare()
      * @access private
      */
-    // x_delim_data = TRUE
-    // x_relay = FALSE
-    // x_email_customer = FALSE
-    // x_email_merchant = merchant email
-    // x_currency_code = (?)
-    // x_method = CC
-    // x_first_name & x_last_name
     var $_fieldMap = array(
         // Required
         'login' => 'x_login',
@@ -82,8 +75,12 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
     );
 
     /**
+    * $_typeFieldMap
+    *
+    * @author Joe Stump <joe@joestump.net>
+    * @access protected
     */
-    var $_typeField = array(
+    var $_typeFieldMap = array(
 
            'CreditCard' => array(
 
@@ -96,7 +93,8 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
            'eCheck' => array(
 
                     'routingCode' => 'x_bank_aba_code',
-                    'accountNumber' => 'x_bank_acct_type',
+                    'accountNumber' => 'x_bank_acct_num',
+                    'type' => 'x_bank_acct_type',
                     'bankName' => 'x_bank_name',
                     'name' => 'x_bank_acct_name'
 
@@ -245,9 +243,18 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
         // Set payment method to eCheck if our payment type is eCheck.
         // Default is Credit Card.
         $data['x_method'] = 'CC';
-        if($this->payment->getType() == 'eCheck')
+        if($this->_payment->getType() == 'eCheck')
         {
           $data['x_method'] = 'ECHECK';
+          switch($this->_payment->type)
+          {
+            case PAYMENT_PROCESS_CK_CHECKING:
+              $data['x_bank_acct_type'] = 'CHECKING';
+              break;
+            case PAYMENT_PROCESS_CK_SAVINGS:
+              $data['x_bank_acct_type'] = 'SAVINGS';
+              break;
+          }
         }
 
         if($this->_options['debug'] === true) {
