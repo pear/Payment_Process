@@ -13,7 +13,7 @@
 // | obtain it through the world-wide-web, please send a note to          |
 // | license@php.net so we can mail you a copy immediately.               |
 // +----------------------------------------------------------------------+
-// | Authors: Ian Eure <ieure@debian.org>                                 |
+// | Authors: Ian Eure <ieure@php.net>                                    |
 // |          Joe Stump <joe@joestump.net>                                |
 // |          Ondrej Jombik <nepto@pobox.sk>                              |
 // +----------------------------------------------------------------------+
@@ -59,9 +59,10 @@ define('PAYMENT_PROCESS_RESULT_OTHER', 402);
 /**
  * Payment_Process
  *
- * @author Ian Eure <ieure@debian.org>
+ * @author Ian Eure <ieure@php.net>
  * @package Payment_Process
- * @version 0.1
+ * @category Payment
+ * @version @version@
  */
 class Payment_Process {
 
