@@ -23,6 +23,7 @@ class Payment_Process_Type_eCheck extends Payment_Process_Type
 {
     var $accountNumber;
     var $routingCode;
+    var $bankName;
 
     function Payment_Process_Type_eCheck()
     {
@@ -38,6 +39,12 @@ class Payment_Process_Type_eCheck extends Payment_Process_Type
     {
         return (isset($this->routingCode));
     }
+
+    function _validateBankName()
+    {
+        return (isset($this->bankName));
+    }
+
 }
 
 ?>
