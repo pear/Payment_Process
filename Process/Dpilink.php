@@ -234,36 +234,6 @@ class Payment_Process_Dpilink extends Payment_Process {
     */
 
     /**
-     * Prepare the POST data.
-     *
-     * This function handles translating the data set in the front-end to the
-     * format needed by the back-end. The prepared data is stored in $this->_data.
-     * If a '_handleField' method exists in this class (e.g. '_handleCardNumber()'),
-     * that function is called and /must/ set $this->_data correctly. If no field-
-     * handler function exists, the data from the front-end is mapped into $_data
-     * using $this->_fieldMap.
-     *
-     * @access private
-     * @return array Data to POST
-     */
-    function _prepare()
-    {
-        $this->_data = array();
-        foreach ($this->_fieldMap as $generic => $specific) {
-            $func = '_handle'.ucfirst($generic);
-            if (method_exists($this, $func)) {
-                $this->$func();
-            } else {
-                $this->_data[$specific] = $this->$generic;
-            }
-        }
-
-        if ($this->_options['testTransaction']) {
-            $this->_data['testTransaction'] = $this->_options['testTransaction'];
-        }
-    }
-
-    /**
      * Handle transaction source.
      *
      * @access private
