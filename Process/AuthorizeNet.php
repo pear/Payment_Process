@@ -336,10 +336,10 @@ class Payment_Process_Response_AuthorizeNet extends Payment_Process_Response {
     );
 
     var $_cvvCodeMap = array('M' => PAYMENT_PROCESS_CVV_MATCH,
-                            'N' => PAYMENT_PROCESS_CVV_MISMATCH,
-                            'P' => PAYMENT_PROCESS_CVV_ERROR,
-                            'S' => PAYMENT_PROCESS_CVV_ERROR,
-                            'U' => PAYMENT_PROCESS_CVV_ERROR
+                             'N' => PAYMENT_PROCESS_CVV_MISMATCH,
+                             'P' => PAYMENT_PROCESS_CVV_ERROR,
+                             'S' => PAYMENT_PROCESS_CVV_ERROR,
+                             'U' => PAYMENT_PROCESS_CVV_ERROR
     );
 
     var $_cvvCodeMessages = array(
@@ -351,7 +351,6 @@ class Payment_Process_Response_AuthorizeNet extends Payment_Process_Response {
     );
 
     var $_fieldMap = array('0'  => 'code',
-                           '1'  => 'subcode',
                            '2'  => 'messageCode',
                            '3'  => 'message',
                            '4'  => 'approvalCode',

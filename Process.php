@@ -498,190 +498,171 @@ class Payment_Process extends PEAR {
 /**
  * Payment_Process_Result
  *
- * The core result class that should be returned from each factories process
- * function. Based loosely on PEAR_Error (getCode/getMessage).
+ * The core result class that should be returned from each driver's process()
+ * function. This should be extended as Payment_Process_Result_DriverName and
+ * then have the appropriate fields mapped out accordingly. 
  *
- * This class may be extended with a Processor-specific result class to handle
- * the cases where the default return values don't provide enough information
- * to the caller.
+ * Take special care to appropriately create a parse() function in your result
+ * class. You can then call _mapFields() with a resultArray (ie. exploded 
+ * result) to map your results from parse() into the member variables. 
  *
- * @author Joe Stump <joe@joestump.net>
- * @package Payment_Process
- */
-class Payment_Process_Result {
-    /**
-     * The requesting processor.
-     *
-     * @access private
-     * @type Object
-     * @see setRequest
-     */
-     var $_request;
-
-    /**
-     * Transaction result code.
-     *
-     * This should be set to one of the PAYMENT_PROCESS_RESULT_* constants.
-     *
-     * @type int
-     */
-    var $code;
-
-    /**
-     * Transaction result message.
-     *
-     * e.g. 'APPROVED,' 'DECLINED,' etc. May vary from processor to processor.
-     * @type string
-     */
-    var $message;
-
-    /**
-     * Transaction invoice number.
-     *
-     * @type mixed
-     */
-    var $invoiceNumber;
-
-    /**
-     * Transaction ID.
-     *
-     * This should be the unique ID the gateway sends back. Sometimes referred 
-     * to as an approval number.
-     *
-     * @type string
-     */
-    var $transactionID;
-
-    /**
-     * AVS Code
-     *
-     * @author Joe Stump <joe@joestump.net>
-     * @var int $avsCode
-     */
-    var $avsCode;
-
-    /**
-     * Constructor.
-     *
-     * @param  string  $message  Transaction result message.
-     * @param  string  $code     Transaction result code.
-     */
-    function Payment_Process_Result($code = false, $message = false)
-    {
-        if ($code) {
-            $this->code = $code;
-        }
-
-        if ($message) {
-            $this->message = $message;
-        }
-    }
-
-    /**
-     * Create a new instance of Payment_Process_Result.
-     *
-     * This will return either a new instance of Payment_Process_Result, or a
-     * PEAR_Error instance. PEAR_Error is returned if $code is an invalid result
-     * code, or if it is PAYMENT_PROCESS_RESULT_DECLINED.
-     *
-     * The back-end processors should return the instance returned by this, to
-     * indicate a failure/success condition to their callers.
-     *
-     * An optional type may be requested, for Processors which have a Result
-     * subclass.
-     *
-     * @param  string  $type  Transaction result type.
-     * @return mixed Payment_Process_Result instance, or PEAR_Error
-     */
-    function &factory($type = false, $code = false, $message = false)
-    {
-        if(isset($this) && get_class($this)) {
-            return PEAR::raiseError('This function must be called statically');
-        }
-
-        $class = 'Payment_Process_Result_'.$type;
-
-        if (!class_exists($class)) {
-            return PEAR::raiseError("Can't instantiate non-existent class \"$class\"", PAYMENT_PROCESS_ERROR_INVAILD);
-        }
-
-        return new $class($code, $message);
-    }
-
-    function setRequest(&$req)
-    {
-        if (!is_a($req, 'Payment_Process')) {
-            return PEAR::raiseError("Request must be a Payment_Process instance or subclass.");
-        }
-        $this->_request = &$req;
-        return true;
-    }
-
-    /**
-     * Get the transaction result code.
-     *
-     * @return string Transaction result code
-     */
-    function getCode()
-    {
-        return $this->code;
-    }
-
-    /**
-     * Get the transaction result message.
-     *
-     * @return string Transaction result message
-     */
-    function getMessage()
-    {
-        return $this->message;
-    }
-
-    /**
-     * Get the transaction ID.
-     *
-     * @return string Transaction ID
-     */
-    function getTransactionID()
-    {
-        return $this->transactionID;
-    }
-
-    /**
-    * Get the AVS Code
-    *
-    * @author Joe Stump <joe@joestump.net>
-    * @return int AVS Code
-    */
-    function getAVSCode()
-    {
-        return $this->avsCode();
-    }
-}
-
-/**
- * Payment_Process_Response
+ * Please note that this class keeps your original codes intact so they can
+ * be accessed directly and then uses the function wrappers to return uniform
+ * Payment_Process codes.
  *
  * @author Joe Stump <joe@joestump.net>
  * @package Payment_Process
  * @category Payment
  * @version @version@
  */
-class Payment_Process_Response {
-    var $_rawResponse = null;
-    var $code;
-    var $subcode;
-    var $messageCode;
-    var $message = '';
-    var $approvalCode;
-    var $avsCode;
-    var $transactionId;
-    var $invoiceNumber;
-    var $customerId;
-    var $cvvCode = PAYMENT_PROCESS_CVV_ERROR;
-    var $cvvMessage = '';
+class Payment_Process_Result {
 
-    function Payment_Process_Response($rawResponse) 
+    /**
+    * The raw response (ie. from cURL)
+    *
+    * @author Joe Stump <joe@joestump.net>
+    * @access protected
+    * @var string $_rawResponse
+    */
+    var $_rawResponse = null;
+
+    /**
+    * The approval/decline code
+    *
+    * The value returned by your gateway as approved/declined should be mapped
+    * into this variable. Valid results should then be mapped into the 
+    * appropriate PAYMENT_PROCESS_RESULT_* code using the $_statusCodeMap
+    * array. Values returned into $code should be mapped as keys in the map
+    * with PAYMENT_PROCESS_RESULT_* as the values.
+    *
+    * @author Joe Stump <joe@joestump.net>
+    * @access public
+    * @var mixed $code
+    * @see PAYMENT_PROCESS_RESULT_APPROVED, PAYMENT_PROCESS_RESULT_DECLINED
+    * @see PAYMENT_PROCESS_RESULT_OTHER, $_statusCodeMap
+    */
+    var $code;
+
+    /**
+    * Message/Response Code
+    *
+    * Along with the response (yes/no) you usually get a response/message
+    * code that translates into why it was approved/declined. This is where
+    * you map that code into. Your $_statusCodeMessages would then be keyed by
+    * valid messageCode values.
+    *
+    * @author Joe Stump <joe@joestump.net>
+    * @access public
+    * @var mixed $messageCode
+    * @see $_statusCodeMessages
+    */
+    var $messageCode;
+
+    /**
+    * Message from gateway
+    *
+    * Map the textual message from the gateway into this variable. It is not
+    * currently returned or used (in favor of the $_statusCodeMessages map, but
+    * can be accessed directly for debugging purposes.
+    *
+    * @author Joe Stump <joe@joestump.net>
+    * @access public
+    * @var string $message
+    * @see $_statusCodeMessages
+    */
+    var $message = 'No message from gateway';
+
+    /**
+    * Authorization/Approval code
+    *
+    * @author Joe Stump <joe@joestump.net>
+    * @access public
+    * @var string $approvalCode
+    */
+    var $approvalCode;
+
+    /**
+    * Address verification code
+    *
+    * The AVS code returned from your gateway. This should then be mapped to
+    * the appropriate PAYMENT_PROCESS_AVS_* code using $_avsCodeMap. This value
+    * should also be mapped to the appropriate textual message via the 
+    * $_avsCodeMessages array.
+    *
+    * @author Joe Stump <joe@joestump.net>
+    * @access public
+    * @var string $avsCode
+    * @see PAYMENT_PROCESS_AVS_MISMATCH, PAYMENT_PROCESS_AVS_ERROR
+    * @see PAYMENT_PROCESS_AVS_MATCH, PAYMENT_PROCESS_AVS_NOAPPLY, $_avsCodeMap
+    * @see $_avsCodeMessages
+    */
+    var $avsCode;
+
+    /**
+    * Transaction ID
+    *
+    * This is the unique transaction ID, which is used by gateways to modify
+    * transactions (credit, update, etc.). Map the appropriate value into this
+    * variable.
+    *
+    * @author Joe Stump <joe@joestump.net>
+    * @access public
+    * @var string $transactionId
+    */
+    var $transactionId;
+
+    /**
+    * Invoice Number
+    *
+    * Unique internal invoiceNumber (ie. your company's order/invoice number
+    * that you assign each order as it is processed). It is always a good idea
+    * to pass this to the gateway (which is usually then echo'd back).
+    *
+    * @author Joe Stump <joe@joestump.net>
+    * @access public
+    * @var string $invoiceNumber 
+    */
+    var $invoiceNumber;
+
+    /**
+    * Customer ID
+    *
+    * Unique internall customer ID (ie. your company's customer ID used to 
+    * track individual customers).
+    *
+    * @author Joe Stump <joe@joestump.net>
+    * @access public
+    * @var string $customerId
+    */
+    var $customerId;
+
+    /**
+    * CVV Code 
+    *
+    * The CVV code is the 3-4 digit number on the back of most credit cards.
+    * This value should be mapped via the $_cvvCodeMap variable to the 
+    * appropriate PAYMENT_PROCESS_CVV_* values.
+    *
+    * @author Joe Stump <joe@joestump.net>
+    * @access public
+    * @var string $cvvCode
+    */
+    var $cvvCode = PAYMENT_PROCESS_CVV_NOAPPLY;
+
+    /**
+    * CVV Message
+    *
+    * Your cvvCode value should be mapped to appropriate messages via the
+    * $_cvvCodeMessage array. This value is merely here to hold the value
+    * returned from the gateway (if any).
+    *
+    * @author Joe Stump <joe@joestump.net>
+    * @access public
+    * @var string $cvvMessage
+    */
+    var $cvvMessage = 'No CVV message from gateway';
+
+    function Payment_Process_Result($rawResponse) 
     {
         $this->_rawResponse = $rawResponse;
     }
@@ -729,7 +710,7 @@ class Payment_Process_Response {
 
     function getMessage() 
     {
-      return $this->_statusCodeMessages[$this->code];
+      return $this->_statusCodeMessages[$this->messageCode];
     }
 
     function getAVSCode() 
