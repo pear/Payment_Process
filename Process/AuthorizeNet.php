@@ -146,10 +146,12 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
     }
 
     /**
-     * Process the transaction.
-     *
-     * @return mixed Payment_Process_Result on success, PEAR_Error on failure
-     */
+    * Process the transaction.
+    *
+    * @author Joe Stump <joe@joestump.net> 
+    * @access public
+    * @return mixed Payment_Process_Result on success, PEAR_Error on failure
+    */
     function &process()
     {
         if ($this->_options['debug'] === true) {
@@ -210,9 +212,11 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
         PEAR::popErrorHandling();
 
         $response = &Payment_Process_Result::factory($this->_driver,
-                            $this->_responseBody);
+                                                     $this->_responseBody, 
+                                                     &$this);
+
         if (!PEAR::isError($response)) {
-            $response->_request = & $this;
+            // $response->_request = & $this;
             $response->parse();
         }
 

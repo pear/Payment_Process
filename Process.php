@@ -586,16 +586,27 @@ class Payment_Process_Result {
      */
     var $cvvMessage = 'No CVV message from gateway';
 
-    function Payment_Process_Result($rawResponse)
+    function Payment_Process_Result($rawResponse, $request)
     {
         $this->_rawResponse = $rawResponse;
+        $this->_request = $request;
     }
 
-    function &factory($type, $rawResponse)
+    /**
+    * factory
+    *
+    * @author Joe Stump <joe@joestump.net>
+    * @author Ian Eure <ieure@php.net>
+    * @param string $type
+    * @param string $rawResponse
+    * @param mixed $request  
+    * @return mixed Payment_Process_Result on succes, PEAR_Error on failure
+    */
+    function &factory($type, $rawResponse, $request)
     {
         $class = 'Payment_Process_Result_'.$type;
         if (class_exists($class)) {
-            return new $class($rawResponse);
+            return new $class($rawResponse, $request);
         }
 
         return PEAR::raiseError('Invalid response type: '.$type.'('.$class.')');
