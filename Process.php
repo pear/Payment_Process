@@ -222,7 +222,7 @@ class Payment_Process {
      *
      * This function may be overloaded by the processor.
      *
-     * @return boolean true if validation succeeded, false if it failed.
+     * @return boolean true if validation succeeded, PEAR_Error if it failed.
      */
     function validate()
     {
@@ -231,6 +231,8 @@ class Payment_Process {
             if (method_exists($this, $func)) {
                 $res = $this->$func();
                 if (PEAR::isError($res) || (is_bool($res) && $res == false)) {
+                	if (!$res)
+                    	$res = new PEAR_Error("Validation of field \"{$field}\" failed.", PAYMENT_PROCESS_ERROR_INVAILD);
                     return $res;
                 }
             }
