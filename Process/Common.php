@@ -142,13 +142,23 @@ class Payment_Process_Common extends Payment_Process {
      */
     function _prepare()
     {
-        echo '----------- PREPARE A ----------'."\n";
-        echo print_r($this->_data);
-        echo '----------- PREPARE A ----------'."\n";
+        if ($this->_options['debug']) {
+            echo '----------- PREPARE A ----------'."\n";
+            echo print_r($this->_data);
+            echo '----------- PREPARE A ----------'."\n";
+        }
 
+        /*
+         * FIXME - because this only loops through stuff in the fieldMap, we
+         *         can't have handlers for stuff which isn't specified in there.
+         *         But the whole point of having a _handler() is that you need
+         *         to do something more than simple mapping.
+         */
         foreach ($this->_fieldMap as $generic => $specific) {
+            //$this->debug("Handling mapping from {$generic} to {$specific}");
             $func = '_handle'.ucfirst($generic);
             if (method_exists($this, $func)) {
+                //$this->debug("Calling {$func} to handle {$generic}");
                 $result = $this->$func();
                 if (PEAR::isError($result)) {
                     return $result;
@@ -165,9 +175,11 @@ class Payment_Process_Common extends Payment_Process {
             }
         }
 
-        echo '----------- PREPARE ----------'."\n";
-        echo print_r($this->_data);
-        echo '----------- PREPARE ----------'."\n";
+        if ($this->_options['debug']) {
+            echo '----------- PREPARE ----------'."\n";
+            echo print_r($this->_data);
+            echo '----------- PREPARE ----------'."\n";
+        }
                                                                                 
         return true;
     }
@@ -185,6 +197,7 @@ class Payment_Process_Common extends Payment_Process {
         if (Payment_Process_Type::isValid($payment)) {
             foreach ($this->_fieldMap as $generic => $specific) {
                 if(isset($payment->$generic)) {
+                    //$this->debug("Mapping Type::{$generic} to {$specific}");
                     $this->_data[$specific] = $payment->$generic;
                 }
             }
@@ -207,7 +220,24 @@ class Payment_Process_Common extends Payment_Process {
      */
     function _handleAction()
     {
-        $this->_data[$this->_fieldMap['action']] = $GLOBALS['_'.$this->_driver][$this->action];
+        $this->_data[$this->_fieldMap['action']] = $GLOBALS['_Payment_Process_'.$this->_driver][$this->action];
+    }
+    
+    /**
+     * Print a debug message.
+     *
+     * This will only print the message if 'debug' is set in the Processor
+     * options.
+     *
+     * @param string $msg Message to print
+     * @return void
+     * @author Ian Eure <ieure@php.net>
+     */
+    function debug($msg)
+    {
+        if ($this->_options['debug']) {
+            print $msg."\n";
+        }
     }
 
 }
