@@ -454,8 +454,7 @@ class Payment_Process_Result_Dpilink extends Payment_Process_Result {
             $this->_avsResponse, $this->_storeNum, $this->_cvv2
         ) = split('\|', $this->_responseBody);
 
-
-        $this->message = $this->_getStatusText($this->_transactionCode);
+        $this->message = $this->_getStatusText($this->_transactionStatus);
 
         switch ($this->_transactionStatus) {
         	case '00':
