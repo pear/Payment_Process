@@ -216,7 +216,6 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
                                                      &$this);
 
         if (!PEAR::isError($response)) {
-            // $response->_request = & $this;
             $response->parse();
         }
 

@@ -171,9 +171,10 @@ class Payment_Process_Paycom extends Payment_Process_Common {
         // Restore error handling
         PEAR::popErrorHandling();
 
-        $response = &Payment_Process_Result::factory($this->_driver,$this->_responseBody);
+        $response = &Payment_Process_Result::factory($this->_driver,
+                                                     $this->_responseBody,
+                                                     &$this);
         if (!PEAR::isError($response)) {
-            $response->_request = & $this;
             $response->parse();
         }
 

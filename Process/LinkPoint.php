@@ -220,12 +220,11 @@ class Payment_Process_LinkPoint extends Payment_Process_Common
         PEAR::popErrorHandling();
 
         $response = &Payment_Process_Result::factory($this->_driver,
-                                                     $this->_responseBody);
+                                                     $this->_responseBody,
+                                                     &$this);
 
-        if(!PEAR::isError($response))
-        {
-          $response->_request = & $this;
-          $response->parse();
+        if (!PEAR::isError($response)) {
+            $response->parse();
         }
 
         return $response;
@@ -405,6 +404,13 @@ class Payment_Process_Result_LinkPoint extends Payment_Process_Result
         $this->Payment_Process_Response($rawResponse);
     }
 
+    /**
+    * parse
+    *
+    * @author Joe Stump <joe@joestump.net>
+    * @access public
+    * @return void
+    */
     function parse()
     {
         $xml = & new XML_Parser_LinkPoint();

@@ -216,15 +216,15 @@ class Payment_Process_TrustCommerce extends Payment_Process_Common {
         // Restore error handling
         PEAR::popErrorHandling();
 
-        $response = &Payment_Process_Result::factory($this->_driver,$this->_responseBody);
-        if(!PEAR::isError($response))
-        {
-          $response->_request = & $this;
-          $response->parse();
+        $response = &Payment_Process_Result::factory($this->_driver,
+                                                     $this->_responseBody, 
+                                                     &$this);
+
+        if (!PEAR::isError($response)) {
+            $response->parse();
         }
 
         return $response;
-
     }
 
     /**
