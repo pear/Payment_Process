@@ -41,9 +41,11 @@ define('PAYMENT_PROCESS_RESULT_DPILINK_INVALIDCARDNO', 14);
 define('PAYMENT_PROCESS_RESULT_DPILINK_REENTER', 19);
 
 // Map actions
-$GLOBALS['_Payment_Process_Dpilink'][PAYMENT_PROCESS_ACTION_NORMAL] = 'PAYMENT_PROCESS_ACTION_DPILINK_AUTHSETTLE';
-$GLOBALS['_Payment_Process_Dpilink'][PAYMENT_PROCESS_ACTION_AUTHONLY] = 'PAYMENT_PROCESS_ACTION_DPILINK_AUTH';
-$GLOBALS['_Payment_Process_Dpilink'][PAYMENT_PROCESS_ACTION_POSTAUTH] = 'PAYMENT_PROCESS_ACTION_DPILINK_SETTLE';
+$GLOBALS['_Payment_Process_Dpilink'] = array(
+    PAYMENT_PROCESS_ACTION_NORMAL => PAYMENT_PROCESS_ACTION_DPILINK_AUTHSETTLE,
+    PAYMENT_PROCESS_ACTION_AUTHONLY => PAYMENT_PROCESS_ACTION_DPILINK_AUTH,
+    PAYMENT_PROCESS_ACTION_POSTAUTH => PAYMENT_PROCESS_ACTION_DPILINK_SETTLE
+);
 
 /**
  * Payment_Process_Dpilink
@@ -71,21 +73,24 @@ class Payment_Process_Dpilink extends Payment_Process_Common {
      */
     var $_fieldMap = array(
         // Required
-        'login' => "DPIAccountNum",
-        'password' => "password",
-        'action' => "transactionCode",
-        'invoiceNumber' => "orderNum",
-        'customerId' => "customerNum",
-        'amount' => "transactionAmount",
-        'zip' => "cardHolderZip",
-        // Optional
-        'name' => "cardHolderName",
-        'address' => "cardHolderAddress",
-        'city' => "cardHolderCity",
-        'state' => "cardHolderState",
-        'phone' => "cardHolderPhone",
-        'email' => "cardHolderEmail",
-        'transactionSource' => "ECommerce"
+        'login'             => "DPIAccountNum",
+        'password'          => "password",
+        'action'            => "transactionCode",
+        'invoiceNumber'     => "orderNum",
+        'customerId'        => "customerNum",
+        'amount'            => "transactionAmount",
+        'transactionSource' => "ECommerce",
+        // Credit Card Type
+        'cardNumber'        => "cardAccountNum",
+        'expDate'           => "expirationDate",
+        'zip'               => "cardHolderZip",
+        // Common Type
+        'name'              => "cardHolderName",
+        'address'           => "cardHolderAddress",
+        'city'              => "cardHolderCity",
+        'state'             => "cardHolderState",
+        'phone'             => "cardHolderPhone",
+        'email'             => "cardHolderEmail"
     );
 
     /**
@@ -274,7 +279,11 @@ class Payment_Process_Dpilink extends Payment_Process_Common {
     function _handleExpDate()
     {
         $specific = $this->_fieldMap['expDate'];
-        $this->_data[$specific] = str_replace('/', '', $this->expDate);
+        if (isset($this->_data[$specific])) {
+            $this->_data[$specific] = str_replace('/', '', $this->_data[$specific]);
+        } else {
+            $this->_data[$specific] = str_replace('/', '', $this->expDate);
+        }
     }
 
     /**
@@ -412,6 +421,7 @@ class Payment_Process_Result_Dpilink extends Payment_Process_Result {
         'L3' => "Expiration Date is not formatted correctly",
         'L4' => "Reference number not found",
         'L6' => "Order number is required but missing",
+        'L7' => "Wrong transaction code",
         'L8' => "Network timeout",
         'L14' => "Invalid card number",
         'S5' => "Already settled",
