@@ -40,6 +40,11 @@ define('PAYMENT_PROCESS_RESULT_DPILINK_INVALIDAMOUNT', 13);
 define('PAYMENT_PROCESS_RESULT_DPILINK_INVALIDCARDNO', 14);
 define('PAYMENT_PROCESS_RESULT_DPILINK_REENTER', 19);
 
+// Map actions
+$GLOBALS['_Payment_Process_Dpilink'][PAYMENT_PROCESS_ACTION_NORMAL] = 'PAYMENT_PROCESS_ACTION_DPILINK_AUTHSETTLE';
+$GLOBALS['_Payment_Process_Dpilink'][PAYMENT_PROCESS_ACTION_AUTHONLY] = 'PAYMENT_PROCESS_ACTION_DPILINK_AUTH';
+$GLOBALS['_Payment_Process_Dpilink'][PAYMENT_PROCESS_ACTION_POSTAUTH] = 'PAYMENT_PROCESS_ACTION_DPILINK_SETTLE';
+
 /**
  * Payment_Process_Dpilink
  *
@@ -72,8 +77,6 @@ class Payment_Process_Dpilink extends Payment_Process_Common {
         'invoiceNumber' => "orderNum",
         'customerId' => "customerNum",
         'amount' => "transactionAmount",
-        'cardNumber' => "cardAccountNum",
-        'expDate' => "expirationDate",
         'zip' => "cardHolderZip",
         // Optional
         'name' => "cardHolderName",
@@ -82,7 +85,6 @@ class Payment_Process_Dpilink extends Payment_Process_Common {
         'state' => "cardHolderState",
         'phone' => "cardHolderPhone",
         'email' => "cardHolderEmail",
-        'cvv' => "CVV2",
         'transactionSource' => "ECommerce"
     );
 
@@ -123,6 +125,20 @@ class Payment_Process_Dpilink extends Payment_Process_Common {
         $this->setOptions($options);
         $this->_makeRequired('login', 'password', 'action', 'invoiceNumber', 'customerId', 'amount', 'cardNumber', 'expDate');
     }
+    
+    /**
+     * Prepare the data.
+     *
+     * This function handles the 'testTransaction' option, which is specific to
+     * this processor.
+     */
+    function _prepare()
+    {
+        if ($this->_options['testTransaction']) {
+            $this->_data['testTransaction'] = $this->_options['testTransaction'];
+        }
+        return parent::_prepare();
+    }
 
     /**
      * Process the transaction.
@@ -156,16 +172,16 @@ class Payment_Process_Dpilink extends Payment_Process_Common {
             PEAR::popErrorHandling();
             return $res;
         }
-        $this->_responseBody = trim($res);
-
+        
         $this->_processed = true;
 
         // Restore error handling
         PEAR::popErrorHandling();
 
-        $result = &Payment_Process_Result::factory('Dpilink');
-        $result->setResponse($this->_responseBody);
-        $result->setRequest(&$this);
+        $response = trim($res);
+        print "Response: {$response}\n";
+        $result = &Payment_Process_Result::factory('Dpilink', $response);
+        $result->_request = &$this;
         $this->_result = &$result;
 
         return $result;
@@ -262,33 +278,6 @@ class Payment_Process_Dpilink extends Payment_Process_Common {
     }
 
     /**
-     * Handle action.
-     *
-     * @access private
-     */
-    function _handleAction()
-    {
-        switch ($this->action) {
-            case PAYMENT_PROCESS_ACTION_NORMAL:
-                $val = PAYMENT_PROCESS_ACTION_DPILINK_AUTHSETTLE;
-                break;
-
-            case PAYMENT_PROCESS_ACTION_AUTHONLY:
-                $val = PAYMENT_PROCESS_ACTION_DPILINK_AUTH;
-                break;
-
-            case PAYMENT_PROCESS_ACTION_CREDIT:
-                $val = PAYMENT_PROCESS_ACTION_DPILINK_CREDIT;
-                break;
-
-            case PAYMENT_PROCESS_ACTION_POSTAUTH:
-                $val = PAYMENT_PROCESS_ACTION_DPILINK_SETTLE;
-                break;
-        }
-        $this->_data[$this->_fieldMap['action']] = $val;
-    }
-
-    /**
      * Validate the merchant account login.
      *
      * The DPILink docs specify that the login is exactly eight digits.
@@ -372,14 +361,6 @@ class Payment_Process_Dpilink extends Payment_Process_Common {
 }
 
 class Payment_Process_Result_Dpilink extends Payment_Process_Result {
-    /**
-     * The raw response body from the gateway.
-     *
-     * @access private
-     * @type string
-     * @see setResponse()
-     */
-    var $_responseBody;
 
     /**
      * DPILink status codes.
@@ -391,7 +372,7 @@ class Payment_Process_Result_Dpilink extends Payment_Process_Result {
      * @see getStatusText()
      * @access private
      */
-    var $_statusCodes = array(
+    var $_statusCodeMessages = array(
         '00' => "Approved",
         '01' => "Refer to issuer",
         '02' => "Refer to issuer - Special condition",
@@ -442,7 +423,7 @@ class Payment_Process_Result_Dpilink extends Payment_Process_Result {
         'V9' => "Already posted"
     );
 
-    var $_avsCodes = array(
+    var $_avsCodeMap = array(
         'A' => "Address match",
         'E' => "Ineligible",
         'N' => "No match",
@@ -474,17 +455,15 @@ class Payment_Process_Result_Dpilink extends Payment_Process_Result {
         '9' => "Automated referral service (ARS) stand-in"
     );
 
-
     /**
-     * Set the response from the gateway.
+     * Constructor.
      *
-     * @param  string  $resp  The raw response from the gateway
+     * @param  string  $rawResponse  The raw response from the gateway
      * @return mixed boolean true on success, PEAR_Error on failure
      */
-    function setResponse($resp)
+    function Payment_Process_Result_Dpilink($rawResponse)
     {
-
-        $res = $this->_validateResponse($resp);
+        $res = $this->_validateResponse($rawResponse);
         if (!$res || PEAR::isError($res)) {
             if (!$res) {
                 $res = PEAR::raiseError("Unable to validate response body");
@@ -492,24 +471,8 @@ class Payment_Process_Result_Dpilink extends Payment_Process_Result {
             return $res;
         }
 
-        $this->_responseBody = $resp;
+        $this->_rawResponse = $rawResponse;
         $res = $this->_parseResponse();
-    }
-
-    /**
-     * Get the textual meaning of a status code.
-     *
-     * @param  string  $status 2-digit status code
-     * @return string  Status message
-     */
-    function _getStatusText($status)
-    {
-        return @$this->_statusCodes[$status];
-    }
-
-    function getAVSResponse()
-    {
-        return @$this->_avsCodes[$this->_avsResponse];
     }
 
     function getAuthSource()
@@ -553,6 +516,10 @@ class Payment_Process_Result_Dpilink extends Payment_Process_Result {
      */
     function _validateResponse($resp)
     {
+        if (!strlen($resp)) {
+            return PEAR::raiseError("Empty response");
+        }
+        
         $version = $this->_responseVersion($resp);
         $func = '_validate'.$version.'Response';
         if (!method_exists($this, $func)) {
@@ -569,7 +536,7 @@ class Payment_Process_Result_Dpilink extends Payment_Process_Result {
      */
     function _responseVersion($resp = false)
     {
-        $resp = $resp ? $resp : $this->_responseBody;
+        $resp = $resp ? $resp : $this->_rawResponse;
         list($version) = split('\|', $resp);
 
         /* According to the documentation, the first field should containt the
@@ -603,9 +570,9 @@ class Payment_Process_Result_Dpilink extends Payment_Process_Result {
             $this->_authSource, $this->_authChar, $this->_transactionId,
             $this->_validationCode, $this->_catCode, $this->_currencyCode,
             $this->_avsResponse, $this->_storeNum, $this->_cvv2
-        ) = split('\|', $this->_responseBody);
+        ) = split('\|', $this->_rawResponse);
 
-        $this->_setPublicFields();
+        //$this->_setPublicFields();
     }
 
     /**
@@ -628,7 +595,7 @@ class Payment_Process_Result_Dpilink extends Payment_Process_Result {
      *
      * @return void
      */
-    function _setPublicFields()
+    function __setPublicFields()
     {
         $this->message = $this->_getStatusText($this->_transactionStatus);
 
