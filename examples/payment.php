@@ -5,15 +5,14 @@
   $options = array();
   $options['x_test_request'] = 'TRUE';
   $options['x_delim_data'] = 'TRUE';
-  $options['x_password'] = 'aff1070comp';
   $options['avsCheck'] = true;
   $options['cvvCheck'] = true;
 
   $process = & Payment_Process::factory('AuthorizeNet',$options);
   if (!PEAR::isError($process)) {
       $process->_debug = true;
-      $process->login = 'affordablecomp256';
-      $process->password = 'aff1070comp';
+      $process->login = 'username';
+      $process->password = 'password';
       $process->action = PAYMENT_PROCESS_ACTION_AUTHONLY;
       $process->amount = 1.00;
 
