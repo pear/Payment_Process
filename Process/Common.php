@@ -143,7 +143,7 @@ class Payment_Process_Common extends Payment_Process {
      * Validate the charge amount.
      *
      * Charge amount must be 8 characters long, double-precision.
-     * Current min/max are rather arbitrarily set to $1.00 and $99999.99,
+     * Current min/max are rather arbitrarily set to $0.99 and $99999.99,
      * respectively.
      *
      * @return boolean true on success, false otherwise
@@ -153,7 +153,7 @@ class Payment_Process_Common extends Payment_Process {
         return Validate::number($this->amount, array(
             'decimal' => '.',
             'dec_prec' => 2,
-            'min' => 1.00,
+            'min' => 0.99,
             'max' => 99999.99
         ));
     }
