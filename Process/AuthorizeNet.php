@@ -293,7 +293,8 @@ class Payment_Process_Result_AuthorizeNet extends Payment_Process_Result {
 
     var $_statusCodeMap = array('1' => PAYMENT_PROCESS_RESULT_APPROVED,
                                 '2' => PAYMENT_PROCESS_RESULT_DECLINED,
-                                '3' => PAYMENT_PROCESS_RESULT_OTHER);
+                                '3' => PAYMENT_PROCESS_RESULT_OTHER,
+                                '4' => PAYMENT_PROCESS_RESULT_FRAUD);
 
     /**
      * AuthorizeNet status codes
@@ -520,6 +521,7 @@ class Payment_Process_Result_AuthorizeNet extends Payment_Process_Result {
                            '5'  => 'avsCode',
                            '6'  => 'transactionId',
                            '7'  => 'invoiceNumber',
+                           '8'  => 'description',
                            '12' => 'customerId',
                            '38' => 'cvvCode'
     );
