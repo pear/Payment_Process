@@ -184,7 +184,7 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
             return $curl;
         }
 
-        $curl->type = 'PUT';
+        $curl->type = 'POST';
         $curl->fields = $fields;
         if ($this->_options['debug'] === true) {
             echo "------------ CURL FIELDS -------------\n";
