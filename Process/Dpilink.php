@@ -54,8 +54,9 @@ $GLOBALS['_Payment_Process_Dpilink'] = array(
  * (http://www.dpicorp.com/)
  *
  * *** WARNING ***
- * This is BETA code, and has not been fully tested. It is not recommended
- * that you use it in a production envorinment without further testing.
+ * This is BETA code. While I have tested it and it appears to work for me, I
+ * strongly recommend that you do additional testing before using it in
+ * production systems.
  *
  * @package Payment_Process
  * @author Ian Eure <ieure@php.net>
