@@ -19,9 +19,6 @@
 //
 // $Id$
 
-define('PAYMENT_PROCESS_CK_SAVINGS',1000);
-define('PAYMENT_PROCESS_CK_CHECKING',1001);
-
 class Payment_Process_Type_eCheck extends Payment_Process_Type
 {
     var $_type = 'eCheck';

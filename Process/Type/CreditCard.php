@@ -19,11 +19,6 @@
 //
 // $Id$
 
-define('PAYMENT_PROCESS_CC_VISA', 100);
-define('PAYMENT_PROCESS_CC_MASTERCARD', 101);
-define('PAYMENT_PROCESS_CC_AMEX', 102);
-define('PAYMENT_PROCESS_CC_DISCOVER', 103);
-
 class Payment_Process_Type_CreditCard extends Payment_Process_Type 
 {
     var $_type = 'CreditCard';
