@@ -513,93 +513,15 @@ class Payment_Process_Result_Dpilink extends Payment_Process_Result {
     }
 
     /**
-     * Parse the response body.
-     *
-     * This is just a wrapper which chooses the correct parser for the reponse
-     * version.
-     *
-     * @see _parseR1Response()
-     * @return mixed boolean true on success, PEAR_Error on failure
-     */
-    function _parseResponse()
-    {
-        $version = $this->_responseVersion();
-        $func = '_parse'.$version.'Response';
-        if (!method_exists($this, $func)) {
-            return PEAR::raiseError("Unable to parse response version $version");
-        }
-
-        return $this->$func();
-    }
-
-    /**
-     * Validate the response body.
-     *
-     * This is just a wrapper which chooses the correct validator for the reponse
-     * version.
-     *
-     * @see _validateR1Response()
-     * @return mixed boolean true on success, PEAR_Error on failure
-     */
-    function _validateResponse($resp)
-    {
-        if (!strlen($resp)) {
-            return PEAR::raiseError("Empty response");
-        }
-        
-        $version = $this->_responseVersion($resp);
-        $func = '_validate'.$version.'Response';
-        if (!method_exists($this, $func)) {
-            return PEAR::raiseError("Unable to validate response version $version");
-        }
-
-        return $this->$func($resp);
-    }
-
-    /**
-     * Get the response format version.
-     *
-     * @return string Response version
-     */
-    function _responseVersion($resp = false)
-    {
-        $resp = $resp ? $resp : $this->_rawResponse;
-        list($version) = explode('|', $resp);
-
-        /* According to the documentation, the first field should containt the
-         * response format version. During testing, however, I got a blank field.
-         * The docs also say that it's a numeric field, but should contain 'R1.'
-         * Hmm.
-         * Sometimes the version is also 'R '. Sigh.
-         */
-        if (!strlen($version) || $version == 'R ')
-            $version = 'R1';
-
-        return $version;
-    }
-
-    /**
-     * Parse R1 response string.
+     * Parse DPILink R1 response string.
      *
      * This function parses the response the gateway sends back, which is in
      * pipe-delimited format.
      *
      * @return void
      */
-    function _parseR1Response()
+    function _parseResponse()
     {
-        /*
-        list(
-            $this->_format, $this->_acctNo, $this->_transactionCode,
-            $this->_sequenceNumber, $this->_mailOrder, $this->_accountNo,
-            $this->_expDate, $this->_authAmount, $this->_authDate,
-            $this->_authTime, $this->_transactionStatus, $this->_custNo,
-            $this->_orderNo, $this->_urn, $this->_authResponse,
-            $this->_authSource, $this->_authChar, $this->_transactionId,
-            $this->_validationCode, $this->_catCode, $this->_currencyCode,
-            $this->_avsResponse, $this->_storeNum, $this->_cvv2
-        ) = explode('|', $this->_rawResponse);
-        */
         $this->_mapFields(explode('|', $this->_rawResponse));
     }
 
@@ -608,7 +530,7 @@ class Payment_Process_Result_Dpilink extends Payment_Process_Result {
      *
      * @return boolean
      */
-    function _validateR1Response($resp)
+    function _validateResponse($resp)
     {
         if (strlen($resp) > 160)
             return false;
@@ -616,38 +538,6 @@ class Payment_Process_Result_Dpilink extends Payment_Process_Result {
         // FIXME - add more tests
 
         return true;
-    }
-
-    /**
-     * Set the publicly visible fields from the private ones.
-     *
-     * @return void
-     */
-    function __setPublicFields()
-    {
-        $this->message = $this->_getStatusText($this->_transactionStatus);
-
-        $invalidAVS = array('A', 'E', 'N', 'R', 'S', 'U');
-        // Make sure AVS was successful, if requested
-        if ($this->_request->performAvs && in_array($this->_avsResponse, $invalidAVS)) {
-            // It failed.
-            $this->message .= " ".$this->getAvsResponse();
-        }
-
-        $this->transactionId = $this->_transactionId;
-        switch ($this->_transactionStatus) {
-            case '00':
-                $this->code = PAYMENT_PROCESS_RESULT_APPROVED;
-                break;
-
-            case '05':
-                $this->code = PAYMENT_PROCESS_RESULT_DECLINED;
-                break;
-
-            default:
-                $this->code = PAYMENT_PROCESS_RESULT_OTHER;
-                break;
-        }
     }
 }
 
