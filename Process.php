@@ -73,7 +73,7 @@ define('PAYMENT_PROCESS_CVV_NOAPPLY',     603);
  * @category Payment
  * @version @version@
  */
-class Payment_Process extends PEAR {
+class Payment_Process {
 
     /**
      * Options.
