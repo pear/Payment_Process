@@ -13,7 +13,7 @@
 // | obtain it through the world-wide-web, please send a note to          |
 // | license@php.net so we can mail you a copy immediately.               |
 // +----------------------------------------------------------------------+
-// | Authors: Ian Eure <ieure@debian.org>                                 |
+// | Authors: Ian Eure <ieure@php.net>                                 |
 // +----------------------------------------------------------------------+
 //
 // $Id$
@@ -47,12 +47,12 @@ define('PAYMENT_PROCESS_RESULT_DPILINK_REENTER', 19);
  * (http://www.dpicorp.com/)
  *
  * *** WARNING ***
- * This is *ALPHA* code, and has *never* been tested with their system!
- * DO NOT use this in a production environment!
+ * This is BETA code, and has not been fully tested. It is not recommended
+ * that you use it in a production envorinment without further testing.
  *
  * @package Payment_Process
- * @author Ian Eure <ieure@websprockets.com>
- * @version 0.1
+ * @author Ian Eure <ieure@php.net>
+ * @version @version@
  */
 class Payment_Process_Dpilink extends Payment_Process {
     /**
