@@ -13,7 +13,7 @@
 // | obtain it through the world-wide-web, please send a note to          |
 // | license@php.net so we can mail you a copy immediately.               |
 // +----------------------------------------------------------------------+
-// | Authors: Ian Eure <ieure@debian.org>                                 |
+// | Authors: Ian Eure <ieure@php.net>                                    |
 // +----------------------------------------------------------------------+
 //
 // $Id$
@@ -27,10 +27,11 @@ require_once 'Payment/Process.php';
  * result codes and messages for testing purposes.
  *
  * @package Payment_Process
- * @author Ian Eure <ieure@websprockets.com>
- * @version 0.1
+ * @category Payment
+ * @author Ian Eure <ieure@php.net>
+ * @version @version@
  */
-class Payment_PAYMENT_PROCESS_Dummy extends Payment_Process {
+class Payment_Process_Dummy extends Payment_Process {
 	/**
      * Default options for this class.
      *
@@ -39,23 +40,49 @@ class Payment_PAYMENT_PROCESS_Dummy extends Payment_Process {
      * @see Payment_Process::setOptions()
      */
     var $_defaultOptions = array(
+    	'randomResult' => true,
         'returnCode' => PAYMENT_PROCESS_RESULT_APPROVED,
         'returnMessage' => "Dummy payment approved"
+    );
+
+    var $_returnValues = array(
+    	array(
+        	'code' => PAYMENT_PROCESS_RESULT_APPROVED,
+            'message' => "Approved"
+        ),
+        array(
+        	'code' => PAYMENT_PROCESS_RESULT_DECLINED,
+            'message' => "Declined"
+        ),
+        array(
+        	'code' => PAYMENT_PROCESS_RESULT_OTHER,
+            'message' => "System error"
+        )
     );
 
     /**
      * Process the (dummy) transaction
      *
-     * @return mixed  Payment_PAYMENT_PROCESS_Result instance on success, PEAR_Error otherwise.
+     * @return mixed  Payment_Process_Result instance or PEAR_Error
      */
     function &process()
     {
         // Sanity check
-        if(PEAR::isError($res = $this->validate())) {
+        if (PEAR::isError($res = $this->validate())) {
             return($res);
+            $n = rand(0, count($this->_returnValues) - 1);
+            $code = &$this->_returnValues[$n]['code'];
+            $message = &$this->_returnValues[$n]['message'];
         }
 
-        return Payment_PAYMENT_PROCESS_Result::factory($this->_options['returnMessage'], $this->_options['returnCode']);
+        if ($this->_options['randomResult']) {
+        	srand(microtime());
+        } else {
+        	$code = &$this->_options['returnCode'];
+            $message = &$this->_options['returnMessage'];
+        }
+
+        return Payment_Process_Result::factory(null, $this->_options['returnCode'], $this->_options['returnMessage']);
     }
 }
 ?>
