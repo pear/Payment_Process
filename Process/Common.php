@@ -223,16 +223,19 @@ class Payment_Process_Common extends Payment_Process {
     */
     function setPayment($payment)
     {
-        if (is_array($this->_typeFieldMap[$payment->]);
-        if (Payment_Process_Type::isValid($payment)) {
-            $this->_payment = $payment;
-            foreach ($this->_fieldMap as $generic => $specific) {
-                if(isset($payment->$generic)) {
-                    $this->_data[$specific] = $payment->$generic;
+        if (is_array($this->_typeFieldMap[$payment->getType()]) &&
+            count($this->_typeFieldMap[$payment->getType()])) {
+        
+            if (Payment_Process_Type::isValid($payment)) {
+                $this->_payment = $payment;
+                foreach ($this->_fieldMap as $generic => $specific) {
+                    if(isset($payment->$generic)) {
+                        $this->_data[$specific] = $payment->$generic;
+                    }
                 }
-            }
 
-            return true;
+                return true;
+            }
         }
 
         return false;

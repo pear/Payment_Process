@@ -122,7 +122,11 @@ class Payment_Process_Type
      */
     function _validateZip()
     {
-        return ereg('^[0-9]{5}(-[0-9]{4})?$', $this->zip);
+        if(isset($this->zip)) {
+            return ereg('^[0-9]{5}(-[0-9]{4})?$', $this->zip);
+        }
+
+        return true;
     }
 
 }  

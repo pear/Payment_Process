@@ -91,7 +91,7 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
                     'cvv' => 'x_card_code',
                     'expDate' => 'x_exp_date'
 
-           );
+           ),
 
            'eCheck' => array(
 
@@ -100,7 +100,7 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
                     'bankName' => 'x_bank_name',
                     'name' => 'x_bank_acct_name'
 
-           );
+           )
     );
 
     /**
