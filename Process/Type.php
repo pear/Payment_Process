@@ -37,6 +37,7 @@ define('PAYMENT_PROCESS_CK_CHECKING',1001);
  */
 class Payment_Process_Type
 {
+    // {{{ properties
     var $_type = null;
     var $name;
     var $company;
@@ -48,12 +49,26 @@ class Payment_Process_Type
     var $phone;
     var $fax;
     var $email;
+    // }}}
 
+    // {{{ Payment_Process_Type()
     function Payment_Process_Type()
     {
 
     }
+    // }}}
 
+    // {{{ factory()
+    /**
+    * factory
+    *
+    * Creates and returns an instance of a payment type. If an error occurs
+    * a PEAR_Error is returned.
+    *
+    * @author Joe Stump <joe@joestump.net>
+    * @param string $type
+    * @return mixed
+    */
     function &factory($type)
     {
         $class = 'Payment_Process_Type_'.$type;
@@ -66,8 +81,12 @@ class Payment_Process_Type
 
         return PEAR::raiseError('Invalid Payment_Process_Type: '.$type);
     }
+    // }}}
 
+    // {{{ isValid()
     /**
+    * isValid
+    *
     * Validate a payment type object
     *
     * @author Joe Stump <joe@joestump.net>
@@ -93,7 +112,9 @@ class Payment_Process_Type
 
         return false;
     }
+    // }}}
 
+    // {{{ getType()
     /**
     * getType
     *
@@ -105,7 +126,9 @@ class Payment_Process_Type
     {
       return $this->_type;
     }
+    // }}}
 
+    // {{{ _validateEmail()
     /**
      * Validate an email address.
      *
@@ -121,7 +144,9 @@ class Payment_Process_Type
 
         return true;
     }
+    // }}}
 
+    // {{{ _validateZip()
     /**
      * Validate the zip code.
      *
@@ -140,6 +165,7 @@ class Payment_Process_Type
 
         return true;
     }
+    // }}}
 
 }  
 

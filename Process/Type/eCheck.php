@@ -27,7 +27,18 @@
  */
 class Payment_Process_Type_eCheck extends Payment_Process_Type
 {
+    /** 
+    * $_type
+    *
+    * @var string $_type
+    */
     var $_type = 'eCheck';
+
+    /**
+    * $type
+    *
+    * @var $type
+    */
     var $type;
     var $accountNumber;
     var $routingCode;
