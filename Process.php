@@ -56,6 +56,16 @@ define('PAYMENT_PROCESS_RESULT_APPROVED', 400);
 define('PAYMENT_PROCESS_RESULT_DECLINED', 401);
 define('PAYMENT_PROCESS_RESULT_OTHER', 402);
 
+define('PAYMENT_PROCESS_AVS_MATCH',500);
+define('PAYMENT_PROCESS_AVS_MISMATCH',501);
+define('PAYMENT_PROCESS_AVS_ERROR',502);
+define('PAYMENT_PROCESS_AVS_NOAPPLY',503);
+
+define('PAYMENT_PROCESS_CVV_MATCH',600);
+define('PAYMENT_PROCESS_CVV_MISMATCH',601);
+define('PAYMENT_PROCESS_CVV_ERROR',602);
+define('PAYMENT_PROCESS_CVV_NOAPPLY',603);
+
 /**
  * Payment_Process
  *
@@ -64,7 +74,7 @@ define('PAYMENT_PROCESS_RESULT_OTHER', 402);
  * @category Payment
  * @version @version@
  */
-class Payment_Process {
+class Payment_Process extends PEAR {
 
     /**
      * Options.
@@ -107,7 +117,7 @@ class Payment_Process {
     /**
      * The transaction amount.
      */
-    var $amount = '';
+    var $amount = 0;
 
     /**
      * An invoice number.
@@ -202,13 +212,6 @@ class Payment_Process {
     var $transactionSource;
 
     /**
-     * Perform AVS?
-     *
-     * @type boolean
-     */
-    var $performAvs = false;
-    
-    /**
      * Array of fields which are required.
      *
      * @type array
@@ -226,6 +229,15 @@ class Payment_Process {
     var $_data = array();
 
     /**
+     * $_driver
+     *
+     * @author Joe Stump <joe@joestump.net> 
+     * @var string $_driver
+     * @access private
+     */
+    var $_driver = null;
+
+    /**
      * Return an instance of a specific processor.
      *
      * @param  string  $type     Name of the processor
@@ -239,7 +251,10 @@ class Payment_Process {
         if (!class_exists($class)) {
             return PEAR::raiseError("\"$type\" processor does not exist", PAYMENT_PROCESS_ERROR_NOPROCESSOR);
         }
-        return new $class($options);
+
+        $object = & new $class($options);
+        $object->_driver = $type;
+        return $object;
     }
 
     /**
@@ -327,8 +342,9 @@ class Payment_Process {
     function setFrom($where)
     {
         foreach ($this->getFields() as $field) {
-            if (isset($where[$field]))
+            if (isset($where[$field])) {
                 $this->$field = $where[$field];
+            }
         }
     }
 
@@ -513,7 +529,7 @@ class Payment_Process {
      */
     function _validateAction()
     {
-        return $this->_isDefinedConst($this->action, 'action');
+        return (isset($GLOBALS['_'.$this->_driver][$this->type]));
     }
 
     /**
@@ -584,11 +600,11 @@ class Payment_Process {
      * Prepare the POST data.
      *
      * This function handles translating the data set in the front-end to the
-     * format needed by the back-end. The prepared data is stored in $this->_data.
-     * If a '_handleField' method exists in this class (e.g. '_handleCardNumber()'),
-     * that function is called and /must/ set $this->_data correctly. If no field-
-     * handler function exists, the data from the front-end is mapped into $_data
-     * using $this->_fieldMap.
+     * format needed by the back-end. The prepared data is stored in 
+     * $this->_data. If a '_handleField' method exists in this class (e.g. 
+     * '_handleCardNumber()'), that function is called and /must/ set 
+     * $this->_data correctly. If no field-handler function exists, the data 
+     * from the front-end is mapped into $_data using $this->_fieldMap.
      *
      * @access private
      * @return array Data to POST
@@ -609,12 +625,66 @@ class Payment_Process {
         }
 
         if ($this->_options['testTransaction']) {
-            $this->_data['testTransaction'] =
-$this->_options['testTransaction'];
+            $this->_data['testTransaction'] = $this->_options['testTransaction'];
         }
                                                                                 
         return true;
     }
+
+    /**
+     * Handle action
+     *
+     * Actions are defined in $GLOBALS['_Payment_Process_DriverName'] and then
+     * handled here. We may decide to abstract the defines in the driver.
+     *
+     * @author Joe Stump <joe@joestump.net>
+     * @access private
+     * @return void
+     */
+    function _handleAction()
+    {
+        $this->_data[$this->_fieldMap['action']] = $GLOBALS['_'.$this->_driver][$this->action];
+    }
+
+    /**
+    * Statically check a Payment_Result class for success
+    *
+    * @author Joe Stump <joe@joestump.net>
+    * @access public
+    * @param mixed $obj 
+    */
+    function isSuccess($obj)
+    {
+        if (is_a($obj,'Payment_Process_Result')) {
+            if ($obj->getCode() == PAYMENT_PROCESS_RESULT_APPROVED) {
+                return true;
+            }
+        }
+  
+        return false;
+    }
+
+    /**
+    * Statically check a Payment_Result class for error
+    *
+    * @author Joe Stump <joe@joestump.net> 
+    * @access public
+    * @param mixed $obj
+    */
+    function isError($obj)
+    {
+        if (PEAR::isError($obj)) {
+            return true; 
+        }
+
+        if (is_a($obj,'Payment_Process_Result')) {
+            if ($obj->getCode() != PAYMENT_PROCESS_RESULT_APPROVED) {
+                return true;
+            }
+        }
+
+        return false;
+    } 
 }
 
 /**
@@ -643,7 +713,7 @@ class Payment_Process_Result {
     /**
      * Transaction result code.
      *
-     * This should be set to one of the PAYMENT_PROCESS_ACTION_* constants.
+     * This should be set to one of the PAYMENT_PROCESS_RESULT_* constants.
      *
      * @type int
      */
@@ -667,12 +737,20 @@ class Payment_Process_Result {
     /**
      * Transaction ID.
      *
-     * This should be the unique ID the gateway sends back. Sometimes referred to
-     * as an approval number.
+     * This should be the unique ID the gateway sends back. Sometimes referred 
+     * to as an approval number.
      *
      * @type string
      */
     var $transactionID;
+
+    /**
+     * AVS Code
+     *
+     * @author Joe Stump <joe@joestump.net>
+     * @var int $avsCode
+     */
+    var $avsCode;
 
     /**
      * Constructor.
@@ -685,6 +763,7 @@ class Payment_Process_Result {
         if ($code) {
             $this->code = $code;
         }
+
         if ($message) {
             $this->message = $message;
         }
@@ -708,12 +787,11 @@ class Payment_Process_Result {
      */
     function &factory($type = false, $code = false, $message = false)
     {
-        // We assume that the result class is defined in the processor.
-        if ($type) {
-            $class = 'Payment_Process_Result_'.$type;
-        } else {
-            $class = get_class($this);
+        if(isset($this) && get_class($this)) {
+            return PEAR::raiseError('This function must be called statically');
         }
+
+        $class = 'Payment_Process_Result_'.$type;
 
         if (!class_exists($class)) {
             return PEAR::raiseError("Can't instantiate non-existent class \"$class\"", PAYMENT_PROCESS_ERROR_INVAILD);
@@ -762,27 +840,115 @@ class Payment_Process_Result {
     }
 
     /**
-     * Was the transaction successful?
-     *
-     * @return boolean
-     */
-    function isSuccess()
+    * Get the AVS Code
+    *
+    * @author Joe Stump <joe@joestump.net>
+    * @return int AVS Code
+    */
+    function getAVSCode()
     {
-        return ! $this->isError();
-    }
-
-    /**
-     * Was the transaction unsuccessful?
-     *
-     * @return boolean
-     */
-    function isError()
-    {
-        if ($this->code && $this->code != PAYMENT_PROCESS_RESULT_APPROVED)
-            return true;
-        return false;
+        return $this->avsCode();
     }
 }
 
+/**
+ * Payment_Process_Response
+ *
+ * @author Joe Stump <joe@joestump.net>
+ * @package Payment_Process
+ * @category Payment
+ * @version @version@
+ */
+class Payment_Process_Response {
+    var $_rawResponse = null;
+    var $code;
+    var $subcode;
+    var $messageCode;
+    var $message = '';
+    var $approvalCode;
+    var $avsCode;
+    var $transactionId;
+    var $invoiceNumber;
+    var $customerId;
+    var $cvvCode = PAYMENT_PROCESS_CVV_ERROR;
+    var $cvvMessage = '';
+
+    function Payment_Process_Response($rawResponse) 
+    {
+        $this->_rawResponse = $rawResponse;
+    }
+
+    function &factory($type,$rawResponse)
+    {
+        $class = 'Payment_Process_Response_'.$type;
+        if (class_exists($class)) {
+            return new $class($rawResponse);
+        }
+
+        return PEAR::raiseError('Invalid response type: '.$type.'('.$class.')');
+    }
+
+    function validate($avsCheck = false,$cvvCheck = false) 
+    {
+        if ($avsCheck) {
+            if ($this->getAVSCode() != PAYMENT_PROCESS_AVS_MATCH) {
+                return false;
+            }
+        }    
+
+        if ($cvvCheck) {
+            if ($this->getCvvCode() != PAYMENT_PROCESS_CVV_MATCH) {
+                return false;
+            }
+        }
+
+        if ($this->getCode() != PAYMENT_PROCESS_RESULT_APPROVED) {
+            return false; 
+        }
+
+        return true;
+    }
+
+    function parse() 
+    {
+        return PEAR::raiseError('parse() not implemented',PAYMENT_PROCESS_ERROR_NOTIMPLEMENTED);
+    }
+
+    function getCode() 
+    {
+      return $this->_statusCodeMap[$this->code];
+    }
+
+    function getMessage() 
+    {
+      return $this->_statusCodeMessages[$this->code];
+    }
+
+    function getAVSCode() 
+    {
+        return $this->_avsCodeMap[$this->avsCode];
+    }
+
+    function getAVSMessage() 
+    {
+        return $this->_avsCodeMessages[$this->avsCode];
+    }
+
+    function getCvvCode()
+    {
+        return $this->_cvvCodeMap[$this->cvvCode];
+    }
+
+    function getCvvMessage()
+    {
+        return $this->_cvvCodeMessages[$this->cvvCode];
+    }
+
+    function _mapFields($responseArray) {
+        foreach($this->_fieldMap as $key => $val) {
+            $this->$val = $responseArray[$key]; 
+        }
+    }
+}
 
 ?>

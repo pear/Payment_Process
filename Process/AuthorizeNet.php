@@ -22,18 +22,6 @@
 require_once 'Payment/Process.php';
 require_once 'Net/Curl.php';
 
-// DPILink transaction types
-// Request authorization only - no funds are transferred.
-define('PAYMENT_PROCESS_ACTION_AUTHORIZENET_AUTH', 'AUTH_ONLY');
-// Transfer funds from a previous authorization.
-define('PAYMENT_PROCESS_ACTION_AUTHORIZENET_SETTLE', 'PRIOR_AUTH_CAPTURE');
-// Authorize & transfer funds
-define('PAYMENT_PROCESS_ACTION_AUTHORIZENET_AUTHSETTLE', 'AUTH_CAPTURE');
-// debit the indicated amount to a previously-charged card.
-//define('PAYMENT_PROCESS_ACTION_DPILINK_CREDIT', 20);
-// Cancel authorization
-//define('PAYMENT_PROCESS_ACTION_DPILINK_VOID', 61);
-
 $GLOBALS['_Payment_Process_AuthorizeNet'][PAYMENT_PROCESS_ACTION_NORMAL] = 'AUTH_CAPTURE';
 $GLOBALS['_Payment_Process_AuthorizeNet'][PAYMENT_PROCESS_ACTION_AUTHONLY] = 'AUTH_ONLY';
 $GLOBALS['_Payment_Process_AuthorizeNet'][PAYMENT_PROCESS_ACTION_POSTAUTH] = 'PRIOR_AUTH_CAPTURE';
@@ -166,7 +154,7 @@ class Payment_Process_AuthorizeNet extends Payment_Process {
         PEAR::pushErrorHandling(PEAR_ERROR_RETURN);
 
         if ($this->_debug) {
-            echo '<pre>'; print_r($this->_options); echo '</pre>';
+            print_r($this->_options);
         }
 
         $fields = $this->_prepareQueryString();
@@ -179,7 +167,7 @@ class Payment_Process_AuthorizeNet extends Payment_Process {
         $curl->type = 'PUT';
         $curl->fields = $fields;
         if($this->_debug === true) {
-            echo '<pre>'; print_r($curl->fields); echo '</pre>';
+            print_r($curl->fields); 
         }
 
         $curl->userAgent = 'PEAR Payment_Process_AuthorizeNet 0.1';
@@ -195,14 +183,21 @@ class Payment_Process_AuthorizeNet extends Payment_Process {
 
         $this->_responseBody = trim($result);
 
-        echo $this->_responseBody."\n";
+//        echo $this->_responseBody."\n";
 
         $this->_processed = true;
 
         // Restore error handling
         PEAR::popErrorHandling();
 
-//        $result = &Payment_Process_Result::factory('Dpilink');
+        $response = &Payment_Process_Response::factory($this->_driver,$this->_responseBody);
+        if(!PEAR::isError($response))
+        {
+          $response->parse();
+        }
+
+        return $response;
+
 //        $result->setResponse($this->_responseBody);
 //        $result->setRequest(&$this);
 //        $this->_result = &$result;
@@ -225,27 +220,7 @@ class Payment_Process_AuthorizeNet extends Payment_Process {
      */
     function getStatus()
     {
-        if (!$this->_processed) {
-            return PEAR::raiseError('The transaction has not been processed yet.', PAYMENT_PROCESS_ERROR_INCOMPLETE);
-        }
-        return $this->_result->code;
-    }
-
-    /**
-     * Get transaction sequence.
-     *
-     * 'Sequence' is what DPILink calls their transaction ID/approval code. This
-     * function returns that code from a processed transaction.
-     *
-     * @return mixed  Sequence ID, or PEAR_Error if the transaction hasn't been
-     *                processed.
-     */
-    function getSequence()
-    {
-        if (!$this->_processed) {
-            return PEAR::raiseError('The transaction has not been processed yet.', PAYMENT_PROCESS_ERROR_INCOMPLETE);
-        }
-        return $this->_result->_sequenceNumber;
+        return false;
     }
 
     /**
@@ -270,14 +245,6 @@ class Payment_Process_AuthorizeNet extends Payment_Process {
         $this->_options['authorizeUri'] .= '?'.implode('&',$sets);
 
         return $return;
-
-/*
-        foreach($this->_data as $var => $value) {
-            if (strlen($value))
-                $tmp[] = urlencode($var).'='.urlencode($value);
-        }
-        return @implode('&', $tmp);
-*/
     }
 
     /**
@@ -292,122 +259,95 @@ class Payment_Process_AuthorizeNet extends Payment_Process {
       $this->_data['x_first_name'] = array_shift($parts);
       $this->_data['x_last_name'] = implode(' ',$parts); 
     }
-
-    /**
-     * Handle card expiration date.
-     *
-     * The gateway wants the date in the format MMYY, with no other chars.
-     *
-     * @access private
-     */
-    function _handleExpDate()
-    {
-    	$specific = $this->_fieldMap['expDate'];
-        $this->_data[$specific] = str_replace('/', '', $this->expDate);
-    }
 }
 
-class Payment_Process_Result_Dpilink extends Payment_Process_Result {
-	/**
-     * The raw response body from the gateway.
-     *
-     * @access private
-     * @type string
-     * @see setResponse()
-     */
-    var $_responseBody;
+class Payment_Process_Response_AuthorizeNet extends Payment_Process_Response {
+
+    var $_statusCodeMap = array('1' => PAYMENT_PROCESS_RESULT_APPROVED,
+                                '2' => PAYMENT_PROCESS_RESULT_DECLINED,
+                                '3' => PAYMENT_PROCESS_RESULT_OTHER);
 
     /**
-     * DPILink status codes.
+     * AuthorizeNet status codes
      *
-     * This array holds every possible status returned by the DPILink gateway.
-     *
-     * See the DPILink documentation for more details on each response.
+     * This array holds many of the common response codes. There are over 200
+     * response codes - so check the AuthorizeNet manual if you get a status
+     * code that does not match (see "Response Reason Codes & Response 
+     * Reason Text" in the AIM manual).
      *
      * @see getStatusText()
      * @access private
      */
-    var $_statusCodes = array(
-        '00' => "Approved",
-        '01' => "Refer to issuer",
-        '02' => "Refer to issuer - Special condition",
-        '03' => "Invalid merchant ID",
-        '04' => "Pick up card",
-        '05' => "Declined",
-        '06' => "General error",
-        '07' => "Pick up card - Special condition",
-        '13' => "Invalid amount",
-        '14' => "Invalid card number",
-        '15' => "No such issuer",
-        '19' => "Re-enter transaction",
-        '21' => "Unable to back out transaction",
-        '28' => "File is temporarily unavailable",
-        '39' => "No credit account",
-        '41' => "Pick up card - Lost",
-        '43' => "Pick up card - Stolen",
-        '51' => "Insufficient funds",
-        '54' => "Expired card",
-        '57' => "Transaction not permitted - Card",
-        '61' => "Amount exceeds withdrawal limit",
-        '62' => "Invalid service code, restricted",
-        '65' => "Activity limit exceeded",
-        '76' => "Unable to locate, no match",
-        '77' => "Inconsistent data, rev. or repeat",
-        '78' => "No account",
-        '80' => "Invalid date",
-        '85' => "Card OK",
-        '91' => "Issuer or switch is unavailable",
-        '93' => "Violation, cannot complete",
-        '96' => "System malfunction",
-        '98' => "No matching transaction to void",
-        '99' => "System timeout",
-        'L0' => "General System Error - Contact DPI Account Exec.",
-        'L1' => "Invalid or missing account number",
-        'L2' => "Invalid or missing password",
-        'L3' => "Expiration Date is not formatted correctly",
-        'L4' => "Reference number not found",
-        'L6' => "Order number is required but missing",
-        'L8' => "Network timeout",
-        'L14' => "Invalid card number",
-        'S5' => "Already settled",
-        'S6' => "Not authorized",
-        'S7' => "Declined",
-        'V6' => "Invalid transaction type",
-        'V7' => "Declined",
-        'V8' => "Already voided",
-        'V9' => "Already posted"
+    var $_statusCodeMessages = array(
+        '1'  => 'The credit card was approved',
+        '2'  => 'This transaction has been declined',
+        '3'  => 'This transaction has been declined',
+        '4'  => 'This transaction has been declined',
+        '5'  => 'A valid amount is required',
+        '6'  => 'The credit card number is invalid',
+        '7'  => 'The credit card expiration date is invalid',
+        '8'  => 'The credit card has expired',
+        '9'  => 'The ABA code is invalid',
+        '10' => 'The account number is invalid',
+        '11' => 'A duplicate transaction has been submitted',
+        '12' => 'An authorization code is required but not present',
+        '13' => 'The merchant Login ID is invalid or the account is inactive',
+        '14' => 'The Referrer or Relay Response URL is invalid',
+        '15' => 'The transaction ID is invalid',
+        '16' => 'The transaction was not found',
+        '17' => 'The merchant does not accept this type of credit card',
+        '18' => 'ACH transactions are not accepted by this merchant',
+        '27' => 'The transaction resulted in an AVS mismatch',
+        '36' => 'The authorization was approved, but settlement failed',
+        '37' => 'The credit card number is invalid',
+        '49' => 'A transaction amount greater than $99,999 will not be accepted'
     );
 
-    var $_avsCodes = array(
-        'A' => "Address match",
-        'E' => "Ineligible",
-        'N' => "No match",
-        'R' => "Retry",
-        'S' => "Service unavailable",
-        'U' => "Address information unavailable",
-        'W' => "9-digit zip match",
-        'X' => "Address and 9-digit zip match",
-        'Y' => "Address and 5-digit zip match",
-        'Z' => "5-digit zip match"
+    var $_avsCodeMap = array(
+        'A' => PAYMENT_PROCESS_AVS_MISMATCH,
+        'B' => PAYMENT_PROCESS_AVS_ERROR,
+        'E' => PAYMENT_PROCESS_AVS_ERROR,
+        'G' => PAYMENT_PROCESS_AVS_NOAPPLY,
+        'N' => PAYMENT_PROCESS_AVS_MISMATCH,
+        'P' => PAYMENT_PROCESS_AVS_NOAPPLY,
+        'R' => PAYMENT_PROCESS_AVS_ERROR,
+        'S' => PAYMENT_PROCESS_AVS_ERROR,
+        'U' => PAYMENT_PROCESS_AVS_ERROR,
+        'W' => PAYMENT_PROCESS_AVS_MISMATCH,
+        'X' => PAYMENT_PROCESS_AVS_MATCH,
+        'Y' => PAYMENT_PROCESS_AVS_MATCH,
+        'Z' => PAYMENT_PROCESS_AVS_MISMATCH
     );
 
-    var $_aciCodes = array(
-    	'A' => "CPS Qualified",
-        'E' => "CPS Qualified  -  Card Acceptor Data was submitted in the authorization  request.",
-        'M' => "Reserved - The card was not present and no AVS request for International transactions",
-        'N' => "Not CPS Qualified",
-        'V' => "CPS Qualified ? Included an address verification request in the authorization request."
+    var $_avsCodeMessages = array(
+        'A' => 'Address matches, ZIP does not',
+        'B' => 'Address information not provided',
+        'E' => 'AVS Error',
+        'G' => 'Non-U.S. Card Issuing Bank',
+        'N' => 'No match',
+        'P' => 'AVS not applicable',
+        'R' => 'Retry - System unavailable or timeout',
+        'S' => 'Service not supported by issuer',
+        'U' => 'Address information unavailable',
+        'W' => '9-digit zip matches, Address (street) does not',
+        'X' => 'Address and 9-digit zip match',
+        'Y' => 'Address and 5-digit zip match',
+        'Z' => '5-digit zip matches, Address (street) does not'
     );
 
-    var $_authSourceCodes = array(
-    	' ' => "Terminal doesn't support",
-        '0' => "Exception File",
-		'1' => "Stand in Processing, time-out response",
-        '2' => "Loss Control System (LCS) response provided",
-        '3' => "STIP, response provided, issuer suppress inquiry mode",
-        '4' => "STIP, response provided, issuer is down",
-        '5' => "Response provided by issuer",
-        '9' => "Automated referral service (ARS) stand-in"
+    var $_cvvCodeMap = array('M' => PAYMENT_PROCESS_CVV_MATCH,
+                            'N' => PAYMENT_PROCESS_CVV_MISMATCH,
+                            'P' => PAYMENT_PROCESS_CVV_ERROR,
+                            'S' => PAYMENT_PROCESS_CVV_ERROR,
+                            'U' => PAYMENT_PROCESS_CVV_ERROR
+    );
+
+    var $_cvvCodeMessages = array(
+        'M' => 'CVV codes match',
+        'N' => 'CVV codes do not match',
+        'P' => 'CVV code was not processed',
+        'S' => 'CVV code should have been present',
+        'U' => 'Issuer unable to process request',
     );
 
     var $_fieldMap = array('0'  => 'code',
@@ -418,187 +358,19 @@ class Payment_Process_Result_Dpilink extends Payment_Process_Result {
                            '5'  => 'avsCode',
                            '6'  => 'transactionId',
                            '7'  => 'invoiceNumber',
-                           '39' => 'cvvCode');
+                           '12' => 'customerId',
+                           '39' => 'cvvCode'
+    );
 
-
-    /**
-     * Set the response from the gateway.
-     *
-     * @param  string  $resp  The raw response from the gateway
-     * @return mixed boolean true on success, PEAR_Error on failure
-     */
-    function setResponse($resp)
+    function Payment_Process_Response_AuthorizeNet($rawResponse) 
     {
-
-        $res = $this->_validateResponse($resp);
-        if (!$res || PEAR::isError($res)) {
-            if (!$res) {
-            	$res = PEAR::raiseError("Unable to validate response body");
-            }
-            return $res;
-        }
-
-        $this->_responseBody = $resp;
-        $res = $this->_parseResponse();
+        $this->Payment_Process_Response($rawResponse);
     }
 
-    /**
-     * Get the textual meaning of a status code.
-     *
-     * @param  string  $status 2-digit status code
-     * @return string  Status message
-     */
-    function _getStatusText($status)
+    function parse()
     {
-        return @$this->_statusCodes[$status];
-    }
-
-    function getAVSResponse()
-    {
-    	return @$this->_avsCodes[$this->_avsResponse];
-    }
-
-    function getAuthSource()
-    {
-    	return @$this->_authSourceCodes[$this->_authSource];
-    }
-
-    function getAuthCharacteristic()
-    {
-    	return @$this->_aciCodes[$this->_authChar];
-    }
-
-    /**
-     * Parse the response body.
-     *
-     * This is just a wrapper which chooses the correct parser for the reponse
-     * version.
-     *
-     * @see _parseR1Response()
-     * @return mixed boolean true on success, PEAR_Error on failure
-     */
-    function _parseResponse()
-    {
-    	$version = $this->_responseVersion();
-        $func = '_parse'.$version.'Response';
-        if (!method_exists($this, $func)) {
-        	return PEAR::raiseError("Unable to parse response version $version");
-        }
-
-        return $this->$func();
-    }
-
-    /**
-     * Validate the response body.
-     *
-     * This is just a wrapper which chooses the correct validator for the reponse
-     * version.
-     *
-     * @see _validateR1Response()
-     * @return mixed boolean true on success, PEAR_Error on failure
-     */
-    function _validateResponse($resp)
-    {
-    	$version = $this->_responseVersion($resp);
-    	$func = '_validate'.$version.'Response';
-        if (!method_exists($this, $func)) {
-        	return PEAR::raiseError("Unable to validate response version $version");
-        }
-
-        return $this->$func($resp);
-    }
-
-    /**
-     * Get the response format version.
-     *
-     * @return string Response version
-     */
-    function _responseVersion($resp = false)
-    {
-    	$resp = $resp ? $resp : $this->_responseBody;
-    	list($version) = split('\|', $resp);
-
-        /* According to the documentation, the first field should containt the
-         * response format version. During testing, however, I got a blank field.
-         * The docs also say that it's a numeric field, but should contain 'R1.'
-         * Hmm.
-         * Sometimes the version is also 'R '. Sigh.
-         */
-        if (!strlen($version) || $version == 'R ')
-        	$version = 'R1';
-
-        return $version;
-    }
-
-    /**
-     * Parse R1 response string.
-     *
-     * This function parses the response the gateway sends back, which is in
-     * pipe-delimited format.
-     *
-     * @return void
-     */
-    function _parseR1Response()
-    {
-        list(
-        	$this->_format, $this->_acctNo, $this->_transactionCode,
-            $this->_sequenceNumber, $this->_mailOrder, $this->_accountNo,
-            $this->_expDate, $this->_authAmount, $this->_authDate,
-            $this->_authTime, $this->_transactionStatus, $this->_custNo,
-            $this->_orderNo, $this->_urn, $this->_authResponse,
-            $this->_authSource, $this->_authChar, $this->_transactionId,
-            $this->_validationCode, $this->_catCode, $this->_currencyCode,
-            $this->_avsResponse, $this->_storeNum, $this->_cvv2
-        ) = split('\|', $this->_responseBody);
-
-        $this->_setPublicFields();
-    }
-
-    /**
-     * Validate a R1 response.
-     *
-     * @return boolean
-     */
-    function _validateR1Response($resp)
-    {
-    	if (strlen($resp) > 160)
-        	return false;
-
-        // FIXME - add more tests
-
-		return true;
-    }
-
-    /**
-     * Set the publicly visible fields from the private ones.
-     *
-     * @return void
-     */
-    function _setPublicFields()
-    {
-        $this->message = $this->_getStatusText($this->_transactionStatus);
-
-        $invalidAVS = array('A', 'E', 'N', 'R', 'S', 'U');
-    	// Make sure AVS was successful, if requested
-    	if ($this->_request->performAvs && in_array($this->_avsResponse, $invalidAVS)) {
-			// It failed.
-            $this->message .= " ".$this->getAvsResponse();
-        }
-
-        $this->transactionId = $this->_transactionId;
-        switch ($this->_transactionStatus) {
-        	case '00':
-            	$this->code = PAYMENT_PROCESS_RESULT_APPROVED;
-                break;
-
-            case '05':
-            	$this->code = PAYMENT_PROCESS_RESULT_DECLINED;
-                break;
-
-            default:
-            	$this->code = PAYMENT_PROCESS_RESULT_OTHER;
-                break;
-        }
+      $responseArray = explode(',',$this->_rawResponse);
+      $this->_mapFields($responseArray);
     }
 }
 
