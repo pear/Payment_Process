@@ -51,6 +51,7 @@ define('PAYMENT_PROCESS_RESULT_APPROVED', 400);
 define('PAYMENT_PROCESS_RESULT_DECLINED', 401);
 define('PAYMENT_PROCESS_RESULT_OTHER', 402);
 define('PAYMENT_PROCESS_RESULT_FRAUD', 403);
+define('PAYMENT_PROCESS_RESULT_DUPLICATE',404);
 
 define('PAYMENT_PROCESS_AVS_MATCH',500);
 define('PAYMENT_PROCESS_AVS_MISMATCH',501);
@@ -581,42 +582,97 @@ class Payment_Process_Result {
         return PEAR::raiseError('Invalid response type: '.$type.'('.$class.')');
     }
 
+    // {{{ validate()
+    /**
+    * validate
+    * 
+    * @author Joe Stump <joe@joestump.net>
+    * @access public
+    * @return mixed
+    */
     function validate()
     {
         if ($this->_request->getOption('avsCheck') === true) {
             if ($this->getAVSCode() != PAYMENT_PROCESS_AVS_MATCH) {
-                return PEAR::raiseError('AVS check failed',PAYMENT_PROCESS_ERROR_AVS);
+                return PEAR::raiseError('AVS check failed',
+                                        PAYMENT_PROCESS_ERROR_AVS);
             }
         }    
 
+        $paymentType = $this->_request->_payment->_driver;
         if ($this->_request->getOption('cvvCheck') === true &&
-            $this->_request->_payment->_driver == PAYMENT_PROCESS_TYPE_CREDITCARD) {
+            $paymentType == PAYMENT_PROCESS_TYPE_CREDITCARD) {
+
             if ($this->getCvvCode() != PAYMENT_PROCESS_CVV_MATCH) {
-                return PEAR::raiseError('CVV check failed',PAYMENT_PROCESS_ERROR_CVV);
+                return PEAR::raiseError('CVV check failed',
+                                        PAYMENT_PROCESS_ERROR_CVV);
             }
+
         }
 
         if ($this->getCode() != PAYMENT_PROCESS_RESULT_APPROVED) {
-            return PEAR::raiseError($this->getMessage(),PAYMENT_PROCESS_RESULT_DECLINED); 
+            return PEAR::raiseError($this->getMessage(),
+                                    PAYMENT_PROCESS_RESULT_DECLINED); 
         } 
 
         return true;
     }
+    // }}}
 
+    // {{{ parse()
+    /**
+    * parse
+    *
+    * @abstract
+    * @author Joe Stump <joe@joestump.net>
+    * @access public
+    */
     function parse() 
     {
-        return PEAR::raiseError('parse() not implemented',PAYMENT_PROCESS_ERROR_NOTIMPLEMENTED);
+        return PEAR::raiseError('parse() not implemented',
+                                PAYMENT_PROCESS_ERROR_NOTIMPLEMENTED);
     }
+    // }}}
 
+    // {{{ getCode()
+    /**
+    * getCode
+    *  
+    * @author Joe Stump <joe@joestump.net>
+    * @access public
+    */
     function getCode() 
     {
-      return $this->_statusCodeMap[$this->code];
+        if (isset($this->_statusCodeMap[$this->code])) {
+            return $this->_statusCodeMap[$this->code];
+        } else {
+            return PAYMENT_PROCESS_RESULT_DECLINED;
+        }
     }
+    // }}}
 
+    // {{{ getMessage()
+    /**
+    * getMessage
+    *
+    * Return the message from the code map, or return the raw message if
+    * there is one. Otherwise, return a worthless message.
+    *
+    * @author Joe Stump <joe@joestump.net>
+    * @access public
+    * @return string
+    */
     function getMessage() 
     {
-      return $this->_statusCodeMessages[$this->messageCode];
+        if (isset($this->_statusCodeMessages[$this->messageCode])) {
+            return $this->_statusCodeMessages[$this->messageCode];
+        } elseif(strlen($this->message)) {
+            return $this->message; 
+        } else {
+            return 'No message reported';
+        }
     }
+    // }}} 
 
     function getAVSCode() 
     {
@@ -638,11 +694,20 @@ class Payment_Process_Result {
         return $this->_cvvCodeMessages[$this->cvvCode];
     }
 
+    // {{{ _mapFields()
+    /**
+    * _mapFields
+    *
+    * @author Joe Stump <joe@joestump.net>
+    * @access private
+    * @param mixed $responseArray
+    */
     function _mapFields($responseArray) {
         foreach($this->_fieldMap as $key => $val) {
             $this->$val = $responseArray[$key]; 
         }
     }
+    // }}}
 }
 
 ?>

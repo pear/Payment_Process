@@ -43,7 +43,8 @@ $GLOBALS['_Payment_Process_LinkPoint'] = array(
  * @author Joe Stump <joe@joestump.net> 
  * @version @version@
  */
-class Payment_Process_LinkPoint extends Payment_Process_Common {
+class Payment_Process_LinkPoint extends Payment_Process_Common 
+{
     /**
      * Front-end -> back-end field map.
      *
@@ -195,13 +196,13 @@ class Payment_Process_LinkPoint extends Payment_Process_Common {
         $curl->type = 'PUT';
         $curl->fields = $xml;
         $curl->sslCert = $this->_options['keyfile'];
+        $curl->userAgent = 'PEAR Payment_Process_LinkPoint 0.1';
         if($this->_options['debug'] === true) {
             echo "------------ CURL FIELDS -------------\n";
             print_r($curl->fields); 
             echo "------------ CURL FIELDS -------------\n";
         }
 
-        $curl->userAgent = 'PEAR Payment_Process_LinkPoint 0.1';
 
         $result = &$curl->execute();
         if (PEAR::isError($result)) {
@@ -231,18 +232,6 @@ class Payment_Process_LinkPoint extends Payment_Process_Common {
 
     }
 
-    // {{{ _createXMLRequest()
-    /**
-    * _createXMLRequest
-    *
-    * @author Joe Stump <joe@joestump.net>
-    * @access private
-    */
-    function _createXMLRequest() 
-    {
-    }
-    // }}} 
-
     /**
      * Prepare the POST query string.
      *
@@ -267,6 +256,9 @@ class Payment_Process_LinkPoint extends Payment_Process_Common {
         $xml .= '  <result>'.$data['result'].'</result>'."\n";
         $xml .= '</orderoptions>'."\n";
         $xml .= '<payment>'."\n";
+        $xml .= '  <subtotal>'.$data['chargetotal'].'</subtotal>'."\n";
+        $xml .= '  <tax>0.00</tax>'."\n";
+        $xml .= '  <shipping>0.00</shipping>'."\n";
         $xml .= '  <chargetotal>'.$data['chargetotal'].'</chargetotal>'."\n";
         $xml .= '</payment>'."\n";
 
@@ -306,6 +298,22 @@ class Payment_Process_LinkPoint extends Payment_Process_Common {
                 }
                 $xml .= '</creditcard>'."\n";
         }
+
+        if (strlen($this->_payment->name)) {
+            $xml .= '<billing>'."\n";
+            $xml .= '  <name>'.$this->_payment->name.'</name>'."\n";
+            $xml .= '  <company>'.$this->_payment->company.'</company>'."\n";
+            $xml .= '  <address1>'.$this->_payment->address.'</address1>'."\n";
+            $xml .= '  <city>'.$this->_payment->city.'</city>'."\n";
+            $xml .= '  <state>'.$this->_payment->state.'</state>'."\n";
+            $xml .= '  <zip>'.$this->_payment->zip.'</zip>'."\n";
+            $xml .= '  <country>'.$this->_payment->country.'</country>'."\n";
+            $xml .= '  <phone>'.$this->_payment->phone.'</phone>'."\n";
+            $xml .= '  <email>'.$this->_payment->email.'</email>'."\n";
+            $xml .= '  <addrnum>'.$this->_payment->address.'</addrnum>'."\n";
+            $xml .= '</billing>'."\n";
+        }
+
         $xml .= '</order>'."\n";
 
         if($this->_options['debug'] === true) {
@@ -319,7 +327,8 @@ class Payment_Process_LinkPoint extends Payment_Process_Common {
     }
 }
 
-class Payment_Process_Result_LinkPoint extends Payment_Process_Result {
+class Payment_Process_Result_LinkPoint extends Payment_Process_Result 
+{
 
     var $_statusCodeMap = array('APPROVED' => PAYMENT_PROCESS_RESULT_APPROVED,
                                 'DECLINED' => PAYMENT_PROCESS_RESULT_DECLINED,
@@ -336,7 +345,10 @@ class Payment_Process_Result_LinkPoint extends Payment_Process_Result {
      * @see getStatusText()
      * @access private
      */
-    var $_statusCodeMessages = array();
+    var $_statusCodeMessages = array(
+        'APPROVED' => 'This transaction has been approved.',
+        'DECLINED' => 'This transaction has been declined.',
+        'FRAUD' => 'This transaction has been determined to be fraud.');
 
     var $_avsCodeMap = array(
         'YY' => PAYMENT_PROCESS_AVS_MATCH,
@@ -380,14 +392,10 @@ class Payment_Process_Result_LinkPoint extends Payment_Process_Result {
     );
 
     var $_fieldMap = array('r_approved'  => 'code',
-                           '2'  => 'messageCode',
                            'r_error'  => 'message',
                            'r_code'  => 'approvalCode',
-                           'r_avs'  => 'avsCode',
-                           '6'  => 'transactionId',
-                           'r_ordernum'  => 'invoiceNumber',
-                           '12' => 'customerId',
-                           '39' => 'cvvCode'
+                           'r_approved'  => 'messageCode',
+                           'r_ordernum'  => 'transactionId'
     );
 
     function Payment_Process_Response_LinkPoint($rawResponse) 
@@ -397,28 +405,36 @@ class Payment_Process_Result_LinkPoint extends Payment_Process_Result {
 
     function parse()
     {
-//      $responseArray = explode(',',$this->_rawResponse);
-//      $this->_mapFields($responseArray);
-        echo $this->_rawResponse;
+        $xml = & new XML_Parser_LinkPoint();
+        $xml->parseString('<response>'.$this->_rawResponse.'</response>');
+        if (is_array($xml->response) && count($xml->response)) {
+            $this->avsCode = substr($xml->response['r_avs'],0,2);
+            $this->cvvCode = substr($xml->response['r_avs'],2,1);
+            $this->customerId = $this->_request->customerId;
+            $this->invoiceNumber = $this->_request->invoiceNumber;
+            print_r($xml->response);         
+            $this->_mapFields($xml->response);
 
+            // switch to DECLINED since a duplicate isn't *really* fraud
+            if(eregi('duplicate',$this->message)) {
+                $this->messageCode = 'DECLINED';
+            } 
+        }
     }
 }
-
-/*
-<r_avs>XXXX</r_avs><r_time>Fri Apr 30 14:18:28 2004</r_time><r_ref></r_ref><r_approved>DECLINED</r_approved><r_code></r_code><r_error>D:Declined:   X:</r_error><r_ordernum>450A904E-4092C2A2-785-1F5F6</r_ordernum><r_authresponse></r_authresponse><r_message></r_message><r_csp>CSI</r_csp><r_tdate>1083359908</r_tdate><r_vpasresponse></r_vpasresponse>
-
-*/
 
 /**
  * XML_Parser_LinkPoint
  * 
+ * XML Parser for the LinkPoint response
+ *
  * @author Joe Stump <joe@joestump.net>
  * @package Payment_Process
  */
 class XML_Parser_LinkPoint extends XML_Parser
 {
     var $response = array();
-    var $data = null;
+    var $tag = null;
 
     function XML_Parser_LinkPoint()
     {
@@ -427,17 +443,17 @@ class XML_Parser_LinkPoint extends XML_Parser
 
     function startHandler($xp, $elem, &$attribs) 
     {
-        $this->data[$elem] = $this->data;    
+        $this->tag = $elem;
     }
 
     function endHandler($xp, $elem)
     {
-        $this->data = null;
+
     }
 
     function defaultHandler($xp,$data) 
     {
-        $this->data = $data;
+        $this->response[strtolower($this->tag)] = $data;    
     }
 }
 
