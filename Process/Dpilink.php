@@ -18,7 +18,7 @@
 //
 // $Id$
 
-require_once 'Payment/Process.php';
+require_once 'Payment/Process/Common.php';
 //require_once 'HTTP/Request.php';
 require_once 'Net/Curl.php';
 
@@ -54,7 +54,7 @@ define('PAYMENT_PROCESS_RESULT_DPILINK_REENTER', 19);
  * @author Ian Eure <ieure@php.net>
  * @version @version@
  */
-class Payment_Process_Dpilink extends Payment_Process {
+class Payment_Process_Dpilink extends Payment_Process_Common {
     /**
      * Front-end -> back-end field map.
      *
