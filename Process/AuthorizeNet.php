@@ -20,6 +20,7 @@
 // $Id$
 
 require_once 'Payment/Process.php';
+require_once 'Payment/Process/Common.php';
 require_once 'Net/Curl.php';
 
 $GLOBALS['_Payment_Process_AuthorizeNet'][PAYMENT_PROCESS_ACTION_NORMAL] = 'AUTH_CAPTURE';
@@ -190,7 +191,7 @@ class Payment_Process_AuthorizeNet extends Payment_Process {
         // Restore error handling
         PEAR::popErrorHandling();
 
-        $response = &Payment_Process_Response::factory($this->_driver,$this->_responseBody);
+        $response = &Payment_Process_Result::factory($this->_driver,$this->_responseBody);
         if(!PEAR::isError($response))
         {
           $response->parse();
@@ -261,7 +262,7 @@ class Payment_Process_AuthorizeNet extends Payment_Process {
     }
 }
 
-class Payment_Process_Response_AuthorizeNet extends Payment_Process_Response {
+class Payment_Process_Result_AuthorizeNet extends Payment_Process_Result {
 
     var $_statusCodeMap = array('1' => PAYMENT_PROCESS_RESULT_APPROVED,
                                 '2' => PAYMENT_PROCESS_RESULT_DECLINED,

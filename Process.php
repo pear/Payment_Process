@@ -164,14 +164,16 @@ class Payment_Process extends PEAR {
     function &factory($type, $options = false)
     {
         $class = "Payment_Process_".$type;
-        @include_once "Payment/Process/{$type}.php";
-        if (!class_exists($class)) {
-            return PEAR::raiseError("\"$type\" processor does not exist", PAYMENT_PROCESS_ERROR_NOPROCESSOR);
+        if (include_once "Payment/Process/{$type}.php") {
+            if (class_exists($class)) {
+                $object = & new $class($options);
+                $object->_driver = $type;
+                return $object;
+            } 
         }
 
-        $object = & new $class($options);
-        $object->_driver = $type;
-        return $object;
+        return PEAR::raiseError("\"$type\" processor does not exist", PAYMENT_PROCESS_ERROR_NOPROCESSOR);
+
     }
 
     /**
@@ -591,7 +593,7 @@ class Payment_Process_Result {
 
     function &factory($type,$rawResponse)
     {
-        $class = 'Payment_Process_Response_'.$type;
+        $class = 'Payment_Process_Result_'.$type;
         if (class_exists($class)) {
             return new $class($rawResponse);
         }
