@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
-<!-- $Id: package.xml,v 1.13 2004-03-31 21:47:37 ieure Exp $ -->
+<!-- $Id: package.xml,v 1.14 2004-06-12 01:39:57 ieure Exp $ -->
 <package version="1.0">
     <name>Payment_Process</name>
     <summary>Unified payment processor</summary>
@@ -20,11 +20,15 @@
         </maintainer>
     </maintainers>
       <release>
-        <version>0.5.6</version>
+        <version>0.5.7</version>
         <state>beta</state>
-        <date>2004-03-31</date>
+        <date>2004-06-11</date>
         <notes><![CDATA[
-            * Move credit card type constants into Type.php, as they weren't usable until factory() was called.
+            * Fix bug #1536.
+            * Fix bug #1619.
+            * Add Fraud & Duplicate result codes.
+            * Authorize.net driver update.
+            * Don't validate zip codes for non-US countries.
         ]]></notes>
         <filelist>
             <dir name="/" baseinstalldir="Payment">
@@ -53,7 +57,42 @@
             <dep type="pkg" optional="no" rel="ge" version="0.2.0">Validate</dep>
         </deps>
     </release>
+
     <changelog>
+          <release>
+            <version>0.5.6</version>
+            <state>beta</state>
+            <date>2004-03-31</date>
+            <notes><![CDATA[
+                * Move credit card type constants into Type.php, as they weren't usable until factory() was called.
+            ]]></notes>
+            <filelist>
+                <dir name="/" baseinstalldir="Payment">
+                    <file role="php">Process.php</file>
+                    <dir name="Process">
+                        <file role="php">Common.php</file>
+                        <file role="php">AuthorizeNet.php</file>
+                        <file role="php">Dpilink.php</file>
+                        <file role="php">Dummy.php</file>
+                        <file role="php">Offline.php</file>
+                        <file role="php">Type.php</file>
+                        <dir name="Type">
+                            <file role="php">CreditCard.php</file>
+                            <file role="php">eCheck.php</file>
+                        </dir>
+                    </dir>
+                </dir>
+                <dir name="examples" baseinstalldir="doc/Payment_Process">
+                    <file role="php">Payment_Process-example.php</file>
+                    <file role="php">creditcard.php</file>
+                    <file role="php">echeck.php</file>
+                </dir>
+            </filelist>
+            <deps>
+                <dep type="pkg" optional="yes" rel="ge" version="0.2">Net_Curl</dep>
+                <dep type="pkg" optional="no" rel="ge" version="0.2.0">Validate</dep>
+            </deps>
+        </release>
       <release>
         <version>0.5.5</version>
         <state>beta</state>
