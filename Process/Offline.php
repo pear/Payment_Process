@@ -1,4 +1,153 @@
-<code><font color="#000000">
-<font color="#0000CC">&lt;?php<br /></font><font color="#FF9900">/* vim: set expandtab tabstop=4 shiftwidth=4: */<br />// +----------------------------------------------------------------------+<br />// | PHP version 4&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|<br />// +----------------------------------------------------------------------+<br />// | Copyright (c) 1997-2003 The PHP Group&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|<br />// +----------------------------------------------------------------------+<br />// | This source file is subject to version 2.0 of the PHP license,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|<br />// | that is bundled with this package in the file LICENSE, and is&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|<br />// | available through the world-wide-web at&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|<br />// | http://www.php.net/license/2_02.txt.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|<br />// | If you did not receive a copy of the PHP license and are unable to&nbsp;&nbsp;&nbsp;|<br />// | obtain it through the world-wide-web, please send a note to&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|<br />// | license@php.net so we can mail you a copy immediately.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|<br />// +----------------------------------------------------------------------+<br />// | Authors: Joe Stump &lt;joe@joestump.net&gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|<br />// |&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Ondrej Jombik &lt;nepto@pobox.sk&gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|<br />// +----------------------------------------------------------------------+<br />//<br />// $Id$<br /><br /><br /></font><font color="#006600">require_once(</font><font color="#CC0000">'Validate/CreditCard.php'</font><font color="#006600">);<br /><br /></font><font color="#FF9900">/**<br />* Payment_Process_offline<br />*<br />* An offline driver that allows you to do offline validation of credit card<br />* via the Validate_CreditCard package. This package is intended for those <br />* who wish to someday use a payment gateway, but at this time are not currently<br />* using one.<br />*<br />* @author Joe Stump &lt;joe@joestump.net&gt;<br />* @package Payment_Process<br />*/<br /></font><font color="#006600">class </font><font color="#0000CC">Payment_Process_offline </font><font color="#006600">extends </font><font color="#0000CC">Payment_Process </font><font color="#006600">{<br /><br />&nbsp;&nbsp;</font><font color="#FF9900">/**<br />&nbsp;&nbsp;* $_processed<br />&nbsp;&nbsp;*<br />&nbsp;&nbsp;* Set to true after the credit card has been processed<br />&nbsp;&nbsp;*<br />&nbsp;&nbsp;* @author Joe Stump &lt;joe@joestump.net&gt;<br />&nbsp;&nbsp;* @var bool $_processed <br />&nbsp;&nbsp;*/<br />&nbsp;&nbsp;</font><font color="#006600">var </font><font color="#0000CC">$_processed </font><font color="#006600">= </font><font color="#0000CC">false</font><font color="#006600">;<br /><br />&nbsp;&nbsp;</font><font color="#FF9900">/**<br />&nbsp;&nbsp;* $_response<br />&nbsp;&nbsp;*<br />&nbsp;&nbsp;* The response after the credit card has been processed<br />&nbsp;&nbsp;*<br />&nbsp;&nbsp;* @author Joe Stump &lt;joe@joestump.net&gt;<br />&nbsp;&nbsp;* @var bool $_response<br />&nbsp;&nbsp;*/<br />&nbsp;&nbsp;</font><font color="#006600">var </font><font color="#0000CC">$_response&nbsp;&nbsp;</font><font color="#006600">= </font><font color="#0000CC">false</font><font color="#006600">;<br /><br />&nbsp;&nbsp;</font><font color="#FF9900">/**<br />&nbsp;&nbsp;* Payment_Process_offline<br />&nbsp;&nbsp;*<br />&nbsp;&nbsp;* Constructor - currently does nothing<br />&nbsp;&nbsp;*<br />&nbsp;&nbsp;* @author Joe Stump &lt;joe@joestump.net&gt;<br />&nbsp;&nbsp;* @return void<br />&nbsp;&nbsp;*/<br />&nbsp;&nbsp;</font><font color="#006600">function </font><font color="#0000CC">Payment_Process_offline</font><font color="#006600">()<br />&nbsp;&nbsp;{<br /><br />&nbsp;&nbsp;}<br /><br />&nbsp;&nbsp;</font><font color="#FF9900">/**<br />&nbsp;&nbsp;* process<br />&nbsp;&nbsp;*<br />&nbsp;&nbsp;* Processes the given credit card. Returns PEAR_Error when an error has <br />&nbsp;&nbsp;* occurred or it will return a valid Payment_Process_Result on success.<br />&nbsp;&nbsp;*<br />&nbsp;&nbsp;* @author Joe Stump &lt;joe@joestump.net&gt;<br />&nbsp;&nbsp;* @access public<br />&nbsp;&nbsp;* @return mixed<br />&nbsp;&nbsp;*/<br />&nbsp;&nbsp;</font><font color="#006600">function </font><font color="#0000CC">process</font><font color="#006600">() <br />&nbsp;&nbsp;{ <br />&nbsp;&nbsp;&nbsp;&nbsp;</font><font color="#0000CC">$card </font><font color="#006600">= array();<br />&nbsp;&nbsp;&nbsp;&nbsp;</font><font color="#0000CC">$card</font><font color="#006600">[</font><font color="#CC0000">'number'</font><font color="#006600">] = </font><font color="#0000CC">$this</font><font color="#006600">-&gt;</font><font color="#0000CC">cardNumber</font><font color="#006600">;<br />&nbsp;&nbsp;&nbsp;&nbsp;</font><font color="#0000CC">$card</font><font color="#006600">[</font><font color="#CC0000">'month'</font><font color="#006600">]&nbsp;&nbsp;= </font><font color="#0000CC">$this</font><font color="#006600">-&gt;</font><font color="#0000CC">expMonth</font><font color="#006600">;<br />&nbsp;&nbsp;&nbsp;&nbsp;</font><font color="#0000CC">$card</font><font color="#006600">[</font><font color="#CC0000">'year'</font><font color="#006600">]&nbsp;&nbsp;&nbsp;= </font><font color="#0000CC">$this</font><font color="#006600">-&gt;</font><font color="#0000CC">expYear</font><font color="#006600">;<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;</font><font color="#0000CC">$check </font><font color="#006600">= </font><font color="#0000CC">false</font><font color="#006600">;<br />&nbsp;&nbsp;&nbsp;&nbsp;switch(</font><font color="#0000CC">$this</font><font color="#006600">-&gt;</font><font color="#0000CC">type</font><font color="#006600">)<br />&nbsp;&nbsp;&nbsp;&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;case </font><font color="#0000CC">PROCESS_TYPE_VISA</font><font color="#006600">:<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</font><font color="#0000CC">$card</font><font color="#006600">[</font><font color="#CC0000">'type'</font><font color="#006600">] = </font><font color="#0000CC">VALIDATE_CREDITCARD_TYPE_VS</font><font color="#006600">;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;case </font><font color="#0000CC">PROCESS_TYPE_MASTERCARD</font><font color="#006600">:<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</font><font color="#0000CC">$card</font><font color="#006600">[</font><font color="#CC0000">'type'</font><font color="#006600">] = </font><font color="#0000CC">VALIDATE_CREDITCARD_TYPE_MC</font><font color="#006600">;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;case </font><font color="#0000CC">PROCESS_TYPE_AMEX</font><font color="#006600">:<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</font><font color="#0000CC">$card</font><font color="#006600">[</font><font color="#CC0000">'type'</font><font color="#006600">] = </font><font color="#0000CC">VALIDATE_CREDITCARD_TYPE_AX</font><font color="#006600">;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;case </font><font color="#0000CC">PROCESS_TYPE_DISCOVER</font><font color="#006600">:<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</font><font color="#0000CC">$card</font><font color="#006600">[</font><font color="#CC0000">'type'</font><font color="#006600">] = </font><font color="#0000CC">VALIDATE_CREDITCARD_TYPE_DS</font><font color="#006600">;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;case </font><font color="#0000CC">PROCESS_TYPE_CHECK</font><font color="#006600">:<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return </font><font color="#0000CC">$check </font><font color="#006600">= </font><font color="#0000CC">true</font><font color="#006600">; </font><font color="#FF9900">// Nothing to process - it's a check<br />&nbsp;&nbsp;&nbsp;&nbsp;</font><font color="#006600">}<br />&nbsp;&nbsp;<br />&nbsp;&nbsp;&nbsp;&nbsp;if (!</font><font color="#0000CC">$check</font><font color="#006600">) {<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</font><font color="#0000CC">$this</font><font color="#006600">-&gt;</font><font color="#0000CC">_result&nbsp;&nbsp;&nbsp;&nbsp;</font><font color="#006600">= </font><font color="#0000CC">Validate_CreditCard</font><font color="#006600">::</font><font color="#0000CC">card</font><font color="#006600">(</font><font color="#0000CC">$card</font><font color="#006600">);<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</font><font color="#0000CC">$this</font><font color="#006600">-&gt;</font><font color="#0000CC">_processed </font><font color="#006600">= </font><font color="#0000CC">true</font><font color="#006600">;<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />&nbsp;&nbsp;<br />&nbsp;&nbsp;&nbsp;&nbsp;if (</font><font color="#0000CC">$this</font><font color="#006600">-&gt;</font><font color="#0000CC">_result</font><font color="#006600">) {<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</font><font color="#0000CC">$code </font><font color="#006600">= </font><font color="#0000CC">PROCESS_RESULT_APPROVED</font><font color="#006600">;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</font><font color="#0000CC">$message </font><font color="#006600">= </font><font color="#CC0000">'Valid Credit Card'</font><font color="#006600">;<br />&nbsp;&nbsp;&nbsp;&nbsp;} else {<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</font><font color="#0000CC">$code </font><font color="#006600">= </font><font color="#0000CC">PROCESS_RESULT_DECLINED</font><font color="#006600">;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</font><font color="#FF9900">// Run extra checks to get a better error message<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</font><font color="#006600">if(</font><font color="#0000CC">Validate_CreditCard</font><font color="#006600">::</font><font color="#0000CC">number</font><font color="#006600">(</font><font color="#0000CC">$card</font><font color="#006600">[</font><font color="#CC0000">'number'</font><font color="#006600">])) {<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</font><font color="#0000CC">$message </font><font color="#006600">= </font><font color="#CC0000">'Card number is invalid'</font><font color="#006600">;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} elseif(</font><font color="#0000CC">Validate_CreditCard</font><font color="#006600">::</font><font color="#0000CC">expiryDate</font><font color="#006600">(</font><font color="#0000CC">$card</font><font color="#006600">[</font><font color="#CC0000">'month'</font><font color="#006600">],</font><font color="#0000CC">$card</font><font color="#006600">[</font><font color="#CC0000">'year'</font><font color="#006600">])) {<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</font><font color="#0000CC">$message </font><font color="#006600">= </font><font color="#CC0000">'Invalid expriation date'</font><font color="#006600">;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} elseif(</font><font color="#0000CC">Validate_CreditCard</font><font color="#006600">::</font><font color="#0000CC">expiryDate</font><font color="#006600">(</font><font color="#0000CC">$card</font><font color="#006600">[</font><font color="#CC0000">'number'</font><font color="#006600">],</font><font color="#0000CC">$card</font><font color="#006600">[</font><font color="#CC0000">'type'</font><font color="#006600">])) {<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</font><font color="#0000CC">$message </font><font color="#006600">= </font><font color="#CC0000">'Card number does not match specified type'</font><font color="#006600">;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;if(</font><font color="#0000CC">$code </font><font color="#006600">== </font><font color="#0000CC">PROCESS_RESULT_DECLINED</font><font color="#006600">) {<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return </font><font color="#0000CC">PEAR</font><font color="#006600">::</font><font color="#0000CC">raiseError</font><font color="#006600">(</font><font color="#0000CC">$message</font><font color="#006600">,</font><font color="#0000CC">$code</font><font color="#006600">);<br />&nbsp;&nbsp;&nbsp;&nbsp;} else {<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return new </font><font color="#0000CC">Payment_Process_Result</font><font color="#006600">(</font><font color="#0000CC">$message</font><font color="#006600">,</font><font color="#0000CC">$code</font><font color="#006600">);<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />&nbsp;&nbsp;}<br /><br />&nbsp;&nbsp;</font><font color="#FF9900">/**<br />&nbsp;&nbsp;* getStatus<br />&nbsp;&nbsp;*<br />&nbsp;&nbsp;* Return status or PEAR_Error when it has not been processed yet.<br />&nbsp;&nbsp;*<br />&nbsp;&nbsp;* @author Joe Stump &lt;joe@joestump.net&gt;<br />&nbsp;&nbsp;* @access public<br />&nbsp;&nbsp;*/<br />&nbsp;&nbsp;</font><font color="#006600">function </font><font color="#0000CC">getStatus</font><font color="#006600">() <br />&nbsp;&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;if(!</font><font color="#0000CC">$this</font><font color="#006600">-&gt;</font><font color="#0000CC">processed</font><font color="#006600">) { <br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return </font><font color="#0000CC">PEAR</font><font color="#006600">::</font><font color="#0000CC">raiseError</font><font color="#006600">(</font><font color="#CC0000">'The transaction has not been processed yet.'</font><font color="#006600">, </font><font color="#0000CC">PROCESS_ERROR_INCOMPLETE</font><font color="#006600">);<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;return </font><font color="#0000CC">$this</font><font color="#006600">-&gt;</font><font color="#0000CC">_response</font><font color="#006600">;<br />&nbsp;&nbsp;}<br />}<br /><br /></font><font color="#0000CC">?&gt;<br /></font>
-</font>
-</code>
+<?php
+/* vim: set expandtab tabstop=4 shiftwidth=4: */
+// +----------------------------------------------------------------------+
+// | PHP version 4                                                        |
+// +----------------------------------------------------------------------+
+// | Copyright (c) 1997-2003 The PHP Group                                |
+// +----------------------------------------------------------------------+
+// | This source file is subject to version 2.0 of the PHP license,       |
+// | that is bundled with this package in the file LICENSE, and is        |
+// | available through the world-wide-web at                              |
+// | http://www.php.net/license/2_02.txt.                                 |
+// | If you did not receive a copy of the PHP license and are unable to   |
+// | obtain it through the world-wide-web, please send a note to          |
+// | license@php.net so we can mail you a copy immediately.               |
+// +----------------------------------------------------------------------+
+// | Authors: Joe Stump <joe@joestump.net>                                |
+// |          Ondrej Jombik <nepto@pobox.sk>                              |
+// +----------------------------------------------------------------------+
+//
+// $Id$
+
+
+require_once('Validate/CreditCard.php');
+
+/**
+* Payment_Process_offline
+*
+* An offline driver that allows you to do offline validation of credit card
+* via the Validate_CreditCard package. This package is intended for those 
+* who wish to someday use a payment gateway, but at this time are not currently
+* using one.
+*
+* @author Joe Stump <joe@joestump.net>
+* @package Payment_Process
+*/
+class Payment_Process_offline extends Payment_Process {
+
+  /**
+  * $_processed
+  *
+  * Set to true after the credit card has been processed
+  *
+  * @author Joe Stump <joe@joestump.net>
+  * @var bool $_processed 
+  */
+  var $_processed = false;
+
+  /**
+  * $_response
+  *
+  * The response after the credit card has been processed
+  *
+  * @author Joe Stump <joe@joestump.net>
+  * @var bool $_response
+  */
+  var $_response  = false;
+
+  /**
+  * Payment_Process_offline
+  *
+  * Constructor - currently does nothing
+  *
+  * @author Joe Stump <joe@joestump.net>
+  * @return void
+  */
+  function Payment_Process_offline()
+  {
+
+  }
+
+  /**
+  * process
+  *
+  * Processes the given credit card. Returns PEAR_Error when an error has 
+  * occurred or it will return a valid Payment_Process_Result on success.
+  *
+  * @author Joe Stump <joe@joestump.net>
+  * @access public
+  * @return mixed
+  */
+  function process() 
+  { 
+    $card = array();
+    $card['number'] = $this->cardNumber;
+    $card['month']  = $this->expMonth;
+    $card['year']   = $this->expYear;
+
+    $check = false;
+    switch($this->type)
+    {
+      case PROCESS_TYPE_VISA:
+        $card['type'] = VALIDATE_CREDITCARD_TYPE_VS;
+        break;
+      case PROCESS_TYPE_MASTERCARD:
+        $card['type'] = VALIDATE_CREDITCARD_TYPE_MC;
+        break;
+      case PROCESS_TYPE_AMEX:
+        $card['type'] = VALIDATE_CREDITCARD_TYPE_AX;
+        break;
+      case PROCESS_TYPE_DISCOVER:
+        $card['type'] = VALIDATE_CREDITCARD_TYPE_DS;
+        break;
+      case PROCESS_TYPE_CHECK:
+        return $check = true; // Nothing to process - it's a check
+    }
+  
+    if (!$check) {
+      $this->_result    = Validate_CreditCard::card($card);
+      $this->_processed = true;
+    }
+  
+    if ($this->_result) {
+      $code = PROCESS_RESULT_APPROVED;
+      $message = 'Valid Credit Card';
+    } else {
+      $code = PROCESS_RESULT_DECLINED;
+      
+      // Run extra checks to get a better error message
+      if(Validate_CreditCard::number($card['number'])) {
+        $message = 'Card number is invalid';
+      } elseif(Validate_CreditCard::expiryDate($card['month'],$card['year'])) {
+        $message = 'Invalid expriation date';
+      } elseif(Validate_CreditCard::expiryDate($card['number'],$card['type'])) {
+        $message = 'Card number does not match specified type';
+      }
+    }
+
+    if($code == PROCESS_RESULT_DECLINED) {
+      return PEAR::raiseError($message,$code);
+    } else {
+      return new Payment_Process_Result($message,$code);
+    }
+  }
+
+  /**
+  * getStatus
+  *
+  * Return status or PEAR_Error when it has not been processed yet.
+  *
+  * @author Joe Stump <joe@joestump.net>
+  * @access public
+  */
+  function getStatus() 
+  {
+    if(!$this->processed) { 
+      return PEAR::raiseError('The transaction has not been processed yet.', PROCESS_ERROR_INCOMPLETE);
+    }
+
+    return $this->_response;
+  }
+}
+
+?>

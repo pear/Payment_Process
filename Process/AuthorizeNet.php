@@ -97,6 +97,7 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
          'x_email_customer' => 'FALSE',
          'x_test_request' => 'FALSE',
          'x_currency_code' => 'USD',
+         'x_version' => '3.1',
          'x_method' => 'CC'
     );
 
@@ -246,7 +247,7 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
         foreach ($data as $key => $val) {
             if (eregi('^x_',$key) && strlen($val)) {
                 $return[$key] = $val;
-                $sets[] = $key.'='.$val;
+                $sets[] = $key.'='.urlencode($val);
             }
         }
 
