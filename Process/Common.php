@@ -142,6 +142,10 @@ class Payment_Process_Common extends Payment_Process {
      */
     function _prepare()
     {
+        echo '----------- PREPARE A ----------'."\n";
+        echo print_r($this->_data);
+        echo '----------- PREPARE A ----------'."\n";
+
         foreach ($this->_fieldMap as $generic => $specific) {
             $func = '_handle'.ucfirst($generic);
             if (method_exists($this, $func)) {
@@ -150,9 +154,20 @@ class Payment_Process_Common extends Payment_Process {
                     return $result;
                 }
             } else {
-                $this->_data[$specific] = $this->$generic;
+                // TODO This may screw things up - the problem is that
+                // CC information is no longer member variables, so we
+                // can't overwrite it. You could always handle this with
+                // a _handle funciton. I don't think it will cause problems,
+                // but it could.
+                if (!isset($this->_data[$specific])) {
+                    $this->_data[$specific] = $this->$generic;
+                }
             }
         }
+
+        echo '----------- PREPARE ----------'."\n";
+        echo print_r($this->_data);
+        echo '----------- PREPARE ----------'."\n";
 
         // TODO - Why is this here? Joe Stump <joe@joestump.net> 
         if ($this->_options['testTransaction']) {

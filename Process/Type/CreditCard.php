@@ -28,7 +28,7 @@ define('PAYMENT_PROCESS_TYPE_CHECK', 104);
 class Payment_Process_Type_CreditCard extends Payment_Process_Type 
 {
     var $type;
-    var $number;
+    var $cardNumber;
     var $cvv;
     var $expDate;
 
@@ -37,30 +37,30 @@ class Payment_Process_Type_CreditCard extends Payment_Process_Type
 
     }
 
-    // {{{
-    function _validateNumber()
+    // {{{ _validateCardNumber()
+    function _validateCardNumber()
     {
         return (Validate::creditCard($this->cardNumber)); 
     }
     // }}}
-    // {{{ 
+    // {{{ _validateType()
     function _validateType()
     {
         switch ($this->type) {
             case PAYMENT_PROCESS_TYPE_MASTERCARD:
-                return ereg('^5[1-5][0-9]{14}$',$this->number);
+                return ereg('^5[1-5][0-9]{14}$',$this->cardNumber);
             case PAYMENT_PROCESS_TYPE_VISA:
-                return ereg('^4[0-9]{12}([0-9]{3})?$',$this->number);
+                return ereg('^4[0-9]{12}([0-9]{3})?$',$this->cardNumber);
             case PAYMENT_PROCESS_TYPE_AMEX:
-                return ereg('^3[47][0-9]{13}$',$creditCard);
+                return ereg('^3[47][0-9]{13}$',$this->cardNumber);
             case PAYMENT_PROCESS_TYPE_DISCOVER:
-                return ereg('^6011[0-9]{12}$', $creditCard);
+                return ereg('^6011[0-9]{12}$', $this->cardNumber);
             default:
                 return false;
         }
     }
     // }}} 
-    // {{{ 
+    // {{{ _validateExpDate()
     function _validateExpDate()
     {
         list($month,$year) = explode('/',$this->expDate);
@@ -70,8 +70,7 @@ class Payment_Process_Type_CreditCard extends Payment_Process_Type
                                                                                 
         $yearOptions  = array('min'     => date("Y"),
                               'decimal' => false);
-                                                                                
-                                                                                
+
         if (Validate::number($month,$monthOptions) &&
             Validate::number($year,$yearOptions)) {
 
@@ -79,7 +78,6 @@ class Payment_Process_Type_CreditCard extends Payment_Process_Type
                 ($year > date("Y"))) {
                 return true;
             }
-
         }
                                                                                 
         return false;

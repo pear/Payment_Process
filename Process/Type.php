@@ -47,8 +47,8 @@ class Payment_Process_Type
     function &factory($type)
     {
         $class = 'Payment_Process_Type_'.$type;
-        $file = 'Payment/Process/Type/'.$class.'.php';
-        if (@include($file)) {
+        $file = 'Payment/Process/Type/'.$type.'.php';
+        if (include($file)) {
             if (class_exists($class)) {
                 return new $class();
             }
@@ -75,6 +75,7 @@ class Payment_Process_Type
                 $method = '_validate'.ucfirst($validate);
                 if (method_exists($obj,$method)) {
                     if(!$obj->$method()) {
+                        echo $validate.' -> '.$method.' failed.'."\n";
                         return false;
                     } 
                 }

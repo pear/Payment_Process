@@ -48,7 +48,7 @@ $GLOBALS['_Payment_Process_AuthorizeNet'][PAYMENT_PROCESS_ACTION_POSTAUTH] = 'PR
  * @author Ian Eure <ieure@php.net>
  * @version @version@
  */
-class Payment_Process_AuthorizeNet extends Payment_Process {
+class Payment_Process_AuthorizeNet extends Payment_Process_Common {
     /**
      * Front-end -> back-end field map.
      *
@@ -139,6 +139,11 @@ class Payment_Process_AuthorizeNet extends Payment_Process {
      */
     function &process()
     {
+        if($this->_debug) {
+            echo "----------- DATA -----------\n";
+            print_r($this->_data);
+            echo "----------- DATA -----------\n";
+        }
         // Sanity check
         $result = $this->validate();
         if(PEAR::isError($result)) {
@@ -168,7 +173,9 @@ class Payment_Process_AuthorizeNet extends Payment_Process {
         $curl->type = 'PUT';
         $curl->fields = $fields;
         if($this->_debug === true) {
+            echo "------------ CURL FIELDS -------------\n";
             print_r($curl->fields); 
+            echo "------------ CURL FIELDS -------------\n";
         }
 
         $curl->userAgent = 'PEAR Payment_Process_AuthorizeNet 0.1';
@@ -234,6 +241,12 @@ class Payment_Process_AuthorizeNet extends Payment_Process {
     {
 
         $data = array_merge($this->_options,$this->_data);
+        if ($this->_debug) {
+            echo "--------- PREPARE QS DATA -----------\n";
+            print_r($this->_data);
+            print_r($data);
+            echo "--------- PREPARE QS DATA -----------\n";
+        }
         $return = array();
         $sets = array();
         foreach ($data as $key => $val) {
@@ -299,6 +312,7 @@ class Payment_Process_Result_AuthorizeNet extends Payment_Process_Result {
         '17' => 'The merchant does not accept this type of credit card',
         '18' => 'ACH transactions are not accepted by this merchant',
         '27' => 'The transaction resulted in an AVS mismatch',
+        '33' => 'Credit card number is required',
         '36' => 'The authorization was approved, but settlement failed',
         '37' => 'The credit card number is invalid',
         '49' => 'A transaction amount greater than $99,999 will not be accepted'
