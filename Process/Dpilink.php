@@ -121,6 +121,7 @@ class Payment_Process_Dpilink extends Payment_Process {
     function Payment_Process_Dpilink($options = false)
     {
         $this->setOptions($options);
+        $this->_makeRequired('login', 'password', 'action', 'invoiceNumber', 'customerId', 'amount', 'cardNumber', 'expDate');
     }
 
     /**

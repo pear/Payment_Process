@@ -207,6 +207,23 @@ class Payment_Process {
      * @type boolean
      */
     var $performAvs = false;
+    
+    /**
+     * Array of fields which are required.
+     *
+     * @type array
+     * @access private
+     * @see _makeRequired()
+     */
+    var $_required = array();
+    
+    /**
+     * Processor-specific data.
+     *
+     * @access private
+     * @type array
+     */
+    var $_data = array();
 
     /**
      * Return an instance of a specific processor.
@@ -236,6 +253,12 @@ class Payment_Process {
     {
         foreach ($this->getFields() as $field) {
             $func = '_validate'.ucfirst($field);
+            
+            // Don't validate unset optional fields
+            if (! $this->isRequired($field) && !strlen($this->field)) {
+                continue;
+            }
+            
             if (method_exists($this, $func)) {
                 $res = $this->$func();
                 if (PEAR::isError($res) || (is_bool($res) && $res == false)) {
@@ -327,6 +350,50 @@ class Payment_Process {
         }
         $this->$field = $value;
         return true;
+    }
+    
+    /**
+     * Mark a field as being required.
+     *
+     * @param $field Field name
+     * @param ...
+     * @return boolean always true.
+     */
+    function _makeRequired()
+    {
+        foreach (func_get_args() as $field) {
+            $this->_required[$field] = true;
+        }
+        return true;
+    }
+    
+    /**
+     * Mark a field as being optional.
+     *
+     * @param $field Field name
+     * @param ...
+     * @return boolean always true.
+     */
+    function _makeOptional()
+    {
+        foreach (func_get_args() as $field) {
+            unset($this->_required[$field]);
+        }
+        return true;
+    }
+    
+    /**
+     * Determine if a field is required.
+     *
+     * @param string $field Field to check
+     * @return boolean true if required, false if optional.
+     */
+    function isRequired($field)
+    {
+        if (isset($this->_required[$field])) {
+            return $this->_required[$field];
+        }
+        return false;
     }
 
     /**
@@ -492,6 +559,29 @@ class Payment_Process {
             }
         }
         return @in_array($value, $valid);
+    }
+    
+    function _prepare()
+    {
+        $this->_data = array();
+        foreach ($this->_fieldMap as $generic => $specific) {
+            $func = '_handle'.ucfirst($generic);
+            if (method_exists($this, $func)) {
+                $result = $this->$func();
+                if (PEAR::isError($result)) {
+                    return $result;
+                }
+            } else {
+                $this->_data[$specific] = $this->$generic;
+            }
+        }
+
+        if ($this->_options['testTransaction']) {
+            $this->_data['testTransaction'] =
+$this->_options['testTransaction'];
+        }
+                                                                                
+        return true;
     }
 }
 
