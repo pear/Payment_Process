@@ -19,6 +19,12 @@
 //
 // $Id$
 
+/**
+ * Payment_Process_Type_eCheck
+ *
+ * @author Joe Stump <joe@joestump.net>
+ * @package Payment_Process
+ */
 class Payment_Process_Type_eCheck extends Payment_Process_Type
 {
     var $_type = 'eCheck';
@@ -26,6 +32,8 @@ class Payment_Process_Type_eCheck extends Payment_Process_Type
     var $accountNumber;
     var $routingCode;
     var $bankName;
+    var $driversLicense;
+    var $driversLicenseState;
 
     function Payment_Process_Type_eCheck()
     {

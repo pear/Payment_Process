@@ -16,23 +16,23 @@
 // | Authors: Joe Stump <joe@joestump.net>                                |
 // +----------------------------------------------------------------------+
 //
-// $Id$
+// $Id$ 
 
 require_once 'Payment/Process.php';
 require_once 'Payment/Process/Common.php';
 require_once 'Net/Curl.php';
 
-$GLOBALS['_Payment_Process_AuthorizeNet'] = array(
+$GLOBALS['_Payment_Process_LinkPoint'] = array(
     PAYMENT_PROCESS_ACTION_NORMAL   => 'AUTH_CAPTURE',
     PAYMENT_PROCESS_ACTION_AUTHONLY => 'AUTH_ONLY',
     PAYMENT_PROCESS_ACTION_POSTAUTH => 'PRIOR_AUTH_CAPTURE'
 );
 
 /**
- * Payment_Process_AuthorizeNet
+ * Payment_Process_LinkPoint
  *
- * This is a processor for Authorize.net's merchant payment gateway.
- * (http://www.authorize.net/)
+ * This is a processor for LinkPoint's merchant payment gateway.
+ * (http://www.linkpoint.net/)
  *
  * *** WARNING ***
  * This is BETA code, and has not been fully tested. It is not recommended
@@ -42,7 +42,7 @@ $GLOBALS['_Payment_Process_AuthorizeNet'] = array(
  * @author Joe Stump <joe@joestump.net> 
  * @version @version@
  */
-class Payment_Process_AuthorizeNet extends Payment_Process_Common {
+class Payment_Process_LinkPoint extends Payment_Process_Common {
     /**
      * Front-end -> back-end field map.
      *
@@ -138,7 +138,7 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
      * @see Payment_Process::setOptions()
      * @return void
      */
-    function Payment_Process_AuthorizeNet($options = false)
+    function Payment_Process_LinkPoint($options = false)
     {
         $this->setOptions($options);
     }
@@ -190,7 +190,7 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
             echo "------------ CURL FIELDS -------------\n";
         }
 
-        $curl->userAgent = 'PEAR Payment_Process_AuthorizeNet 0.1';
+        $curl->userAgent = 'PEAR Payment_Process_LinkPoint 0.1';
 
         $result = &$curl->execute();
         if (PEAR::isError($result)) {
@@ -290,17 +290,17 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
     }
 }
 
-class Payment_Process_Result_AuthorizeNet extends Payment_Process_Result {
+class Payment_Process_Result_LinkPoint extends Payment_Process_Result {
 
     var $_statusCodeMap = array('1' => PAYMENT_PROCESS_RESULT_APPROVED,
                                 '2' => PAYMENT_PROCESS_RESULT_DECLINED,
                                 '3' => PAYMENT_PROCESS_RESULT_OTHER);
 
     /**
-     * AuthorizeNet status codes
+     * LinkPoint status codes
      *
      * This array holds many of the common response codes. There are over 200
-     * response codes - so check the AuthorizeNet manual if you get a status
+     * response codes - so check the LinkPoint manual if you get a status
      * code that does not match (see "Response Reason Codes & Response 
      * Reason Text" in the AIM manual).
      *
@@ -525,7 +525,7 @@ class Payment_Process_Result_AuthorizeNet extends Payment_Process_Result {
                            '39' => 'cvvCode'
     );
 
-    function Payment_Process_Response_AuthorizeNet($rawResponse) 
+    function Payment_Process_Response_LinkPoint($rawResponse) 
     {
         $this->Payment_Process_Response($rawResponse);
     }
