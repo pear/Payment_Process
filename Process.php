@@ -613,19 +613,19 @@ class Payment_Process_Result {
     {
         if ($this->_request->options['avsCheck'] === true) {
             if ($this->getAVSCode() != PAYMENT_PROCESS_AVS_MATCH) {
-                return false;
+                return PEAR::raiseError('AVS check failed');
             }
         }    
 
         if ($this->_request->options['cvvCheck'] === true && 
-            get_class($this->_request->_payment) == 'Payment_Process_Type_CreditCard') {
+            $this->_request->_payment->_driver == PAYMENT_PROCESS_TYPE_CREDITCARD) {
             if ($this->getCvvCode() != PAYMENT_PROCESS_CVV_MATCH) {
-                return false;
+                return PEAR::raiseError('CVV check failed');
             }
         }
 
         if ($this->getCode() != PAYMENT_PROCESS_RESULT_APPROVED) {
-            return false; 
+            return PEAR::isError('Card was not approved'); 
         }
 
         return true;

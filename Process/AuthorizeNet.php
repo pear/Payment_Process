@@ -134,7 +134,7 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
      */
     function &process()
     {
-        if($this->_debug) {
+        if($this->_options['debug'] === true) {
             echo "----------- DATA -----------\n";
             print_r($this->_data);
             echo "----------- DATA -----------\n";
@@ -155,7 +155,7 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
         // Don't die partway through
         PEAR::pushErrorHandling(PEAR_ERROR_RETURN);
 
-        if ($this->_debug) {
+        if($this->_options['debug'] === true) {
             print_r($this->_options);
         }
 
@@ -168,7 +168,7 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
 
         $curl->type = 'PUT';
         $curl->fields = $fields;
-        if($this->_debug === true) {
+        if($this->_options['debug'] === true) {
             echo "------------ CURL FIELDS -------------\n";
             print_r($curl->fields); 
             echo "------------ CURL FIELDS -------------\n";
@@ -235,7 +235,7 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
     {
 
         $data = array_merge($this->_options,$this->_data);
-        if ($this->_debug) {
+        if($this->_options['debug'] === true) {
             echo "--------- PREPARE QS DATA -----------\n";
             print_r($this->_data);
             print_r($data);
@@ -309,7 +309,8 @@ class Payment_Process_Result_AuthorizeNet extends Payment_Process_Result {
         '33' => 'Credit card number is required',
         '36' => 'The authorization was approved, but settlement failed',
         '37' => 'The credit card number is invalid',
-        '49' => 'A transaction amount greater than $99,999 will not be accepted'
+        '49' => 'Transactions greater than $99,999 will not be accepted',
+        '103' => 'This transaction cannot be accepted'
     );
 
     var $_avsCodeMap = array(
