@@ -125,13 +125,16 @@ class Payment_Process_Type
     /**
      * Validate the zip code.
      *
+     * This only validates U.S. zipcodes; country must be set to 'us' for zip to
+     * be validated.
+     *
      * @author Ian Eure <ieure@php.net>
      * @access private
      * @return boolean true on success, false otherwise
      */
     function _validateZip()
     {
-        if(isset($this->zip)) {
+        if (isset($this->zip) && strtolower($this->country) == 'us') {
             return ereg('^[0-9]{5}(-[0-9]{4})?$', $this->zip);
         }
 
