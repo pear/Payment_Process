@@ -36,13 +36,15 @@ $GLOBALS['_Payment_Process_AuthorizeNet'] = array(
  *
  * *** WARNING ***
  * This is BETA code, and has not been fully tested. It is not recommended
- * that you use it in a production envorinment without further testing.
+ * that you use it in a production environment without further testing.
  *
  * @package Payment_Process
- * @author Joe Stump <joe@joestump.net> 
+ * @author Joe Stump <joe@joestump.net>
  * @version @version@
+ * @link http://www.authorize.net/
  */
 class Payment_Process_AuthorizeNet extends Payment_Process_Common {
+
     /**
      * Front-end -> back-end field map.
      *
@@ -54,50 +56,47 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
      */
     var $_fieldMap = array(
         // Required
-        'login' => 'x_login',
-        'password' => 'x_password',
-        'action' => 'x_type',
+        'login'         => 'x_login',
+        'password'      => 'x_password',
+        'action'        => 'x_type',
         'invoiceNumber' => 'x_invoice_num',
-        'customerId' => 'x_cust_id',
-        'amount' => 'x_amount',
-        'description' => 'x_description',
-        'name' => '',
-        'zip' => 'x_zip',
+        'customerId'    => 'x_cust_id',
+        'amount'        => 'x_amount',
+        'description'   => 'x_description',
+        'name'          => '',
+        'zip'           => 'x_zip',
+
         // Optional
         'company' => 'x_company',
         'address' => 'x_address',
-        'city' => 'x_city',
-        'state' => 'x_state',
+        'city'    => 'x_city',
+        'state'   => 'x_state',
         'country' => 'x_country',
-        'phone' => 'x_phone',
-        'email' => 'x_email',
-        'ip' => 'x_customer_ip',
+        'phone'   => 'x_phone',
+        'email'   => 'x_email',
+        'ip'      => 'x_customer_ip',
     );
 
     /**
-    * $_typeFieldMap
-    *
-    * @author Joe Stump <joe@joestump.net>
-    * @access protected
-    */
+     * $_typeFieldMap
+     *
+     * @author Joe Stump <joe@joestump.net>
+     * @access protected
+     */
     var $_typeFieldMap = array(
 
            'CreditCard' => array(
-
                     'cardNumber' => 'x_card_num',
-                    'cvv' => 'x_card_code',
-                    'expDate' => 'x_exp_date'
-
+                    'cvv'        => 'x_card_code',
+                    'expDate'    => 'x_exp_date'
            ),
 
            'eCheck' => array(
-
-                    'routingCode' => 'x_bank_aba_code',
+                    'routingCode'   => 'x_bank_aba_code',
                     'accountNumber' => 'x_bank_acct_num',
-                    'type' => 'x_bank_acct_type',
-                    'bankName' => 'x_bank_name',
-                    'name' => 'x_bank_acct_name'
-
+                    'type'          => 'x_bank_acct_type',
+                    'bankName'      => 'x_bank_name',
+                    'name'          => 'x_bank_acct_name'
            )
     );
 
@@ -110,11 +109,11 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
     var $_defaultOptions = array(
          'authorizeUri' => 'https://secure.authorize.net/gateway/transact.dll',
          'x_delim_data' => 'TRUE',
-         'x_relay' => 'FALSE',
+         'x_relay'      => 'FALSE',
          'x_email_customer' => 'FALSE',
-         'x_test_request' => 'FALSE',
-         'x_currency_code' => 'USD',
-         'x_version' => '3.1'
+         'x_test_request'   => 'FALSE',
+         'x_currency_code'  => 'USD',
+         'x_version'        => '3.1'
     );
 
     /**
@@ -151,7 +150,7 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
      */
     function &process()
     {
-        if($this->_options['debug'] === true) {
+        if ($this->_options['debug'] === true) {
             echo "----------- DATA -----------\n";
             print_r($this->_data);
             echo "----------- DATA -----------\n";
@@ -159,20 +158,20 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
 
         // Sanity check
         $result = $this->validate();
-        if(PEAR::isError($result)) {
+        if (PEAR::isError($result)) {
             return $result;
         }
 
         // Prepare the data
         $result = $this->_prepare();
         if (PEAR::isError($result)) {
-            return $result; 
+            return $result;
         }
 
         // Don't die partway through
         PEAR::pushErrorHandling(PEAR_ERROR_RETURN);
 
-        if($this->_options['debug'] === true) {
+        if ($this->_options['debug'] === true) {
             print_r($this->_options);
         }
 
@@ -185,9 +184,9 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
 
         $curl->type = 'PUT';
         $curl->fields = $fields;
-        if($this->_options['debug'] === true) {
+        if ($this->_options['debug'] === true) {
             echo "------------ CURL FIELDS -------------\n";
-            print_r($curl->fields); 
+            print_r($curl->fields);
             echo "------------ CURL FIELDS -------------\n";
         }
 
@@ -208,14 +207,14 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
         // Restore error handling
         PEAR::popErrorHandling();
 
-        $response = &Payment_Process_Result::factory($this->_driver,$this->_responseBody);
+        $response = &Payment_Process_Result::factory($this->_driver,
+                            $this->_responseBody);
         if (!PEAR::isError($response)) {
             $response->_request = & $this;
             $response->parse();
         }
 
         return $response;
-
     }
 
     /**
@@ -236,27 +235,24 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
      */
     function _prepareQueryString()
     {
-
-        $data = array_merge($this->_options,$this->_data);
+        $data = array_merge($this->_options, $this->_data);
 
         // Set payment method to eCheck if our payment type is eCheck.
         // Default is Credit Card.
         $data['x_method'] = 'CC';
-        if($this->_payment->getType() == 'eCheck')
-        {
-          $data['x_method'] = 'ECHECK';
-          switch($this->_payment->type)
-          {
-            case PAYMENT_PROCESS_CK_CHECKING:
-              $data['x_bank_acct_type'] = 'CHECKING';
-              break;
-            case PAYMENT_PROCESS_CK_SAVINGS:
-              $data['x_bank_acct_type'] = 'SAVINGS';
-              break;
-          }
+        if ($this->_payment->getType() == 'eCheck') {
+            $data['x_method'] = 'ECHECK';
+            switch ($this->_payment->type) {
+                case PAYMENT_PROCESS_CK_CHECKING:
+                    $data['x_bank_acct_type'] = 'CHECKING';
+                    break;
+                case PAYMENT_PROCESS_CK_SAVINGS:
+                    $data['x_bank_acct_type'] = 'SAVINGS';
+                    break;
+            }
         }
 
-        if($this->_options['debug'] === true) {
+        if ($this->_options['debug'] === true) {
             echo "--------- PREPARE QS DATA -----------\n";
             print_r($this->_data);
             print_r($data);
@@ -265,9 +261,9 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
         $return = array();
         $sets = array();
         foreach ($data as $key => $val) {
-            if (eregi('^x_',$key) && strlen($val)) {
+            if (eregi('^x_', $key) && strlen($val)) {
                 $return[$key] = $val;
-                $sets[] = $key.'='.urlencode($val);
+                $sets[] = $key . '=' . urlencode($val);
             }
         }
 
@@ -277,18 +273,19 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
     }
 
     /**
-    * _handleName
-    *
-    * @author Joe Stump <joe@joestump.net>
-    * @access private
-    */
+     * _handleName
+     *
+     * @author Joe Stump <joe@joestump.net>
+     * @access private
+     */
     function _handleName()
     {
         $parts = explode(' ',$this->_payment->name);
         $this->_data['x_first_name'] = array_shift($parts);
-        $this->_data['x_last_name'] = implode(' ',$parts); 
+        $this->_data['x_last_name']  = implode(' ', $parts);
     }
 }
+
 
 class Payment_Process_Result_AuthorizeNet extends Payment_Process_Result {
 
@@ -301,7 +298,7 @@ class Payment_Process_Result_AuthorizeNet extends Payment_Process_Result {
      *
      * This array holds many of the common response codes. There are over 200
      * response codes - so check the AuthorizeNet manual if you get a status
-     * code that does not match (see "Response Reason Codes & Response 
+     * code that does not match (see "Response Reason Codes & Response
      * Reason Text" in the AIM manual).
      *
      * @see getStatusText()
@@ -525,14 +522,14 @@ class Payment_Process_Result_AuthorizeNet extends Payment_Process_Result {
                            '38' => 'cvvCode'
     );
 
-    function Payment_Process_Response_AuthorizeNet($rawResponse) 
+    function Payment_Process_Response_AuthorizeNet($rawResponse)
     {
         $this->Payment_Process_Response($rawResponse);
     }
 
     function parse()
     {
-        $responseArray = explode(',',$this->_rawResponse);
+        $responseArray = explode(',', $this->_rawResponse);
         $this->_mapFields($responseArray);
     }
 }
