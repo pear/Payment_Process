@@ -446,6 +446,22 @@ class Payment_Process_Result_Dpilink extends Payment_Process_Result {
         'Y' => "Address and 5-digit zip match",
         'Z' => "5-digit zip match"
     );
+    
+    /**
+     * Status code map
+     *
+     * This contains a map from the Processor-specific result codes to the generic
+     * P_P codes. Anything not defined here is treated as a DECLINED result by
+     * validate()
+     *
+     * @type array
+     * @access private
+     */
+    var $_statusCodeMap = array(
+        '00' => PAYMENT_PROCESS_RESULT_APPROVED,
+        '05' => PAYMENT_PROCESS_RESULT_DECLINED,
+        'V7' => PAYMENT_PROCESS_RESULT_DECLINED
+    );
 
     var $_aciCodes = array(
         'A' => "CPS Qualified",
