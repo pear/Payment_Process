@@ -523,7 +523,7 @@ class Payment_Process_Result_AuthorizeNet extends Payment_Process_Result {
                            '6'  => 'transactionId',
                            '7'  => 'invoiceNumber',
                            '12' => 'customerId',
-                           '39' => 'cvvCode'
+                           '38' => 'cvvCode'
     );
 
     function Payment_Process_Response_AuthorizeNet($rawResponse) 
