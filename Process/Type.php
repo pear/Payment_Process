@@ -19,6 +19,14 @@
 //
 // $Id$
 
+/**
+ * Payment_Process_Type
+ *
+ * @author Joe Stump <joe@joestump.net>
+ * @category Payment
+ * @package Payment_Process
+ * @version @version@
+ */
 class Payment_Process_Type
 {
     var $name;
@@ -49,6 +57,14 @@ class Payment_Process_Type
         return PEAR::raiseError('Invalid Payment_Process_Type: '.$type);
     }
 
+    /**
+    * Validate a payment type object
+    *
+    * @author Joe Stump <joe@joestump.net>
+    * @access public
+    * @param mixed $obj Type object to validate
+    * @return bool  
+    */
     function isValid($obj)
     {
         if (is_a($obj,'Payment_Process_Type')) {
@@ -67,6 +83,35 @@ class Payment_Process_Type
 
         return false;
     }
+
+    /**
+     * Validate an email address.
+     *
+     * @author Ian Eure <ieure@php.net>
+     * @access private
+     * @return boolean true on success, false on failure.
+     */
+    function _validateEmail()
+    {
+        if (isset($this->email) && strlen($this->email)) {
+            return Validate::email($this->email, false);
+        }
+
+        return true;
+    }
+
+    /**
+     * Validate the zip code.
+     *
+     * @author Ian Eure <ieure@php.net>
+     * @access private
+     * @return boolean true on success, false otherwise
+     */
+    function _validateZip()
+    {
+        return ereg('^[0-9]{5}(-[0-9]{4})?$', $this->zip);
+    }
+
 }  
 
 ?>

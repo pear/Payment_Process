@@ -83,20 +83,6 @@ class Payment_Process_Common extends Payment_Process {
     }
 
     /**
-     * Validate an email address.
-     *
-     * @access private
-     * @return boolean true on success, false on failure.
-     */
-    function _validateEmail()
-    {
-        if (isset($this->email) && strlen($this->email)) {
-            return Validate::email($this->email, false);
-        }
-        return true;
-    }
-
-    /**
      * Validate transaction type.
      *
      * @access private
@@ -146,16 +132,6 @@ class Payment_Process_Common extends Payment_Process {
             'min' => 1.00,
             'max' => 99999.99
         ));
-    }
-
-    /**
-     * Validate the zip code.
-     *
-     * @return boolean true on success, false otherwise
-     */
-    function _validateZip()
-    {
-        return ereg('^[0-9]{5}(-[0-9]{4})?$', $this->zip);
     }
 
     /**
@@ -209,4 +185,5 @@ class Payment_Process_Common extends Payment_Process {
     }
 
 }
+
 ?>

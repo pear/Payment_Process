@@ -19,10 +19,17 @@
 //
 // $Id$
 
+define('PAYMENT_PROCESS_TYPE_VISA', 100);
+define('PAYMENT_PROCESS_TYPE_MASTERCARD', 101);
+define('PAYMENT_PROCESS_TYPE_AMEX', 102);
+define('PAYMENT_PROCESS_TYPE_DISCOVER', 103);
+define('PAYMENT_PROCESS_TYPE_CHECK', 104);
+
 class Payment_Process_Type_CreditCard extends Payment_Process_Type 
 {
     var $type
     var $number;
+    var $cvv;
     var $expDate;
 
     function Payment_Process_Type_CreditCard()
