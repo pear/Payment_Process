@@ -201,6 +201,13 @@ class Payment_Process {
     var $transactionSource;
 
     /**
+     * Perform AVS?
+     *
+     * @type boolean
+     */
+    var $performAvs = false;
+
+    /**
      * Return an instance of a specific processor.
      *
      * @param  string  $type     Name of the processor
@@ -472,6 +479,14 @@ class Payment_Process {
  * @package Payment_Process
  */
 class Payment_Process_Result {
+	/**
+     * The requesting processor.
+     *
+     * @access private
+     * @type Object
+     * @see setRequest
+     */
+     var $_request;
 
 	/**
      * Transaction result code.
@@ -551,6 +566,15 @@ class Payment_Process_Result {
         }
 
         return new $class($code, $message);
+    }
+
+    function setRequest(&$req)
+    {
+    	if (!is_a($req, 'Payment_Process')) {
+        	return PEAR::raiseError("Request must be a Payment_Process instance or subclass.");
+        }
+    	$this->_request = &$req;
+        return true;
     }
 
     /**
