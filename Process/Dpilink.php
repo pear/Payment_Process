@@ -539,6 +539,11 @@ class Payment_Process_Result_Dpilink extends Payment_Process_Result {
         return @$this->_aciCodes[$this->_authChar];
     }
 
+    function getCode()
+    {
+        return $this->_statusCodeMap[$this->messageCode];
+    }
+
     /**
      * Parse DPILink R1 response string.
      *
