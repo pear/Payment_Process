@@ -21,7 +21,7 @@
   $process->login = 'TestMerchant';
   $process->password = 'password';
   $process->action = PAYMENT_PROCESS_ACTION_NORMAL;
-  $process->amount = 999999.99;
+  $process->amount = 99.99;
 
   $card = & Payment_Process_Type::factory('CreditCard');
   $card->type = PAYMENT_PROCESS_CC_VISA;
