@@ -141,7 +141,6 @@ class Payment_Process_Common extends Payment_Process {
      */
     function _prepare()
     {
-        $this->_data = array();
         foreach ($this->_fieldMap as $generic => $specific) {
             $func = '_handle'.ucfirst($generic);
             if (method_exists($this, $func)) {
@@ -154,11 +153,35 @@ class Payment_Process_Common extends Payment_Process {
             }
         }
 
+        // TODO - Why is this here? Joe Stump <joe@joestump.net> 
         if ($this->_options['testTransaction']) {
             $this->_data['testTransaction'] = $this->_options['testTransaction'];
         }
                                                                                 
         return true;
+    }
+
+    /**
+    * Set payment
+    *
+    * @author Joe Stump <joe@joestump.net>
+    * @access public
+    * @param mixed $payment Object of Payment_Process_Type
+    * @return bool
+    */
+    function setPayment($payment) 
+    {
+        if (Payment_Process_Type::isValid($payment)) {
+            foreach ($this->_fieldMap as $generic => $specific) {
+                if(isset($payment->$generic)) {
+                    $this->_data[$specific] = $payment->$generic;
+                }
+            }
+
+            return true;
+        }
+
+        return false;
     }
 
     /**

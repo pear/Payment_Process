@@ -73,7 +73,7 @@ class Payment_Process_Type
                 $method = '_validate'.ucfirst($validate);
                 if (method_exists($obj,$method)) {
                     if(!$obj->$method()) {
-                        return PEAR::raiseError('Invalid field: '.$validate,PAYMENT_PROCESS_ERROR_INVAILD);
+                        return false;
                     } 
                 }
             }
