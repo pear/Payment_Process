@@ -29,25 +29,18 @@ $GLOBALS['_Payment_Process_AuthorizeNet'] = array(
     PAYMENT_PROCESS_ACTION_POSTAUTH => 'PRIOR_AUTH_CAPTURE'
 );
 
-
-//define('PAYMENT_PROCESS_RESULT_DPILINK_APPROVAL', 00);
-//define('PAYMENT_PROCESS_RESULT_DPILINK_DECLINE', 05);
-//define('PAYMENT_PROCESS_RESULT_DPILINK_INVALIDAMOUNT', 13);
-//define('PAYMENT_PROCESS_RESULT_DPILINK_INVALIDCARDNO', 14);
-//define('PAYMENT_PROCESS_RESULT_DPILINK_REENTER', 19);
-
 /**
- * Payment_Process_Dpilink
+ * Payment_Process_AuthorizeNet
  *
- * This is a processor for TransFirst's DPILink merchant payment gateway.
- * (http://www.dpicorp.com/)
+ * This is a processor for Authorize.net's merchant payment gateway.
+ * (http://www.authorize.net/)
  *
  * *** WARNING ***
  * This is BETA code, and has not been fully tested. It is not recommended
  * that you use it in a production envorinment without further testing.
  *
  * @package Payment_Process
- * @author Ian Eure <ieure@php.net>
+ * @author Joe Stump <joe@joestump.net> 
  * @version @version@
  */
 class Payment_Process_AuthorizeNet extends Payment_Process_Common {

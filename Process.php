@@ -59,6 +59,9 @@ define('PAYMENT_PROCESS_CVV_MISMATCH',601);
 define('PAYMENT_PROCESS_CVV_ERROR',602);
 define('PAYMENT_PROCESS_CVV_NOAPPLY',603);
 
+define('PAYMENT_PROCESS_TYPE_CREDITCARD','CreditCard');
+define('PAYMENT_PROCESS_TYPE_ECHECK','eCheck');
+
 /**
  * Payment_Process
  *
@@ -76,13 +79,6 @@ class Payment_Process extends PEAR {
      * @access private;
      */
     var $_options = '';
-
-    /**
-     * Transaction type.
-     *
-     * This should be set to one of the PAYMENT_PROCESS_TYPE_* constants.
-     */
-    var $type = '';
 
     /**
      * Your login name to use for authentication to the online processor.
@@ -613,15 +609,16 @@ class Payment_Process_Result {
         return PEAR::raiseError('Invalid response type: '.$type.'('.$class.')');
     }
 
-    function validate($avsCheck = false,$cvvCheck = false) 
+    function validate()
     {
-        if ($avsCheck) {
+        if ($this->_request->options['avsCheck'] === true) {
             if ($this->getAVSCode() != PAYMENT_PROCESS_AVS_MATCH) {
                 return false;
             }
         }    
 
-        if ($cvvCheck) {
+        if ($this->_request->options['cvvCheck'] === true && 
+            get_class($this->_request->_payment) == 'Payment_Process_Type_CreditCard') {
             if ($this->getCvvCode() != PAYMENT_PROCESS_CVV_MATCH) {
                 return false;
             }

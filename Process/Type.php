@@ -29,6 +29,7 @@
  */
 class Payment_Process_Type
 {
+    var $_driver = null;
     var $name;
     var $address;
     var $city;
@@ -52,9 +53,7 @@ class Payment_Process_Type
             if (class_exists($class)) {
                 return new $class();
             }
-        } else {
-          echo 'bad file'."\n";
-        }
+        } 
 
         return PEAR::raiseError('Invalid Payment_Process_Type: '.$type);
     }

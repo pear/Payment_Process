@@ -19,14 +19,14 @@
 //
 // $Id$
 
-define('PAYMENT_PROCESS_TYPE_VISA', 100);
-define('PAYMENT_PROCESS_TYPE_MASTERCARD', 101);
-define('PAYMENT_PROCESS_TYPE_AMEX', 102);
-define('PAYMENT_PROCESS_TYPE_DISCOVER', 103);
-define('PAYMENT_PROCESS_TYPE_CHECK', 104);
+define('PAYMENT_PROCESS_CC_VISA', 100);
+define('PAYMENT_PROCESS_CC_MASTERCARD', 101);
+define('PAYMENT_PROCESS_CC_AMEX', 102);
+define('PAYMENT_PROCESS_CC_DISCOVER', 103);
 
 class Payment_Process_Type_CreditCard extends Payment_Process_Type 
 {
+    var $_driver = PAYMENT_PROCESS_TYPE_CREDITCARD;
     var $type;
     var $cardNumber;
     var $cvv;
@@ -47,13 +47,13 @@ class Payment_Process_Type_CreditCard extends Payment_Process_Type
     function _validateType()
     {
         switch ($this->type) {
-            case PAYMENT_PROCESS_TYPE_MASTERCARD:
+            case PAYMENT_PROCESS_CC_MASTERCARD:
                 return ereg('^5[1-5][0-9]{14}$',$this->cardNumber);
-            case PAYMENT_PROCESS_TYPE_VISA:
+            case PAYMENT_PROCESS_CC_VISA:
                 return ereg('^4[0-9]{12}([0-9]{3})?$',$this->cardNumber);
-            case PAYMENT_PROCESS_TYPE_AMEX:
+            case PAYMENT_PROCESS_CC_AMEX:
                 return ereg('^3[47][0-9]{13}$',$this->cardNumber);
-            case PAYMENT_PROCESS_TYPE_DISCOVER:
+            case PAYMENT_PROCESS_CC_DISCOVER:
                 return ereg('^6011[0-9]{12}$', $this->cardNumber);
             default:
                 return false;

@@ -21,6 +21,7 @@
 
 class Payment_Process_Type_eCheck extends Payment_Process_Type
 {
+    var $_driver = PAYMENT_PROCESS_TYPE_ECHECK;
     var $accountNumber;
     var $routingCode;
     var $bankName;
