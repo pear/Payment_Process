@@ -30,8 +30,8 @@ $options['x_password'] = 'aff1070comp';
 $process = & Payment_Process::factory('AuthorizeNet',$options);
 if (!PEAR::isError($process)) {
     $process->_debug = true;
-    $process->login = 'affordablecomp256';
-    $process->password = 'aff1070comp';
+    $process->login = 'login';
+    $process->password = 'password';
     $process->action = PAYMENT_PROCESS_ACTION_AUTHONLY;
     $process->amount = 1.00;
 
