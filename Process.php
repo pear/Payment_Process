@@ -25,45 +25,45 @@ require_once 'Payment/Process/Type.php';
 
 // Error codes
 define('PAYMENT_PROCESS_ERROR_NOTIMPLEMENTED', -100);
-define('PAYMENT_PROCESS_ERROR_NOFIELD', -101);
-define('PAYMENT_PROCESS_ERROR_NOPROCESSOR', -102);
+define('PAYMENT_PROCESS_ERROR_NOFIELD',        -101);
+define('PAYMENT_PROCESS_ERROR_NOPROCESSOR',    -102);
 define('PAYMENT_PROCESS_ERROR_INCOMPLETE', -1);
-define('PAYMENT_PROCESS_ERROR_INVAILD', -2);
-define('PAYMENT_PROCESS_ERROR_AVS', -3);
-define('PAYMENT_PROCESS_ERROR_CVV', -4);
+define('PAYMENT_PROCESS_ERROR_INVAILD',    -2);
+define('PAYMENT_PROCESS_ERROR_AVS',        -3);
+define('PAYMENT_PROCESS_ERROR_CVV',        -4);
 
 // Transaction actions
 // A normal transaction
-define('PAYMENT_PROCESS_ACTION_NORMAL', 200);
+define('PAYMENT_PROCESS_ACTION_NORMAL',   200);
 // Authorize only. No funds are transferred.
 define('PAYMENT_PROCESS_ACTION_AUTHONLY', 201);
 // Credit funds back from a previously-charged transaction.
-define('PAYMENT_PROCESS_ACTION_CREDIT', 202);
+define('PAYMENT_PROCESS_ACTION_CREDIT',   202);
 // Post-authorize an AUTHONLY transaction.
 define('PAYMENT_PROCESS_ACTION_POSTAUTH', 203);
 // Clear a previous transaction
-define('PAYMENT_PROCESS_ACTION_VOID', 204);
+define('PAYMENT_PROCESS_ACTION_VOID',     204);
 
 // Transaction sources
-define('PAYMENT_PROCESS_SOURCE_POS', 300);
-define('PAYMENT_PROCESS_SOURCE_ONLINE', 301);
+define('PAYMENT_PROCESS_SOURCE_POS',      300);
+define('PAYMENT_PROCESS_SOURCE_ONLINE',   301);
 
 // Results
 define('PAYMENT_PROCESS_RESULT_APPROVED', 400);
 define('PAYMENT_PROCESS_RESULT_DECLINED', 401);
-define('PAYMENT_PROCESS_RESULT_OTHER', 402);
-define('PAYMENT_PROCESS_RESULT_FRAUD', 403);
+define('PAYMENT_PROCESS_RESULT_OTHER',    402);
+define('PAYMENT_PROCESS_RESULT_FRAUD',    403);
 define('PAYMENT_PROCESS_RESULT_DUPLICATE',404);
 
-define('PAYMENT_PROCESS_AVS_MATCH', 500);
-define('PAYMENT_PROCESS_AVS_MISMATCH', 501);
-define('PAYMENT_PROCESS_AVS_ERROR', 502);
-define('PAYMENT_PROCESS_AVS_NOAPPLY',503);
+define('PAYMENT_PROCESS_AVS_MATCH',       500);
+define('PAYMENT_PROCESS_AVS_MISMATCH',    501);
+define('PAYMENT_PROCESS_AVS_ERROR',       502);
+define('PAYMENT_PROCESS_AVS_NOAPPLY',     503);
 
-define('PAYMENT_PROCESS_CVV_MATCH', 600);
-define('PAYMENT_PROCESS_CVV_MISMATCH', 601);
-define('PAYMENT_PROCESS_CVV_ERROR', 602);
-define('PAYMENT_PROCESS_CVV_NOAPPLY', 603);
+define('PAYMENT_PROCESS_CVV_MATCH',       600);
+define('PAYMENT_PROCESS_CVV_MISMATCH',    601);
+define('PAYMENT_PROCESS_CVV_ERROR',       602);
+define('PAYMENT_PROCESS_CVV_NOAPPLY',     603);
 
 /**
  * Payment_Process
@@ -152,7 +152,7 @@ class Payment_Process extends PEAR {
      * @see _makeRequired()
      */
     var $_required = array();
-    
+
     /**
      * Processor-specific data.
      *
@@ -164,7 +164,7 @@ class Payment_Process extends PEAR {
     /**
      * $_driver
      *
-     * @author Joe Stump <joe@joestump.net> 
+     * @author Joe Stump <joe@joestump.net>
      * @var string $_driver
      * @access private
      */
@@ -185,7 +185,7 @@ class Payment_Process extends PEAR {
                 $object = & new $class($options);
                 $object->_driver = $type;
                 return $object;
-            } 
+            }
         }
 
         return PEAR::raiseError('"'.$type.'" processor does not exist',
@@ -223,12 +223,12 @@ class Payment_Process extends PEAR {
     function set($field, $value)
     {
         if (!$this->fieldExists($field)) {
-            return PEAR::raiseError("Field \"$field\" does not exist.", PAYMENT_PROCESS_ERROR_INVALID);
+            return PEAR::raiseError('Field "' . $field . '" does not exist.', PAYMENT_PROCESS_ERROR_INVALID);
         }
         $this->$field = $value;
         return true;
     }
-    
+
     /**
      * Mark a field (or fields) as being required.
      *
@@ -243,7 +243,7 @@ class Payment_Process extends PEAR {
         }
         return true;
     }
-    
+
     /**
      * Mark a field as being optional.
      *
@@ -258,7 +258,7 @@ class Payment_Process extends PEAR {
         }
         return true;
     }
-    
+
     /**
      * Determine if a field is required.
      *
@@ -371,7 +371,7 @@ class Payment_Process extends PEAR {
      *
      * @author Joe Stump <joe@joestump.net>
      * @access public
-     * @param  mixed  $obj 
+     * @param  mixed  $obj
      */
     function isSuccess($obj)
     {
@@ -380,21 +380,21 @@ class Payment_Process extends PEAR {
                 return true;
             }
         }
-  
+
         return false;
     }
 
     /**
-    * Statically check a Payment_Result class for error
-    *
-    * @author Joe Stump <joe@joestump.net> 
-    * @access public
-    * @param  mixed  $obj
-    */
+     * Statically check a Payment_Result class for error
+     *
+     * @author Joe Stump <joe@joestump.net>
+     * @access public
+     * @param  mixed  $obj
+     */
     function isError($obj)
     {
         if (PEAR::isError($obj)) {
-            return true; 
+            return true;
         }
 
         if (is_a($obj,'Payment_Process_Result')) {
@@ -404,7 +404,7 @@ class Payment_Process extends PEAR {
         }
 
         return false;
-    } 
+    }
 }
 
 /**
@@ -412,11 +412,11 @@ class Payment_Process extends PEAR {
  *
  * The core result class that should be returned from each driver's process()
  * function. This should be extended as Payment_Process_Result_DriverName and
- * then have the appropriate fields mapped out accordingly. 
+ * then have the appropriate fields mapped out accordingly.
  *
  * Take special care to appropriately create a parse() function in your result
- * class. You can then call _mapFields() with a resultArray (ie. exploded 
- * result) to map your results from parse() into the member variables. 
+ * class. You can then call _mapFields() with a resultArray (ie. exploded
+ * result) to map your results from parse() into the member variables.
  *
  * Please note that this class keeps your original codes intact so they can
  * be accessed directly and then uses the function wrappers to return uniform
@@ -439,7 +439,7 @@ class Payment_Process_Result {
      * @var    Object
      */
     var $_request;
-    
+
     /**
      * The raw response (ie. from cURL)
      *
@@ -453,7 +453,7 @@ class Payment_Process_Result {
      * The approval/decline code
      *
      * The value returned by your gateway as approved/declined should be mapped
-     * into this variable. Valid results should then be mapped into the 
+     * into this variable. Valid results should then be mapped into the
      * appropriate PAYMENT_PROCESS_RESULT_* code using the $_statusCodeMap
      * array. Values returned into $code should be mapped as keys in the map
      * with PAYMENT_PROCESS_RESULT_* as the values.
@@ -509,7 +509,7 @@ class Payment_Process_Result {
      *
      * The AVS code returned from your gateway. This should then be mapped to
      * the appropriate PAYMENT_PROCESS_AVS_* code using $_avsCodeMap. This value
-     * should also be mapped to the appropriate textual message via the 
+     * should also be mapped to the appropriate textual message via the
      * $_avsCodeMessages array.
      *
      * @author  Joe Stump <joe@joestump.net>
@@ -543,54 +543,54 @@ class Payment_Process_Result {
      *
      * @author Joe Stump <joe@joestump.net>
      * @access public
-     * @var string $invoiceNumber 
+     * @var string $invoiceNumber
      */
     var $invoiceNumber;
 
     /**
-    * Customer ID
-    *
-    * Unique internall customer ID (ie. your company's customer ID used to 
-    * track individual customers).
-    *
-    * @author Joe Stump <joe@joestump.net>
-    * @access public
-    * @var string $customerId
-    */
+     * Customer ID
+     *
+     * Unique internall customer ID (ie. your company's customer ID used to
+     * track individual customers).
+     *
+     * @author Joe Stump <joe@joestump.net>
+     * @access public
+     * @var string $customerId
+     */
     var $customerId;
 
     /**
-    * CVV Code 
-    *
-    * The CVV code is the 3-4 digit number on the back of most credit cards.
-    * This value should be mapped via the $_cvvCodeMap variable to the 
-    * appropriate PAYMENT_PROCESS_CVV_* values.
-    *
-    * @author Joe Stump <joe@joestump.net>
-    * @access public
-    * @var string $cvvCode
-    */
+     * CVV Code
+     *
+     * The CVV code is the 3-4 digit number on the back of most credit cards.
+     * This value should be mapped via the $_cvvCodeMap variable to the
+     * appropriate PAYMENT_PROCESS_CVV_* values.
+     *
+     * @author Joe Stump <joe@joestump.net>
+     * @access public
+     * @var string $cvvCode
+     */
     var $cvvCode = PAYMENT_PROCESS_CVV_NOAPPLY;
 
     /**
-    * CVV Message
-    *
-    * Your cvvCode value should be mapped to appropriate messages via the
-    * $_cvvCodeMessage array. This value is merely here to hold the value
-    * returned from the gateway (if any).
-    *
-    * @author Joe Stump <joe@joestump.net>
-    * @access public
-    * @var string $cvvMessage
-    */
+     * CVV Message
+     *
+     * Your cvvCode value should be mapped to appropriate messages via the
+     * $_cvvCodeMessage array. This value is merely here to hold the value
+     * returned from the gateway (if any).
+     *
+     * @author Joe Stump <joe@joestump.net>
+     * @access public
+     * @var string $cvvMessage
+     */
     var $cvvMessage = 'No CVV message from gateway';
 
-    function Payment_Process_Result($rawResponse) 
+    function Payment_Process_Result($rawResponse)
     {
         $this->_rawResponse = $rawResponse;
     }
 
-    function &factory($type,$rawResponse)
+    function &factory($type, $rawResponse)
     {
         $class = 'Payment_Process_Result_'.$type;
         if (class_exists($class)) {
@@ -600,14 +600,13 @@ class Payment_Process_Result {
         return PEAR::raiseError('Invalid response type: '.$type.'('.$class.')');
     }
 
-    // {{{ validate()
     /**
-    * validate
-    * 
-    * @author Joe Stump <joe@joestump.net>
-    * @access public
-    * @return mixed
-    */
+     * validate
+     *
+     * @author Joe Stump <joe@joestump.net>
+     * @access public
+     * @return mixed
+     */
     function validate()
     {
         if ($this->_request->getOption('avsCheck') === true) {
@@ -615,7 +614,7 @@ class Payment_Process_Result {
                 return PEAR::raiseError('AVS check failed',
                                         PAYMENT_PROCESS_ERROR_AVS);
             }
-        }    
+        }
 
         $paymentType = $this->_request->_payment->_type;
         if ($this->_request->getOption('cvvCheck') === true &&
@@ -630,36 +629,32 @@ class Payment_Process_Result {
 
         if ($this->getCode() != PAYMENT_PROCESS_RESULT_APPROVED) {
             return PEAR::raiseError($this->getMessage(),
-                                    PAYMENT_PROCESS_RESULT_DECLINED); 
-        } 
+                                    PAYMENT_PROCESS_RESULT_DECLINED);
+        }
 
         return true;
     }
-    // }}}
 
-    // {{{ parse()
     /**
-    * parse
-    *
-    * @abstract
-    * @author Joe Stump <joe@joestump.net>
-    * @access public
-    */
-    function parse() 
+     * parse
+     *
+     * @abstract
+     * @author Joe Stump <joe@joestump.net>
+     * @access public
+     */
+    function parse()
     {
         return PEAR::raiseError('parse() not implemented',
                                 PAYMENT_PROCESS_ERROR_NOTIMPLEMENTED);
     }
-    // }}}
 
-    // {{{ getCode()
     /**
-    * getCode
-    *  
-    * @author Joe Stump <joe@joestump.net>
-    * @access public
-    */
-    function getCode() 
+     * getCode
+     *
+     * @author Joe Stump <joe@joestump.net>
+     * @access public
+     */
+    function getCode()
     {
         if (isset($this->_statusCodeMap[$this->code])) {
             return $this->_statusCodeMap[$this->code];
@@ -667,37 +662,34 @@ class Payment_Process_Result {
             return PAYMENT_PROCESS_RESULT_DECLINED;
         }
     }
-    // }}}
 
-    // {{{ getMessage()
     /**
-    * getMessage
-    *
-    * Return the message from the code map, or return the raw message if
-    * there is one. Otherwise, return a worthless message.
-    *
-    * @author Joe Stump <joe@joestump.net>
-    * @access public
-    * @return string
-    */
-    function getMessage() 
+     * getMessage
+     *
+     * Return the message from the code map, or return the raw message if
+     * there is one. Otherwise, return a worthless message.
+     *
+     * @author Joe Stump <joe@joestump.net>
+     * @access public
+     * @return string
+     */
+    function getMessage()
     {
         if (isset($this->_statusCodeMessages[$this->messageCode])) {
             return $this->_statusCodeMessages[$this->messageCode];
         } elseif(strlen($this->message)) {
-            return $this->message; 
+            return $this->message;
         } else {
             return 'No message reported';
         }
     }
-    // }}} 
 
-    function getAVSCode() 
+    function getAVSCode()
     {
         return $this->_avsCodeMap[$this->avsCode];
     }
 
-    function getAVSMessage() 
+    function getAVSMessage()
     {
         return $this->_avsCodeMessages[$this->avsCode];
     }
@@ -712,20 +704,18 @@ class Payment_Process_Result {
         return $this->_cvvCodeMessages[$this->cvvCode];
     }
 
-    // {{{ _mapFields()
     /**
-    * _mapFields
-    *
-    * @author Joe Stump <joe@joestump.net>
-    * @access private
-    * @param mixed $responseArray
-    */
+     * _mapFields
+     *
+     * @author Joe Stump <joe@joestump.net>
+     * @access private
+     * @param mixed $responseArray
+     */
     function _mapFields($responseArray) {
         foreach($this->_fieldMap as $key => $val) {
-            $this->$val = $responseArray[$key]; 
+            $this->$val = $responseArray[$key];
         }
     }
-    // }}}
 }
 
 ?>
