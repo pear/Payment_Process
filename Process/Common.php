@@ -28,10 +28,10 @@ class Payment_Process_Common extends Payment_Process {
     *
     * @author Joe Stump <joe@joestump.net>
     * @access protected
-    * @var mixed $_typeFieldMap 
+    * @var mixed $_typeFieldMap
     */
     var $_typeFieldMap = array();
-    
+
     /**
     * $_payment
     *
@@ -56,18 +56,18 @@ class Payment_Process_Common extends Payment_Process {
     {
         foreach ($this->getFields() as $field) {
             $func = '_validate'.ucfirst($field);
-            
+
             // Don't validate unset optional fields
             if (! $this->isRequired($field) && !strlen($this->$field)) {
                 continue;
             }
-            
+
             if (method_exists($this, $func)) {
                 $res = $this->$func();
                 if (PEAR::isError($res)) {
                     return $res;
                 } elseif (is_bool($res) && $res == false) {
-                    return PEAR::raiseError('Validation of field "'.$field.'" failed.', PAYMENT_PROCESS_ERROR_INVAILD);
+                    return PEAR::raiseError('Validation of field "'.$field.'" failed.', PAYMENT_PROCESS_ERROR_INVALID);
                 }
             }
         }
@@ -127,7 +127,7 @@ class Payment_Process_Common extends Payment_Process {
     {
         return $this->_isDefinedConst($this->transactionSource, 'source');
     }
-    
+
     /**
      * Validate the charge amount.
      *
@@ -151,10 +151,10 @@ class Payment_Process_Common extends Payment_Process {
      * Prepare the POST data.
      *
      * This function handles translating the data set in the front-end to the
-     * format needed by the back-end. The prepared data is stored in 
-     * $this->_data. If a '_handleField' method exists in this class (e.g. 
-     * '_handleCardNumber()'), that function is called and /must/ set 
-     * $this->_data correctly. If no field-handler function exists, the data 
+     * format needed by the back-end. The prepared data is stored in
+     * $this->_data. If a '_handleField' method exists in this class (e.g.
+     * '_handleCardNumber()'), that function is called and /must/ set
+     * $this->_data correctly. If no field-handler function exists, the data
      * from the front-end is mapped into $_data using $this->_fieldMap.
      *
      * @access private
@@ -190,7 +190,7 @@ class Payment_Process_Common extends Payment_Process {
                 if (!isset($this->_data[$specific])) {
                     $this->_data[$specific] = $this->$generic;
 
-                    // Form of payments data overrides those set in the 
+                    // Form of payments data overrides those set in the
                     // Payment_Process_Common.
                     if(isset($this->_payment->$generic))
                     {
@@ -205,7 +205,7 @@ class Payment_Process_Common extends Payment_Process {
             echo print_r($this->_data);
             echo '----------- PREPARE ----------'."\n";
         }
-                                                                                
+
         return true;
     }
 
@@ -226,12 +226,12 @@ class Payment_Process_Common extends Payment_Process {
     {
         if (is_array($this->_typeFieldMap[$payment->getType()]) &&
             count($this->_typeFieldMap[$payment->getType()])) {
-        
+
             if (Payment_Process_Type::isValid($payment)) {
 
 
                 $this->_payment = $payment;
-                // Map over the payment specific fiels. Check out 
+                // Map over the payment specific fiels. Check out
                 // $_typeFieldMap for more information.
                 $paymentType = $payment->getType();
                 foreach ($this->_typeFieldMap[$paymentType] as $key => $val) {
@@ -261,7 +261,7 @@ class Payment_Process_Common extends Payment_Process {
     {
         $this->_data[$this->_fieldMap['action']] = $GLOBALS['_Payment_Process_'.$this->_driver][$this->action];
     }
-    
+
     /**
      * Print a debug message.
      *
