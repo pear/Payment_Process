@@ -61,9 +61,6 @@ define('PAYMENT_PROCESS_CVV_MISMATCH',601);
 define('PAYMENT_PROCESS_CVV_ERROR',602);
 define('PAYMENT_PROCESS_CVV_NOAPPLY',603);
 
-define('PAYMENT_PROCESS_TYPE_CREDITCARD','CreditCard');
-define('PAYMENT_PROCESS_TYPE_ECHECK','eCheck');
-
 /**
  * Payment_Process
  *
@@ -171,34 +168,9 @@ class Payment_Process extends PEAR {
             } 
         }
 
-        return PEAR::raiseError("\"$type\" processor does not exist", PAYMENT_PROCESS_ERROR_NOPROCESSOR);
+        return PEAR::raiseError('"'.$type.'" processor does not exist', 
+                                PAYMENT_PROCESS_ERROR_NOPROCESSOR);
 
-    }
-
-    /**
-     * Set multiple fields at once.
-     *
-     * This function takes a variable number of arguments, in alternating
-     * field/value format, e.g.:
-     * $object->setMultiple('cardNumber', '1111111111111111', 'expDate', '05/05');
-     *
-     * @param  mixed  Variable number of arguments; key, value.
-     * @return mixed true on success, PEAR_Error object on failure.
-     */
-    function setMultiple()
-    {
-        $args = func_get_args();
-        if (count(args) % 2) {
-            return PEAR::raiseError("Must supply an even number of arguments.", PAYMENT_PROCESS_ERROR_INVAILD);
-        }
-
-        for ($i = 0; $i < count($args); $i += 2) {
-            $res = $this->set($args[$i], $args[$i + 1]);
-            if (PEAR::isError($res)) {
-                return $res;
-            }
-        }
-        return true;
     }
 
     /**
@@ -275,10 +247,7 @@ class Payment_Process extends PEAR {
      */
     function isRequired($field)
     {
-        if (isset($this->_required[$field])) {
-            return $this->_required[$field];
-        }
-        return false;
+        return (isset($this->_required[$field]));
     }
 
     /**

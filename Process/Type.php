@@ -29,7 +29,7 @@
  */
 class Payment_Process_Type
 {
-    var $_driver = null;
+    var $_type = null;
     var $name;
     var $address;
     var $city;
@@ -83,6 +83,18 @@ class Payment_Process_Type
         }
 
         return false;
+    }
+
+    /**
+    * getType
+    *
+    * @author Joe Stump <joe@joestump.net>
+    * @access public
+    * @return string
+    */
+    function getType()
+    {
+      return $this->_type;
     }
 
     /**

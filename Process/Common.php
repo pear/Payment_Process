@@ -24,30 +24,19 @@ require_once 'Payment/Process/Type.php';
 
 class Payment_Process_Common extends Payment_Process {
     /**
-    * $avsCheck
-    *
-    * Used by Payment_Process_Result to determine if the result class should
-    * validate the AVS response from the gateway.
+    * $_typeFieldMap
     *
     * @author Joe Stump <joe@joestump.net>
-    * @access public
-    * @var bool $avsCheck
+    * @access protected
+    * @var mixed $_typeFieldMap 
     */
-    var $avsCheck = false;
-
-    /**
-    * $cvvCheck
-    *
-    * Used by Payment_Process_Result to determine if the result class should
-    * validate the CVV response from the gateway.
-    *
-    * @author Joe Stump <joe@joestump.net>
-    * @access public
-    * @var bool $cvvCheck
-    */
-
+    var $_typeFieldMap = array();
+    
     /**
     * $_payment
+    *
+    * An internal reference to the Payment_Process_Type that is currently
+    * being processed.
     *
     * @author Joe Stump <joe@joestump.net>
     * @access protected
@@ -225,11 +214,11 @@ class Payment_Process_Common extends Payment_Process {
     */
     function setPayment($payment)
     {
+        if (is_array($this->_typeFieldMap[$payment->]);
         if (Payment_Process_Type::isValid($payment)) {
             $this->_payment = $payment;
             foreach ($this->_fieldMap as $generic => $specific) {
                 if(isset($payment->$generic)) {
-                    //$this->debug("Mapping Type::{$generic} to {$specific}");
                     $this->_data[$specific] = $payment->$generic;
                 }
             }

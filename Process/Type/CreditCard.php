@@ -26,7 +26,7 @@ define('PAYMENT_PROCESS_CC_DISCOVER', 103);
 
 class Payment_Process_Type_CreditCard extends Payment_Process_Type 
 {
-    var $_driver = PAYMENT_PROCESS_TYPE_CREDITCARD;
+    var $_type = 'CreditCard';
     var $type;
     var $cardNumber;
     var $cvv;
