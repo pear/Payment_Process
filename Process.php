@@ -239,8 +239,8 @@ class Payment_Process {
             if (method_exists($this, $func)) {
                 $res = $this->$func();
                 if (PEAR::isError($res) || (is_bool($res) && $res == false)) {
-                	if (!$res)
-                    	$res = new PEAR_Error("Validation of field \"{$field}\" failed.", PAYMENT_PROCESS_ERROR_INVAILD);
+                    if (!$res)
+                        $res = new PEAR_Error("Validation of field \"{$field}\" failed.", PAYMENT_PROCESS_ERROR_INVAILD);
                     return $res;
                 }
             }
@@ -396,7 +396,7 @@ class Payment_Process {
 
     /**
      * Validate an email address.
-	 *
+     *
      * @access private
      * @return boolean true on success, false on failure.
      */
@@ -422,7 +422,7 @@ class Payment_Process {
     /**
      * Validate transaction acion.
      *
-	 * @access private
+     * @access private
      * @return boolean true on success, false on failure.
      */
     function _validateAction()
@@ -433,12 +433,41 @@ class Payment_Process {
     /**
      * Validate transaction source.
      *
-	 * @access private
+     * @access private
      * @return boolean true on success, false on failure.
      */
     function _validateSource()
     {
         return $this->_isDefinedConst($this->transactionSource, 'source');
+    }
+    
+    /**
+     * Validate the charge amount.
+     *
+     * Charge amount must be 8 characters long, double-precision.
+     * Current min/max are rather arbitrarily set to $1.00 and $99999.99,
+     * respectively.
+     *
+     * @return boolean true on success, false otherwise
+     */
+    function _validateAmount()
+    {
+        return Validate::number($this->amount, array(
+            'decimal' => '.',
+            'dec_prec' => 2,
+            'min' => 1.00,
+            'max' => 99999.99
+        ));
+    }
+
+    /**
+     * Validate the zip code.
+     *
+     * @return boolean true on success, false otherwise
+     */
+    function _validateZip()
+    {
+        return ereg('^[0-9]{5}(-[0-9]{4})?$', $this->zip);
     }
 
     /**
@@ -448,7 +477,7 @@ class Payment_Process {
      * PAYMENT_PROCESS_{$class}_*. It's used to verify that e.g. $object->action is one of
      * PAYMENT_PROCESS_ACTION_NORMAL, PAYMENT_PROCESS_ACTION_AUTHONLY etc.
      *
-	 * @access private
+     * @access private
      * @param  mixed  $value  Value to check
      * @param  mixed  $class  Constant class to check
      * @return boolean true if it is defined, false otherwise.
@@ -480,7 +509,7 @@ class Payment_Process {
  * @package Payment_Process
  */
 class Payment_Process_Result {
-	/**
+    /**
      * The requesting processor.
      *
      * @access private
@@ -489,16 +518,16 @@ class Payment_Process_Result {
      */
      var $_request;
 
-	/**
+    /**
      * Transaction result code.
      *
-	 * This should be set to one of the PAYMENT_PROCESS_ACTION_* constants.
+     * This should be set to one of the PAYMENT_PROCESS_ACTION_* constants.
      *
      * @type int
      */
     var $code;
 
-	/**
+    /**
      * Transaction result message.
      *
      * e.g. 'APPROVED,' 'DECLINED,' etc. May vary from processor to processor.
@@ -534,7 +563,7 @@ class Payment_Process_Result {
         if ($code) {
             $this->code = $code;
         }
-		if ($message) {
+        if ($message) {
             $this->message = $message;
         }
     }
@@ -561,11 +590,11 @@ class Payment_Process_Result {
         if ($type) {
             $class = 'Payment_Process_Result_'.$type;
         } else {
-        	$class = get_class($this);
+            $class = get_class($this);
         }
 
         if (!class_exists($class)) {
-        	return PEAR::raiseError("Can't instantiate non-existent class \"$class\"", PAYMENT_PROCESS_ERROR_INVAILD);
+            return PEAR::raiseError("Can't instantiate non-existent class \"$class\"", PAYMENT_PROCESS_ERROR_INVAILD);
         }
 
         return new $class($code, $message);
@@ -573,10 +602,10 @@ class Payment_Process_Result {
 
     function setRequest(&$req)
     {
-    	if (!is_a($req, 'Payment_Process')) {
-        	return PEAR::raiseError("Request must be a Payment_Process instance or subclass.");
+        if (!is_a($req, 'Payment_Process')) {
+            return PEAR::raiseError("Request must be a Payment_Process instance or subclass.");
         }
-    	$this->_request = &$req;
+        $this->_request = &$req;
         return true;
     }
 
@@ -617,7 +646,7 @@ class Payment_Process_Result {
      */
     function isSuccess()
     {
-		return ! $this->isError();
+        return ! $this->isError();
     }
 
     /**
@@ -627,8 +656,8 @@ class Payment_Process_Result {
      */
     function isError()
     {
-    	if ($this->code && $this->code != PAYMENT_PROCESS_RESULT_APPROVED)
-        	return true;
+        if ($this->code && $this->code != PAYMENT_PROCESS_RESULT_APPROVED)
+            return true;
         return false;
     }
 }

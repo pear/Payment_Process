@@ -286,7 +286,7 @@ class Payment_Process_Dpilink extends Payment_Process {
      */
     function _handleExpDate()
     {
-    	$specific = $this->_fieldMap['expDate'];
+        $specific = $this->_fieldMap['expDate'];
         $this->_data[$specific] = str_replace('/', '', $this->expDate);
     }
 
@@ -328,7 +328,7 @@ class Payment_Process_Dpilink extends Payment_Process {
     function _validateLogin()
     {
         return Validate::string($this->login, array(
-        	'format' => VALIDATE_NUM,
+            'format' => VALIDATE_NUM,
             'max_length' => 8,
             'min_length' => 8
         ));
@@ -345,8 +345,8 @@ class Payment_Process_Dpilink extends Payment_Process {
      */
     function _validatePassword()
     {
-    	return Validate::string($this->password, array(
-        	'format' => VALIDATE_ALPHA . VALIDATE_NUM,
+        return Validate::string($this->password, array(
+            'format' => VALIDATE_ALPHA . VALIDATE_NUM,
             'min_length' => 6,
             'max_length' => 10
         ));
@@ -361,8 +361,8 @@ class Payment_Process_Dpilink extends Payment_Process {
      */
     function _validateInvoiceNumber()
     {
-    	return Validate::string($this->invoiceNumber, array(
-        	'format' => VALIDATE_NUM . VALIDATE_ALPHA,
+        return Validate::string($this->invoiceNumber, array(
+            'format' => VALIDATE_NUM . VALIDATE_ALPHA,
             'min_length' => 5,
             'max_length' => 5
         ));
@@ -377,57 +377,31 @@ class Payment_Process_Dpilink extends Payment_Process {
      */
     function _validateCustomerId()
     {
-		return Validate::string($this->customerId, array(
-        	'format' => VALIDATE_NUM . VALIDATE_ALPHA,
+        return Validate::string($this->customerId, array(
+            'format' => VALIDATE_NUM . VALIDATE_ALPHA,
             'min_length' => 15,
             'max_length' => 15
         ));
     }
-
-    /**
-     * Validate the charge amount.
-     *
-     * Charge amount must be 8 characters long, double-precision.
-     *
-     * @return boolean true on success, false otherwise
-     */
-    function _validateAmount()
-    {
-        return Validate::number($this->amount, array(
-        	'decimal' => '.',
-            'dec_prec' => 2,
-            'min' => 1.00,
-            'max' => 99999.99
-        ));
-    }
-
+    
     /**
      * Validate the zip code.
      *
-     * The zip is optional, but is required if AVS is enabled.
+     * Zip is only required if AVS is enabled.
      *
-     * @return boolean true on success, false otherwise
+     * @return boolean true on success, false otherwise.
      */
     function _validateZip()
     {
-    	if ($this->performAvs || strlen($this->zip)) {
-			// Zip can be either 5 or 9 digits long. Validate seems to only
-            // handle e.g. 5-9, not 5,9, so we add this check here.
-            if (strlen($this->zip) != 5 && strlen($this->zip) != 9) {
-            	return false;
-            }
-			return Validate::string($this->zip, array(
-            	'format' => VALIDATE_NUM,
-                'max_length' => 9,
-                'min_length' => 5
-            ));
+        if(strlen($this->zip) || $this->performAvs) {
+            return parent::_validateZip();
         }
         return true;
     }
 }
 
 class Payment_Process_Result_Dpilink extends Payment_Process_Result {
-	/**
+    /**
      * The raw response body from the gateway.
      *
      * @access private
@@ -487,7 +461,7 @@ class Payment_Process_Result_Dpilink extends Payment_Process_Result {
         'L4' => "Reference number not found",
         'L6' => "Order number is required but missing",
         'L8' => "Network timeout",
-		'L14' => "Invalid card number",
+        'L14' => "Invalid card number",
         'S5' => "Already settled",
         'S6' => "Not authorized",
         'S7' => "Declined",
@@ -498,7 +472,7 @@ class Payment_Process_Result_Dpilink extends Payment_Process_Result {
     );
 
     var $_avsCodes = array(
-    	'A' => "Address match",
+        'A' => "Address match",
         'E' => "Ineligible",
         'N' => "No match",
         'R' => "Retry",
@@ -511,7 +485,7 @@ class Payment_Process_Result_Dpilink extends Payment_Process_Result {
     );
 
     var $_aciCodes = array(
-    	'A' => "CPS Qualified",
+        'A' => "CPS Qualified",
         'E' => "CPS Qualified  -  Card Acceptor Data was submitted in the authorization  request.",
         'M' => "Reserved - The card was not present and no AVS request for International transactions",
         'N' => "Not CPS Qualified",
@@ -519,9 +493,9 @@ class Payment_Process_Result_Dpilink extends Payment_Process_Result {
     );
 
     var $_authSourceCodes = array(
-    	' ' => "Terminal doesn't support",
+        ' ' => "Terminal doesn't support",
         '0' => "Exception File",
-		'1' => "Stand in Processing, time-out response",
+        '1' => "Stand in Processing, time-out response",
         '2' => "Loss Control System (LCS) response provided",
         '3' => "STIP, response provided, issuer suppress inquiry mode",
         '4' => "STIP, response provided, issuer is down",
@@ -542,7 +516,7 @@ class Payment_Process_Result_Dpilink extends Payment_Process_Result {
         $res = $this->_validateResponse($resp);
         if (!$res || PEAR::isError($res)) {
             if (!$res) {
-            	$res = PEAR::raiseError("Unable to validate response body");
+                $res = PEAR::raiseError("Unable to validate response body");
             }
             return $res;
         }
@@ -564,17 +538,17 @@ class Payment_Process_Result_Dpilink extends Payment_Process_Result {
 
     function getAVSResponse()
     {
-    	return @$this->_avsCodes[$this->_avsResponse];
+        return @$this->_avsCodes[$this->_avsResponse];
     }
 
     function getAuthSource()
     {
-    	return @$this->_authSourceCodes[$this->_authSource];
+        return @$this->_authSourceCodes[$this->_authSource];
     }
 
     function getAuthCharacteristic()
     {
-    	return @$this->_aciCodes[$this->_authChar];
+        return @$this->_aciCodes[$this->_authChar];
     }
 
     /**
@@ -588,10 +562,10 @@ class Payment_Process_Result_Dpilink extends Payment_Process_Result {
      */
     function _parseResponse()
     {
-    	$version = $this->_responseVersion();
+        $version = $this->_responseVersion();
         $func = '_parse'.$version.'Response';
         if (!method_exists($this, $func)) {
-        	return PEAR::raiseError("Unable to parse response version $version");
+            return PEAR::raiseError("Unable to parse response version $version");
         }
 
         return $this->$func();
@@ -608,10 +582,10 @@ class Payment_Process_Result_Dpilink extends Payment_Process_Result {
      */
     function _validateResponse($resp)
     {
-    	$version = $this->_responseVersion($resp);
-    	$func = '_validate'.$version.'Response';
+        $version = $this->_responseVersion($resp);
+        $func = '_validate'.$version.'Response';
         if (!method_exists($this, $func)) {
-        	return PEAR::raiseError("Unable to validate response version $version");
+            return PEAR::raiseError("Unable to validate response version $version");
         }
 
         return $this->$func($resp);
@@ -624,8 +598,8 @@ class Payment_Process_Result_Dpilink extends Payment_Process_Result {
      */
     function _responseVersion($resp = false)
     {
-    	$resp = $resp ? $resp : $this->_responseBody;
-    	list($version) = split('\|', $resp);
+        $resp = $resp ? $resp : $this->_responseBody;
+        list($version) = split('\|', $resp);
 
         /* According to the documentation, the first field should containt the
          * response format version. During testing, however, I got a blank field.
@@ -634,7 +608,7 @@ class Payment_Process_Result_Dpilink extends Payment_Process_Result {
          * Sometimes the version is also 'R '. Sigh.
          */
         if (!strlen($version) || $version == 'R ')
-        	$version = 'R1';
+            $version = 'R1';
 
         return $version;
     }
@@ -650,7 +624,7 @@ class Payment_Process_Result_Dpilink extends Payment_Process_Result {
     function _parseR1Response()
     {
         list(
-        	$this->_format, $this->_acctNo, $this->_transactionCode,
+            $this->_format, $this->_acctNo, $this->_transactionCode,
             $this->_sequenceNumber, $this->_mailOrder, $this->_accountNo,
             $this->_expDate, $this->_authAmount, $this->_authDate,
             $this->_authTime, $this->_transactionStatus, $this->_custNo,
@@ -670,12 +644,12 @@ class Payment_Process_Result_Dpilink extends Payment_Process_Result {
      */
     function _validateR1Response($resp)
     {
-    	if (strlen($resp) > 160)
-        	return false;
+        if (strlen($resp) > 160)
+            return false;
 
         // FIXME - add more tests
 
-		return true;
+        return true;
     }
 
     /**
@@ -688,24 +662,24 @@ class Payment_Process_Result_Dpilink extends Payment_Process_Result {
         $this->message = $this->_getStatusText($this->_transactionStatus);
 
         $invalidAVS = array('A', 'E', 'N', 'R', 'S', 'U');
-    	// Make sure AVS was successful, if requested
-    	if ($this->_request->performAvs && in_array($this->_avsResponse, $invalidAVS)) {
-			// It failed.
+        // Make sure AVS was successful, if requested
+        if ($this->_request->performAvs && in_array($this->_avsResponse, $invalidAVS)) {
+            // It failed.
             $this->message .= " ".$this->getAvsResponse();
         }
 
         $this->transactionId = $this->_transactionId;
         switch ($this->_transactionStatus) {
-        	case '00':
-            	$this->code = PAYMENT_PROCESS_RESULT_APPROVED;
+            case '00':
+                $this->code = PAYMENT_PROCESS_RESULT_APPROVED;
                 break;
 
             case '05':
-            	$this->code = PAYMENT_PROCESS_RESULT_DECLINED;
+                $this->code = PAYMENT_PROCESS_RESULT_DECLINED;
                 break;
 
             default:
-            	$this->code = PAYMENT_PROCESS_RESULT_OTHER;
+                $this->code = PAYMENT_PROCESS_RESULT_OTHER;
                 break;
         }
     }
