@@ -109,6 +109,8 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
     var $_defaultOptions = array(
          'authorizeUri' => 'https://secure.authorize.net/gateway/transact.dll',
          'x_delim_data' => 'TRUE',
+         'x_delim_char' => ',',
+         'x_encap_char' => '',
          'x_relay'      => 'FALSE',
          'x_email_customer' => 'FALSE',
          'x_test_request'   => 'FALSE',
@@ -527,9 +529,24 @@ class Payment_Process_Result_AuthorizeNet extends Payment_Process_Result {
         $this->Payment_Process_Response($rawResponse);
     }
 
+    /**
+    * parse()
+    * 
+    * @author Joe Stump <joe@joestump.net>
+    * @access public
+    * @return void
+    */
     function parse()
     {
-        $responseArray = explode(',', $this->_rawResponse);
+
+        $delim = $this->_request->getOption('x_delim_char');
+        $encap = $this->_request->getOption('x_encap_char');
+
+        $responseArray = explode($encap . $delim . $encap, $this->_rawResponse);
+        $count = (count($responseArray) - 1);
+        $responseArray[0]      = ltrim($responseArray[0], $encap);
+        $responseArray[$count] = rtrim($responseArray[$count], $encap);
+
         $this->_mapFields($responseArray);
     }
 }
