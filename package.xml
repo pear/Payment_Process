@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
-<!-- $Id: package.xml,v 1.3 2004-03-22 20:15:39 ieure Exp $ -->
+<!-- $Id: package.xml,v 1.4 2004-03-22 20:22:01 ieure Exp $ -->
 <package version="1.0">
     <name>Payment_Process</name>
     <summary>Unified payment processor</summary>
     <description>Payment_Process is a gateway-independent framework for processing credit cards, and eventually e-checks and other forms of payments as well.</description>
-    <license>PHP License, v2.02</license>
+    <license>PHP License, v3.0</license>
     <maintainers>
         <maintainer>
             <user>ieure</user>
