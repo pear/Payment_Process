@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
-<!-- $Id: package.xml,v 1.7 2004-03-22 21:01:38 ieure Exp $ -->
+<!-- $Id: package.xml,v 1.8 2004-03-23 18:53:27 ieure Exp $ -->
 <package version="1.0">
     <name>Payment_Process</name>
     <summary>Unified payment processor</summary>
@@ -20,14 +20,13 @@
         </maintainer>
     </maintainers>
         <release>
-        <version>0.5</version>
+        <version>0.5.1</version>
         <state>beta</state>
         <date>2004-03-22</date>
         <notes><![CDATA[
-            * Information about the payment source is now contained in a Payment_Process_Type-derived class.
-            * Authorize.net Processor added, by Joe Stump.
-            * DPILink & Dummy Processors updated to use new semantics.
-            * A Common class was added, which contains utility functionality common to all Processors.
+            * Add missing $_statusCodeMap to DPILink's Result class, otherwise validate() always thinks the transaction was declined.
+            * Change minimum charge to $0.99.
+            * Change version to 0.5.1.
         ]]></notes>
         <filelist>
             <dir name="/" baseinstalldir="Payment">
@@ -55,6 +54,41 @@
         </deps>
     </release>
     <changelog>
+        <release>
+            <version>0.5</version>
+            <state>beta</state>
+            <date>2004-03-22</date>
+            <notes><![CDATA[
+                * Information about the payment source is now contained in a Payment_Process_Type-derived class.
+                * Authorize.net Processor added, by Joe Stump.
+                * DPILink & Dummy Processors updated to use new semantics.
+                * A Common class was added, which contains utility functionality common to all Processors.
+            ]]></notes>
+            <filelist>
+                <dir name="/" baseinstalldir="Payment">
+                    <file role="php">Process.php</file>
+                    <dir name="Process">
+                        <file role="php">Common.php</file>
+                        <file role="php">AuthorizeNet.php</file>
+                        <file role="php">Dpilink.php</file>
+                        <file role="php">Dummy.php</file>
+                        <file role="php">Offline.php</file>
+                        <file role="php">Type.php</file>
+                        <dir name="Type">
+                            <file role="php">CreditCard.php</file>
+                            <file role="php">eCheck.php</file>
+                        </dir>
+                    </dir>
+                </dir>
+                <dir name="examples" baseinstalldir="docs/Payment_Process">
+                    <file role="php">Payment_Process-example.php</file>
+                </dir>
+            </filelist>
+            <deps>
+                <dep type="pkg" optional="yes" rel="ge" version="0.2">Net_Curl</dep>
+                <dep type="pkg" optional="no" rel="ge" version="0.2.0">Validate</dep>
+            </deps>
+        </release>
         <release>
             <version>0.2</version>
             <state>beta</state>
