@@ -29,8 +29,8 @@ define('PAYMENT_PROCESS_ERROR_NOFIELD', -101);
 define('PAYMENT_PROCESS_ERROR_NOPROCESSOR', -102);
 define('PAYMENT_PROCESS_ERROR_INCOMPLETE', -1);
 define('PAYMENT_PROCESS_ERROR_INVAILD', -2);
-define('PAYMENT_PROCESS_ERROR_AVS',-3);
-define('PAYMENT_PROCESS_ERROR_CVV',-4);
+define('PAYMENT_PROCESS_ERROR_AVS', -3);
+define('PAYMENT_PROCESS_ERROR_CVV', -4);
 
 // Transaction actions
 // A normal transaction
@@ -41,6 +41,8 @@ define('PAYMENT_PROCESS_ACTION_AUTHONLY', 201);
 define('PAYMENT_PROCESS_ACTION_CREDIT', 202);
 // Post-authorize an AUTHONLY transaction.
 define('PAYMENT_PROCESS_ACTION_POSTAUTH', 203);
+// Clear a previous transaction
+define('PAYMENT_PROCESS_ACTION_VOID', 204);
 
 // Transaction sources
 define('PAYMENT_PROCESS_SOURCE_POS', 300);
@@ -53,15 +55,15 @@ define('PAYMENT_PROCESS_RESULT_OTHER', 402);
 define('PAYMENT_PROCESS_RESULT_FRAUD', 403);
 define('PAYMENT_PROCESS_RESULT_DUPLICATE',404);
 
-define('PAYMENT_PROCESS_AVS_MATCH',500);
-define('PAYMENT_PROCESS_AVS_MISMATCH',501);
-define('PAYMENT_PROCESS_AVS_ERROR',502);
+define('PAYMENT_PROCESS_AVS_MATCH', 500);
+define('PAYMENT_PROCESS_AVS_MISMATCH', 501);
+define('PAYMENT_PROCESS_AVS_ERROR', 502);
 define('PAYMENT_PROCESS_AVS_NOAPPLY',503);
 
-define('PAYMENT_PROCESS_CVV_MATCH',600);
-define('PAYMENT_PROCESS_CVV_MISMATCH',601);
-define('PAYMENT_PROCESS_CVV_ERROR',602);
-define('PAYMENT_PROCESS_CVV_NOAPPLY',603);
+define('PAYMENT_PROCESS_CVV_MATCH', 600);
+define('PAYMENT_PROCESS_CVV_MISMATCH', 601);
+define('PAYMENT_PROCESS_CVV_ERROR', 602);
+define('PAYMENT_PROCESS_CVV_NOAPPLY', 603);
 
 /**
  * Payment_Process
@@ -76,6 +78,7 @@ class Payment_Process extends PEAR {
     /**
      * Options.
      *
+     * @var array
      * @see setOptions()
      * @access private;
      */
@@ -83,11 +86,15 @@ class Payment_Process extends PEAR {
 
     /**
      * Your login name to use for authentication to the online processor.
+     *
+     * @var string
      */
     var $login = '';
 
     /**
      * Your password to use for authentication to the online processor.
+     *
+     * @var string
      */
     var $password = '';
 
@@ -95,27 +102,36 @@ class Payment_Process extends PEAR {
      * Processing action.
      *
      * This should be set to one of the PAYMENT_PROCESS_ACTION_* constants.
+     *
+     * @var int
      */
     var $action = '';
 
     /**
      * A description of the transaction (used by some processors to send
      * information to the client, normally not a required field).
+     * @var string
      */
     var $description = '';
 
     /**
      * The transaction amount.
+     *
+     * @var double
      */
     var $amount = 0;
 
     /**
      * An invoice number.
+     *
+     * @var mixed string or int
      */
     var $invoiceNumber = '';
 
     /**
      * Customer identifier
+     *
+     * @var mixed string or int
      */
     var $customerId = '';
 
@@ -123,13 +139,15 @@ class Payment_Process extends PEAR {
      * Transaction source.
      *
      * This should be set to one of the PAYMENT_PROCESS_SOURCE_* constants.
+     *
+     * @var int
      */
     var $transactionSource;
 
     /**
      * Array of fields which are required.
      *
-     * @type array
+     * @var array
      * @access private
      * @see _makeRequired()
      */
@@ -139,7 +157,7 @@ class Payment_Process extends PEAR {
      * Processor-specific data.
      *
      * @access private
-     * @type array
+     * @var array
      */
     var $_data = array();
 
@@ -170,7 +188,7 @@ class Payment_Process extends PEAR {
             } 
         }
 
-        return PEAR::raiseError('"'.$type.'" processor does not exist', 
+        return PEAR::raiseError('"'.$type.'" processor does not exist',
                                 PAYMENT_PROCESS_ERROR_NOPROCESSOR);
 
     }
@@ -212,10 +230,10 @@ class Payment_Process extends PEAR {
     }
     
     /**
-     * Mark a field as being required.
+     * Mark a field (or fields) as being required.
      *
-     * @param $field Field name
-     * @param ...
+     * @param  string  $field Field name
+     * @param  string  ...
      * @return boolean always true.
      */
     function _makeRequired()
@@ -229,8 +247,8 @@ class Payment_Process extends PEAR {
     /**
      * Mark a field as being optional.
      *
-     * @param $field Field name
-     * @param ...
+     * @param  string  $field Field name
+     * @param  ...
      * @return boolean always true.
      */
     function _makeOptional()
@@ -244,7 +262,7 @@ class Payment_Process extends PEAR {
     /**
      * Determine if a field is required.
      *
-     * @param string $field Field to check
+     * @param  string $field Field to check
      * @return boolean true if required, false if optional.
      */
     function isRequired($field)
@@ -304,7 +322,7 @@ class Payment_Process extends PEAR {
      *
      * @author Ian Eure <ieure@php.net>
      * @param  string  $option  Option to get
-     * @return mixed Option value
+     * @return mixed   Option value
      */
     function getOption($option)
     {
@@ -316,8 +334,8 @@ class Payment_Process extends PEAR {
      *
      * @author Joe Stump <joe@joestump.net>
      * @access public
-     * @param string $option Option name to set
-     * @param mixed $value Value to set
+     * @param  string  $option  Option name to set
+     * @param  mixed   $value   Value to set
      */
     function setOption($option,$value)
     {
@@ -332,9 +350,9 @@ class Payment_Process extends PEAR {
      * PAYMENT_PROCESS_ACTION_NORMAL, PAYMENT_PROCESS_ACTION_AUTHONLY etc.
      *
      * @access private
-     * @param  mixed  $value  Value to check
-     * @param  mixed  $class  Constant class to check
-     * @return boolean true if it is defined, false otherwise.
+     * @param  mixed    $value  Value to check
+     * @param  mixed    $class  Constant class to check
+     * @return boolean  true if it is defined, false otherwise.
      */
     function _isDefinedConst($value, $class)
     {
@@ -349,12 +367,12 @@ class Payment_Process extends PEAR {
     }
 
     /**
-    * Statically check a Payment_Result class for success
-    *
-    * @author Joe Stump <joe@joestump.net>
-    * @access public
-    * @param mixed $obj 
-    */
+     * Statically check a Payment_Result class for success
+     *
+     * @author Joe Stump <joe@joestump.net>
+     * @access public
+     * @param  mixed  $obj 
+     */
     function isSuccess($obj)
     {
         if (is_a($obj,'Payment_Process_Result')) {
@@ -371,7 +389,7 @@ class Payment_Process extends PEAR {
     *
     * @author Joe Stump <joe@joestump.net> 
     * @access public
-    * @param mixed $obj
+    * @param  mixed  $obj
     */
     function isError($obj)
     {
@@ -418,115 +436,115 @@ class Payment_Process_Result {
      *
      * @author Ian Eure <ieure@php.net>
      * @access private
-     * @type Object
+     * @var    Object
      */
     var $_request;
     
     /**
-    * The raw response (ie. from cURL)
-    *
-    * @author Joe Stump <joe@joestump.net>
-    * @access protected
-    * @var string $_rawResponse
-    */
+     * The raw response (ie. from cURL)
+     *
+     * @author Joe Stump <joe@joestump.net>
+     * @access protected
+     * @var    string  $_rawResponse
+     */
     var $_rawResponse = null;
 
     /**
-    * The approval/decline code
-    *
-    * The value returned by your gateway as approved/declined should be mapped
-    * into this variable. Valid results should then be mapped into the 
-    * appropriate PAYMENT_PROCESS_RESULT_* code using the $_statusCodeMap
-    * array. Values returned into $code should be mapped as keys in the map
-    * with PAYMENT_PROCESS_RESULT_* as the values.
-    *
-    * @author Joe Stump <joe@joestump.net>
-    * @access public
-    * @var mixed $code
-    * @see PAYMENT_PROCESS_RESULT_APPROVED, PAYMENT_PROCESS_RESULT_DECLINED
-    * @see PAYMENT_PROCESS_RESULT_OTHER, $_statusCodeMap
-    */
+     * The approval/decline code
+     *
+     * The value returned by your gateway as approved/declined should be mapped
+     * into this variable. Valid results should then be mapped into the 
+     * appropriate PAYMENT_PROCESS_RESULT_* code using the $_statusCodeMap
+     * array. Values returned into $code should be mapped as keys in the map
+     * with PAYMENT_PROCESS_RESULT_* as the values.
+     *
+     * @author  Joe Stump <joe@joestump.net>
+     * @access  public
+     * @var     mixed  $code
+     * @see    PAYMENT_PROCESS_RESULT_APPROVED, PAYMENT_PROCESS_RESULT_DECLINED
+     * @see    PAYMENT_PROCESS_RESULT_OTHER, $_statusCodeMap
+     */
     var $code;
 
     /**
-    * Message/Response Code
-    *
-    * Along with the response (yes/no) you usually get a response/message
-    * code that translates into why it was approved/declined. This is where
-    * you map that code into. Your $_statusCodeMessages would then be keyed by
-    * valid messageCode values.
-    *
-    * @author Joe Stump <joe@joestump.net>
-    * @access public
-    * @var mixed $messageCode
-    * @see $_statusCodeMessages
-    */
+     * Message/Response Code
+     *
+     * Along with the response (yes/no) you usually get a response/message
+     * code that translates into why it was approved/declined. This is where
+     * you map that code into. Your $_statusCodeMessages would then be keyed by
+     * valid messageCode values.
+     *
+     * @author  Joe Stump <joe@joestump.net>
+     * @access  public
+     * @var     mixed  $messageCode
+     * @see     $_statusCodeMessages
+     */
     var $messageCode;
 
     /**
-    * Message from gateway
-    *
-    * Map the textual message from the gateway into this variable. It is not
-    * currently returned or used (in favor of the $_statusCodeMessages map, but
-    * can be accessed directly for debugging purposes.
-    *
-    * @author Joe Stump <joe@joestump.net>
-    * @access public
-    * @var string $message
-    * @see $_statusCodeMessages
-    */
+     * Message from gateway
+     *
+     * Map the textual message from the gateway into this variable. It is not
+     * currently returned or used (in favor of the $_statusCodeMessages map, but
+     * can be accessed directly for debugging purposes.
+     *
+     * @author  Joe Stump <joe@joestump.net>
+     * @access  public
+     * @var     string   $message
+     * @see     $_statusCodeMessages
+     */
     var $message = 'No message from gateway';
 
     /**
-    * Authorization/Approval code
-    *
-    * @author Joe Stump <joe@joestump.net>
-    * @access public
-    * @var string $approvalCode
-    */
+     * Authorization/Approval code
+     *
+     * @author  Joe Stump <joe@joestump.net>
+     * @access  public
+     * @var     string  $approvalCode
+     */
     var $approvalCode;
 
     /**
-    * Address verification code
-    *
-    * The AVS code returned from your gateway. This should then be mapped to
-    * the appropriate PAYMENT_PROCESS_AVS_* code using $_avsCodeMap. This value
-    * should also be mapped to the appropriate textual message via the 
-    * $_avsCodeMessages array.
-    *
-    * @author Joe Stump <joe@joestump.net>
-    * @access public
-    * @var string $avsCode
-    * @see PAYMENT_PROCESS_AVS_MISMATCH, PAYMENT_PROCESS_AVS_ERROR
-    * @see PAYMENT_PROCESS_AVS_MATCH, PAYMENT_PROCESS_AVS_NOAPPLY, $_avsCodeMap
-    * @see $_avsCodeMessages
-    */
+     * Address verification code
+     *
+     * The AVS code returned from your gateway. This should then be mapped to
+     * the appropriate PAYMENT_PROCESS_AVS_* code using $_avsCodeMap. This value
+     * should also be mapped to the appropriate textual message via the 
+     * $_avsCodeMessages array.
+     *
+     * @author  Joe Stump <joe@joestump.net>
+     * @access  public
+     * @var     string  $avsCode
+     * @see     PAYMENT_PROCESS_AVS_MISMATCH, PAYMENT_PROCESS_AVS_ERROR
+     * @see     PAYMENT_PROCESS_AVS_MATCH, PAYMENT_PROCESS_AVS_NOAPPLY, $_avsCodeMap
+     * @see     $_avsCodeMessages
+     */
     var $avsCode;
 
     /**
-    * Transaction ID
-    *
-    * This is the unique transaction ID, which is used by gateways to modify
-    * transactions (credit, update, etc.). Map the appropriate value into this
-    * variable.
-    *
-    * @author Joe Stump <joe@joestump.net>
-    * @access public
-    * @var string $transactionId
-    */
+     * Transaction ID
+     *
+     * This is the unique transaction ID, which is used by gateways to modify
+     * transactions (credit, update, etc.). Map the appropriate value into this
+     * variable.
+     *
+     * @author  Joe Stump <joe@joestump.net>
+     * @access  public
+     * @var     string $transactionId
+     */
     var $transactionId;
 
     /**
-    * Invoice Number
-    *
-    * Unique internal invoiceNumber (ie. your company's order/invoice number
-    * that you assign each order as it is processed). It is always a good idea
-    * to pass this to the gateway (which is usually then echo'd back).
-    *
-    * @author Joe Stump <joe@joestump.net>
-    * @access public
-    * @var string $invoiceNumber 
-    */
+     * Invoice Number
+     *
+     * Unique internal invoiceNumber (ie. your company's order/invoice number
+     * that you assign each order as it is processed). It is always a good idea
+     * to pass this to the gateway (which is usually then echo'd back).
+     *
+     * @author Joe Stump <joe@joestump.net>
+     * @access public
+     * @var string $invoiceNumber 
+     */
     var $invoiceNumber;
 
     /**
@@ -601,7 +619,7 @@ class Payment_Process_Result {
 
         $paymentType = $this->_request->_payment->_type;
         if ($this->_request->getOption('cvvCheck') === true &&
-            $paymentType == 'CreditCard') {
+            $paymentType == PAYMENT_PROCESS_TYPE_CREDITCARD) {
 
             if ($this->getCvvCode() != PAYMENT_PROCESS_CVV_MATCH) {
                 return PEAR::raiseError('CVV check failed',
