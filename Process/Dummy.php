@@ -18,7 +18,7 @@
 //
 // $Id$
 
-require_once 'Payment/Process.php';
+require_once 'Payment/Process/Common.php';
 
 /**
  * Payment_PAYMENT_PROCESS_Dummy
@@ -31,7 +31,7 @@ require_once 'Payment/Process.php';
  * @author Ian Eure <ieure@php.net>
  * @version @version@
  */
-class Payment_Process_Dummy extends Payment_Process {
+class Payment_Process_Dummy extends Payment_Process_Common {
 	/**
      * Default options for this class.
      *
