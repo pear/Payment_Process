@@ -63,7 +63,7 @@ class Payment_Process_Type
     * @author Joe Stump <joe@joestump.net>
     * @access public
     * @param mixed $obj Type object to validate
-    * @return bool  
+    * @return mixed true on success, PEAR_Error on failure
     */
     function isValid($obj)
     {
@@ -73,7 +73,7 @@ class Payment_Process_Type
                 $method = '_validate'.ucfirst($validate);
                 if (method_exists($obj,$method)) {
                     if(!$obj->$method()) {
-                        return false;
+                        return PEAR::raiseError('Invalid field: '.$validate,PAYMENT_PROCESS_ERROR_INVAILD);
                     } 
                 }
             }

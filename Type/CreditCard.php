@@ -37,11 +37,13 @@ class Payment_Process_Type_CreditCard extends Payment_Process_Type
 
     }
 
+    // {{{
     function _validateNumber()
     {
         return (Validate::creditCard($this->cardNumber)); 
     }
-
+    // }}}
+    // {{{ 
     function _validateType()
     {
         switch ($this->type) {
@@ -57,7 +59,8 @@ class Payment_Process_Type_CreditCard extends Payment_Process_Type
                 return false;
         }
     }
-
+    // }}} 
+    // {{{ 
     function _validateExpDate()
     {
         list($month,$year) = explode('/',$this->expDate);
@@ -81,6 +84,8 @@ class Payment_Process_Type_CreditCard extends Payment_Process_Type
                                                                                 
         return false;
     }
+    // }}} 
+
 }
 
 ?>

@@ -22,6 +22,8 @@
 require_once 'Payment/Process.php';
 
 class Payment_Process_Common extends Payment_Process {
+    var $_payment = null;
+
     /**
      * Validate data before processing.
      *
@@ -69,17 +71,6 @@ class Payment_Process_Common extends Payment_Process {
     function getResult()
     {
         return PEAR::raiseError("getResult() is not implemented in this processor.", PAYMENT_PROCESS_ERROR_NOTIMPLEMENTED);
-    }
-
-    /**
-     * Validate a credit card number.
-     *
-     * @access private
-     * @return boolean true on success, false on failure.
-     */
-    function _validateCardNumber()
-    {
-        return Validate::creditCard($this->cardNumber);
     }
 
     /**
