@@ -1,3 +1,4 @@
 - Add LinkPoint driver
 - Finalize the Payment_Result class and how it stores internal variables
 - Create QuickForm elements for credit cards and eChecks
+- Remove $foo = & $this as this will no longer work in PHP5

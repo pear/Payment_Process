@@ -69,8 +69,6 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
         'customerId' => 'x_cust_id',
         'amount' => 'x_amount',
         'name' => '',
-        'cardNumber' => 'x_card_num',
-        'expDate' => 'x_exp_date',
         'zip' => 'x_zip',
         // Optional
         'company' => 'x_company',
@@ -81,8 +79,28 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
         'phone' => 'x_phone',
         'email' => 'x_email',
         'ip' => 'x_customer_ip',
-        'cvv' => 'x_card_code',
-        'transactionSource' => 'ECommerce'
+    );
+
+    /**
+    */
+    var $_typeField = array(
+
+           'CreditCard' => array(
+
+                    'cardNumber' => 'x_card_num',
+                    'cvv' => 'x_card_code',
+                    'expDate' => 'x_exp_date'
+
+           );
+
+           'eCheck' => array(
+
+                    'routingCode' => 'x_bank_aba_code',
+                    'accountNumber' => 'x_bank_acct_type',
+                    'bankName' => 'x_bank_name',
+                    'name' => 'x_bank_acct_name'
+
+           );
     );
 
     /**
@@ -98,8 +116,7 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
          'x_email_customer' => 'FALSE',
          'x_test_request' => 'FALSE',
          'x_currency_code' => 'USD',
-         'x_version' => '3.1',
-         'x_method' => 'CC'
+         'x_version' => '3.1'
     );
 
     /**
@@ -202,19 +219,6 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
 
         return $response;
 
-//        $result->setResponse($this->_responseBody);
-//        $result->setRequest(&$this);
-//        $this->_result = &$result;
-
-//        return $result;
-
-        /*
-         * HTTP_Request doesn't do SSL until PHP 4.3.0, but it
-         * might be useful later...
-        $req = &new HTTP_Request($this->_authUri);
-        $this->_setPostData();
-        $req->sendRequest();
-        */
     }
 
     /**
@@ -237,6 +241,15 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
     {
 
         $data = array_merge($this->_options,$this->_data);
+
+        // Set payment method to eCheck if our payment type is eCheck.
+        // Default is Credit Card.
+        $data['x_method'] = 'CC';
+        if($this->payment->getType() == 'eCheck')
+        {
+          $data['x_method'] = 'ECHECK';
+        }
+
         if($this->_options['debug'] === true) {
             echo "--------- PREPARE QS DATA -----------\n";
             print_r($this->_data);

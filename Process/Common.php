@@ -195,6 +195,15 @@ class Payment_Process_Common extends Payment_Process {
             }
         }
 
+        // Map over the payment specific fiels. Check out $_typeFieldMap 
+        // for more information.
+        $paymentType = $this->_payment->getType();
+        foreach ($this->_typeFieldMap[$paymentType] as $key => $val) {
+            if(!isset($this->_data[$val])) {
+                $this->_data[$val] = $this->_payment->$key;
+            }
+        }
+
         if ($this->_options['debug']) {
             echo '----------- PREPARE ----------'."\n";
             echo print_r($this->_data);
@@ -260,7 +269,6 @@ class Payment_Process_Common extends Payment_Process {
             print $msg."\n";
         }
     }
-
 }
 
 ?>
