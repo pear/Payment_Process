@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
-<!-- $Id: package.xml,v 1.5 2004-03-22 20:29:00 jstump Exp $ -->
+<!-- $Id: package.xml,v 1.6 2004-03-22 20:56:18 ieure Exp $ -->
 <package version="1.0">
     <name>Payment_Process</name>
     <summary>Unified payment processor</summary>
@@ -22,7 +22,7 @@
         <release>
         <version>0.5</version>
         <state>beta</state>
-        <date>2004-02-23</date>
+        <date>2004-03-22</date>
         <notes><![CDATA[
             * Information about the payment source is now contained in a Payment_Process_Type-derived class.
             * Authorize.net Processor added, by Joe Stump.
