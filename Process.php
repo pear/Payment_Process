@@ -627,7 +627,7 @@ class Payment_Process_Result {
         }
 
         if ($this->getCode() != PAYMENT_PROCESS_RESULT_APPROVED) {
-            return PEAR::raiseError('Card was not approved / Error occurred',PAYMENT_PROCESS_RESULT_DECLINED); 
+            return PEAR::raiseError($this->getMessage(),PAYMENT_PROCESS_RESULT_DECLINED); 
         } 
 
         return true;

@@ -14,7 +14,6 @@
 // | license@php.net so we can mail you a copy immediately.               |
 // +----------------------------------------------------------------------+
 // | Authors: Joe Stump <joe@joestump.net>                                |
-// |          Ondrej Jombik <nepto@pobox.sk>                              |
 // +----------------------------------------------------------------------+
 //
 // $Id$
