@@ -289,6 +289,8 @@ class Payment_Process_LinkPoint extends Payment_Process_Common
                 if (strlen($year) == 4) {
                     $year = substr($year,2);
                 }
+ 
+                $month = sprintf('%02d',$month);
 
                 $xml .= '  <cardexpmonth>'.$month.'</cardexpmonth>'."\n";
                 $xml .= '  <cardexpyear>'.$year.'</cardexpyear>'."\n";
@@ -395,7 +397,6 @@ class Payment_Process_Result_LinkPoint extends Payment_Process_Result
     var $_fieldMap = array('r_approved'  => 'code',
                            'r_error'  => 'message',
                            'r_code'  => 'approvalCode',
-                           'r_approved'  => 'messageCode',
                            'r_ordernum'  => 'transactionId'
     );
 
