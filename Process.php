@@ -352,9 +352,6 @@ class Payment_Process extends PEAR {
         return ($this->_options[$option] = $value);
     }
 
-
-
-
     /**
      * See if a value is a defined constant.
      *

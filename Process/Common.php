@@ -43,13 +43,14 @@ class Payment_Process_Common extends Payment_Process {
             
             if (method_exists($this, $func)) {
                 $res = $this->$func();
-                if (PEAR::isError($res) || (is_bool($res) && $res == false)) {
-                    if (!$res)
-                        $res = new PEAR_Error("Validation of field \"{$field}\" failed.", PAYMENT_PROCESS_ERROR_INVAILD);
+                if (PEAR::isError($res) {
                     return $res;
+                } elseif (is_bool($res) && $res == false)) {
+                    return PEAR::raiseError('Validation of field "'.$field.'" failed.', PAYMENT_PROCESS_ERROR_INVAILD);
                 }
             }
         }
+
         return true;
     }
 
