@@ -74,7 +74,6 @@ class Payment_Process_Type
                 $method = '_validate'.ucfirst($validate);
                 if (method_exists($obj,$method)) {
                     if(!$obj->$method()) {
-                        echo $validate.' -> '.$method.' failed.'."\n";
                         return false;
                     } 
                 }
