@@ -135,10 +135,6 @@ class Payment_Process_Dpilink extends Payment_Process {
             return($res);
         }
 
-        if ($this->_options['testType']) {
-        	$this->_data['testTransaction'] = $this->_options['testType'];
-        }
-
         // Prepare the data
         $this->_prepare();
 
@@ -165,13 +161,6 @@ class Payment_Process_Dpilink extends Payment_Process {
 
         // Restore error handling
         PEAR::popErrorHandling();
-
-        $status = $this->getStatus();
-        $sequence = $this->getSequence();
-        $code = PAYMENT_PROCESS_RESULT_APPROVED;
-        if ($status != PAYMENT_PROCESS_RESULT_DPILINK_APPROVAL) {
-            $code = PAYMENT_PROCESS_RESULT_DECLINED;
-        }
 
         $result = &Payment_Process_Result::factory('Dpilink');
         $result->setResponse($this->_responseBody);
@@ -227,7 +216,8 @@ class Payment_Process_Dpilink extends Payment_Process {
     function _prepareQueryString()
     {
         foreach($this->_data as $var => $value) {
-            $tmp[] = urlencode($var).'='.urlencode($value);
+            if (strlen($value))
+                $tmp[] = urlencode($var).'='.urlencode($value);
         }
         return @implode('&', $tmp);
     }
@@ -265,6 +255,10 @@ class Payment_Process_Dpilink extends Payment_Process {
                 $this->_data[$specific] = $this->$generic;
             }
         }
+
+        if ($this->_options['testTransaction']) {
+            $this->_data['testTransaction'] = $this->_options['testTransaction'];
+        }
     }
 
     /**
@@ -280,6 +274,19 @@ class Payment_Process_Dpilink extends Payment_Process {
         } else {
             $this->_data[$specific] = 'N';
         }
+    }
+
+    /**
+     * Handle card expiration date.
+     *
+     * The gateway wants the date in the format MMYY, with no other chars.
+     *
+     * @access private
+     */
+    function _handleExpDate()
+    {
+    	$specific = $this->_fieldMap['expDate'];
+        $this->_data[$specific] = str_replace('/', '', $this->expDate);
     }
 
     /**
@@ -308,6 +315,41 @@ class Payment_Process_Dpilink extends Payment_Process {
         }
         $this->_data[$this->_fieldMap['action']] = $val;
     }
+
+    /**
+     * Validate the merchant account login.
+     *
+     * The DPILink docs specify that the login is exactly eight digits.
+     *
+     * @access private
+     * @return boolean true if valid, false otherwise
+     */
+    function _validateLogin()
+    {
+        return Validate::string($this->login, array(
+        	'format' => VALIDATE_NUM,
+            'max_length' => 8,
+            'min_length' => 8
+        ));
+    }
+
+    /**
+     * Validate the merchant account password.
+     *
+     * The DPILink docs specify that the password is a string between 6 and 10
+     * characters in length.
+     *
+     * @access private
+     * @return boolean true if valid, false otherwise
+     */
+    function _validatePassword()
+    {
+    	$len = strlen($this->password);
+    	if ($len >= 6 && $len <= 10) {
+        	return true;
+        }
+        return false;
+    }
 }
 
 class Payment_Process_Result_Dpilink extends Payment_Process_Result {
@@ -317,6 +359,8 @@ class Payment_Process_Result_Dpilink extends Payment_Process_Result {
      * DPILink status codes.
      *
      * This array holds every possible status returned by the DPILink gateway.
+     *
+     * See the DPILink documentation for more details on each response.
      *
      * @see getStatusText()
      * @access private
@@ -354,7 +398,22 @@ class Payment_Process_Result_Dpilink extends Payment_Process_Result {
         '93' => "Violation, cannot complete",
         '96' => "System malfunction",
         '98' => "No matching transaction to void",
-        '99' => "System timeout"
+        '99' => "System timeout",
+        'L0' => "General System Error - Contact DPI Account Exec.",
+        'L1' => "Invalid or missing account number",
+        'L2' => "Invalid or missing password",
+        'L3' => "Expiration Date is not formatted correctly",
+        'L4' => "Reference number not found",
+        'L6' => "Order number is required but missing",
+        'L8' => "Network timeout",
+		'L14' => "Invalid card number",
+        'S5' => "Already settled",
+        'S6' => "Not authorized",
+        'S7' => "Declined",
+        'V6' => "Invalid transaction type",
+        'V7' => "Declined",
+        'V8' => "Already voided",
+        'V9' => "Already posted"
     );
 
     function setResponse($resp)
@@ -392,10 +451,11 @@ class Payment_Process_Result_Dpilink extends Payment_Process_Result {
             $this->_orderNo, $this->_urn, $this->_authResponse,
             $this->_authSource, $this->_authChar, $this->_transactionId,
             $this->_validationCode, $this->_catCode, $this->_currencyCode,
-            $this->_avsResponse, $this->_storeNi, $this->_cvv2
+            $this->_avsResponse, $this->_storeNum, $this->_cvv2
         ) = split('\|', $this->_responseBody);
 
-        $this->message = &$this->_getStatusText($this->_transactionCode);
+
+        $this->message = $this->_getStatusText($this->_transactionCode);
 
         switch ($this->_transactionStatus) {
         	case '00':
