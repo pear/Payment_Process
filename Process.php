@@ -443,6 +443,17 @@ class Payment_Process extends PEAR {
 class Payment_Process_Result {
 
     /**
+     * Processor instance which this result was instantiated from.
+     *
+     * This should contain a reference to the requesting Processor.
+     *
+     * @author Ian Eure <ieure@php.net>
+     * @access private
+     * @type Object
+     */
+    var $_request;
+    
+    /**
     * The raw response (ie. from cURL)
     *
     * @author Joe Stump <joe@joestump.net>
