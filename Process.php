@@ -700,6 +700,19 @@ class Payment_Process_Result {
     }
 
     /**
+     * parseCallback
+     *
+     * @abstract
+     * @author Joe Stump <joe@joestump.net>
+     * @access public
+     */
+    function parseCallback()
+    {
+        return PEAR::raiseError('parse() not implemented',
+                                PAYMENT_PROCESS_ERROR_NOTIMPLEMENTED);
+    }
+
+    /**
      * getCode
      *
      * @author Joe Stump <joe@joestump.net>
