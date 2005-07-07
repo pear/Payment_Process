@@ -57,9 +57,7 @@ class Payment_Process_Type_CreditCard extends Payment_Process_Type
     */
     function _validateCardNumber()
     {
-        $types = Payment_Process_Type_CreditCard::_getValidateTypeMap();
-        $validateType = $types[$this->type];
-        return (Validate_Finance_CreditCard::number($this->cardNumber)); 
+        return Validate_Finance_CreditCard::number($this->cardNumber); 
     }
     // }}}
     // {{{ _validateType()
@@ -75,11 +73,33 @@ class Payment_Process_Type_CreditCard extends Payment_Process_Type
     */
     function _validateType()
     {
-        $types = Payment_Process_Type_CreditCard::_getValidateTypeMap();
-        $validateType = $types[$this->type];
-        return (Validate_Finance_CreditCard::type($this->cardNumber,$validateType));
+        if (!($type = $this->_mapType())) {
+            return false;
+        }
+
+        return Validate_Finance_CreditCard::type($this->cardNumber, $type);
     }
     // }}} 
+    // {{{ _validateCvv()
+    /**
+     * Validates the card verification value
+     *
+     * @return bool FALSE is CVV was set and is not valid, TRUE otherwise
+     * @access protected
+     */
+    function _validateCvv()
+    {
+        if (strlen($this->cvv) == 0) {
+            return true;
+        }
+
+        if (!($type = $this->_mapType())) {
+            return false;
+        }
+
+        return Validate_Finance_CreditCard::cvv($this->cvv, $type);
+    }
+    // }}}
     // {{{ _validateExpDate()
     /**
      * Validate the card's expiration date.
@@ -98,14 +118,16 @@ class Payment_Process_Type_CreditCard extends Payment_Process_Type
         $monthOptions = array('min'     => 1,
                               'max'     => 12,
                               'decimal' => false);
+
+        $date = getdate();
                                                                                 
-        $yearOptions  = array('min'     => date("y"),
+        $yearOptions  = array('min'     => $date['year'],
                               'decimal' => false);
 
         if (Validate::number($month, $monthOptions) &&
             Validate::number($year, $yearOptions)) {
-            if (($month >= date("m") && $year == date("y")) ||
-                ($year > date("y"))) {
+            if (($month >= $date['mon'] && $year == date['year']) ||
+                ($year > $date['year'])) {
                 return true;
             }
         }
@@ -113,28 +135,36 @@ class Payment_Process_Type_CreditCard extends Payment_Process_Type
         return false;
     }
     // }}} 
-    // {{{ _getValidateTypeMap()
+    // {{{ _mapType()
     /**
-    * _getValidateTypeMap
-    *
-    * Since Validate 0.5.0 the credit card checking code has been moved into
-    * Validate_Finance_CreditCard and has its own credit card types. We use
-    * this map to convert Payment_Process's type constants into types that
-    * Validate_Finance_CreditCard can understand.
-    *
-    * @author Joe Stump <joe@joestump.net>
-    * @return array
-    * @static
-    * @see Validate_Finance_CreditCard
-    */
-    function _getValidateTypeMap()
+     * Maps a PAYMENT_PROCESS_CC_* constant with a with a value suitable
+     * to Validate_Finance_CreditCard package
+     *
+     * @return string card type name
+     * @access private
+     */
+    function _mapType()
     {
-        static $validateMap = array(PAYMENT_PROCESS_CC_VISA => 'Visa',
-                                    PAYMENT_PROCESS_CC_MASTERCARD => 'MasterCard',
-                                    PAYMENT_PROCESS_CC_AMEX => 'AmericanExpress',
-                                    PAYMENT_PROCESS_CC_DISCOVER => 'Discover');
-
-        return $validateMap;
+        switch ($this->type) {
+        case PAYMENT_PROCESS_CC_MASTERCARD:
+            return 'MasterCard';
+        case PAYMENT_PROCESS_CC_VISA:
+            return 'Visa';
+        case PAYMENT_PROCESS_CC_AMEX:
+            return 'Amex';
+        case PAYMENT_PROCESS_CC_DISCOVER:
+            return 'Discover';
+        case PAYMENT_PROCESS_CC_JCB:
+            return 'JCB';
+        case PAYMENT_PROCESS_CC_DINERS:
+            return 'Diners';
+        case PAYMENT_PROCESS_CC_ENROUTE:
+            return 'EnRoute';
+        case PAYMENT_PROCESS_CC_CARTEBLANCHE:
+            return 'CarteBlanche';
+        default:
+            return false;
+        }
     }
     // }}}
 }
