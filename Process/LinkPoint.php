@@ -16,7 +16,7 @@
 // | Authors: Joe Stump <joe@joestump.net>                                |
 // +----------------------------------------------------------------------+
 //
-// $Id$ 
+// $Id$
 
 require_once 'Payment/Process.php';
 require_once 'Payment/Process/Common.php';
@@ -40,10 +40,10 @@ $GLOBALS['_Payment_Process_LinkPoint'] = array(
  * that you use it in a production envorinment without further testing.
  *
  * @package Payment_Process
- * @author Joe Stump <joe@joestump.net> 
+ * @author Joe Stump <joe@joestump.net>
  * @version @version@
  */
-class Payment_Process_LinkPoint extends Payment_Process_Common 
+class Payment_Process_LinkPoint extends Payment_Process_Common
 {
     /**
      * Front-end -> back-end field map.
@@ -56,22 +56,22 @@ class Payment_Process_LinkPoint extends Payment_Process_Common
      */
     var $_fieldMap = array(
         // Required
-        'login' => 'configfile',
-        'action' => 'ordertype',
+        'login'         => 'configfile',
+        'action'        => 'ordertype',
         'invoiceNumber' => 'oid',
-        'customerId' => 'x_cust_id',
-        'amount' => 'chargetotal',
-        'name' => '',
-        'zip' => 'zip',
+        'customerId'    => 'x_cust_id',
+        'amount'        => 'chargetotal',
+        'name'          => '',
+        'zip'           => 'zip',
         // Optional
-        'company' => 'company',
-        'address' => 'address1',
-        'city' => 'city',
-        'state' => 'state',
-        'country' => 'country',
-        'phone' => 'phone',
-        'email' => 'email',
-        'ip' => 'ip',
+        'company'       => 'company',
+        'address'       => 'address1',
+        'city'          => 'city',
+        'state'         => 'state',
+        'country'       => 'country',
+        'phone'         => 'phone',
+        'email'         => 'email',
+        'ip'            => 'ip',
     );
 
     /**
@@ -85,19 +85,19 @@ class Payment_Process_LinkPoint extends Payment_Process_Common
            'CreditCard' => array(
 
                     'cardNumber' => 'cardnumber',
-                    'cvv' => 'cvm',
-                    'expDate' => 'expDate'
+                    'cvv'        => 'cvm',
+                    'expDate'    => 'expDate'
 
            ),
 
            'eCheck' => array(
 
-                    'routingCode' => 'routing',
+                    'routingCode'   => 'routing',
                     'accountNumber' => 'account',
-                    'type' => 'type',
-                    'bankName' => 'bank',
-                    'name' => 'name',
-                    'driversLicense' => 'dl',
+                    'type'          => 'type',
+                    'bankName'      => 'bank',
+                    'name'          => 'name',
+                    'driversLicense'      => 'dl',
                     'driversLicenseState' => 'dlstate'
 
            )
@@ -110,8 +110,8 @@ class Payment_Process_LinkPoint extends Payment_Process_Common
      * @access private
      */
     var $_defaultOptions = array(
-         'host' => 'secure.linkpt.net',
-         'port' => '1129', 
+         'host'   => 'secure.linkpt.net',
+         'port'   => '1129',
          'result' => 'LIVE'
     );
 
@@ -149,15 +149,9 @@ class Payment_Process_LinkPoint extends Payment_Process_Common
      */
     function &process()
     {
-        if (!strlen($this->_options['keyfile']) || 
+        if (!strlen($this->_options['keyfile']) ||
             !file_exists($this->_options['keyfile'])) {
             return PEAR::raiseError('Invalid key file');
-        }
-
-        if ($this->_options['debug'] === true) {
-            echo "----------- DATA -----------\n";
-            print_r($this->_data);
-            echo "----------- DATA -----------\n";
         }
 
         // Sanity check
@@ -169,15 +163,12 @@ class Payment_Process_LinkPoint extends Payment_Process_Common
         // Prepare the data
         $result = $this->_prepare();
         if (PEAR::isError($result)) {
-            return $result; 
+            return $result;
         }
 
         // Don't die partway through
         PEAR::pushErrorHandling(PEAR_ERROR_RETURN);
 
-        if ($this->_options['debug'] === true) {
-            print_r($this->_options);
-        }
 
         $xml = $this->_prepareQueryString();
         if (PEAR::isError($xml)) {
@@ -197,12 +188,6 @@ class Payment_Process_LinkPoint extends Payment_Process_Common
         $curl->fields = $xml;
         $curl->sslCert = $this->_options['keyfile'];
         $curl->userAgent = 'PEAR Payment_Process_LinkPoint 0.1';
-        if($this->_options['debug'] === true) {
-            echo "------------ CURL FIELDS -------------\n";
-            print_r($curl->fields); 
-            echo "------------ CURL FIELDS -------------\n";
-        }
-
 
         $result = &$curl->execute();
         if (PEAR::isError($result)) {
@@ -264,7 +249,7 @@ class Payment_Process_LinkPoint extends Payment_Process_Common
         // Set payment method to eCheck if our payment type is eCheck.
         // Default is Credit Card.
         $data['x_method'] = 'CC';
-        switch ($this->_payment->getType()) 
+        switch ($this->_payment->getType())
         {
             case 'eCheck':
                 return PEAR::raiseError('eCheck not currently supported',
@@ -288,7 +273,7 @@ class Payment_Process_LinkPoint extends Payment_Process_Common
                 if (strlen($year) == 4) {
                     $year = substr($year,2);
                 }
- 
+
                 $month = sprintf('%02d',$month);
 
                 $xml .= '  <cardexpmonth>'.$month.'</cardexpmonth>'."\n";
@@ -318,18 +303,11 @@ class Payment_Process_LinkPoint extends Payment_Process_Common
 
         $xml .= '</order>'."\n";
 
-        if($this->_options['debug'] === true) {
-            echo "--------- PREPARE QS DATA -----------\n";
-            print_r($data);
-            echo "\n".$xml."\n";
-            echo "--------- PREPARE QS DATA -----------\n";
-        }
-
         return $xml;
     }
 }
 
-class Payment_Process_Result_LinkPoint extends Payment_Process_Result 
+class Payment_Process_Result_LinkPoint extends Payment_Process_Result
 {
 
     var $_statusCodeMap = array('APPROVED' => PAYMENT_PROCESS_RESULT_APPROVED,
@@ -341,7 +319,7 @@ class Payment_Process_Result_LinkPoint extends Payment_Process_Result
      *
      * This array holds many of the common response codes. There are over 200
      * response codes - so check the LinkPoint manual if you get a status
-     * code that does not match (see "Response Reason Codes & Response 
+     * code that does not match (see "Response Reason Codes & Response
      * Reason Text" in the AIM manual).
      *
      * @see getStatusText()
@@ -399,7 +377,7 @@ class Payment_Process_Result_LinkPoint extends Payment_Process_Result
                            'r_ordernum'  => 'transactionId'
     );
 
-    function Payment_Process_Response_LinkPoint($rawResponse) 
+    function Payment_Process_Response_LinkPoint($rawResponse)
     {
         $this->Payment_Process_Response($rawResponse);
     }
@@ -420,20 +398,20 @@ class Payment_Process_Result_LinkPoint extends Payment_Process_Result
             $this->cvvCode = substr($xml->response['r_avs'],2,1);
             $this->customerId = $this->_request->customerId;
             $this->invoiceNumber = $this->_request->invoiceNumber;
-            print_r($xml->response);         
+            print_r($xml->response);
             $this->_mapFields($xml->response);
 
             // switch to DECLINED since a duplicate isn't *really* fraud
             if(eregi('duplicate',$this->message)) {
                 $this->messageCode = 'DECLINED';
-            } 
+            }
         }
     }
 }
 
 /**
  * XML_Parser_LinkPoint
- * 
+ *
  * XML Parser for the LinkPoint response
  *
  * @author Joe Stump <joe@joestump.net>
@@ -449,7 +427,7 @@ class XML_Parser_LinkPoint extends XML_Parser
         $this->XML_Parser();
     }
 
-    function startHandler($xp, $elem, &$attribs) 
+    function startHandler($xp, $elem, &$attribs)
     {
         $this->tag = $elem;
     }
@@ -459,9 +437,9 @@ class XML_Parser_LinkPoint extends XML_Parser
 
     }
 
-    function defaultHandler($xp,$data) 
+    function defaultHandler($xp,$data)
     {
-        $this->response[strtolower($this->tag)] = $data;    
+        $this->response[strtolower($this->tag)] = $data;
     }
 }
 
