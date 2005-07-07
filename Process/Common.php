@@ -237,6 +237,22 @@ class Payment_Process_Common extends Payment_Process {
     }
 
     /**
+     * processCallback
+     *
+     * This should be overridden in driver classes. It will be used to process
+     * communications from gateways to your application. For instance, the
+     * Authorize.net gateway will post information about pending transactions
+     * to a URL you specify. This function should handle such requests
+     *
+     * @return object Payment_Process_Result on success, PEAR_Error on failure
+     */
+    function &processCallback()
+    {
+        return PEAR::raiseError('processCallback() not implemented',
+                                PAYMENT_PROCESS_ERROR_NOTIMPLEMENTED);
+    }
+
+    /**
      * Handles action
      *
      * Actions are defined in $GLOBALS['_Payment_Process_DriverName'] and then
