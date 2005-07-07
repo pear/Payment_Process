@@ -50,14 +50,18 @@ class Payment_Process_Type
     var $fax;
     var $email;
     // }}}
-
-    // {{{ Payment_Process_Type()
-    function Payment_Process_Type()
+    // {{{ __construct()
+    function __construct()
     {
 
     }
     // }}}
-
+    // {{{ Payment_Process_Type()
+    function Payment_Process_Type()
+    {
+        $this->__construct();
+    }
+    // }}}
     // {{{ factory()
     /**
     * factory
@@ -82,7 +86,6 @@ class Payment_Process_Type
         return PEAR::raiseError('Invalid Payment_Process_Type: '.$type);
     }
     // }}}
-
     // {{{ isValid()
     /**
     * isValid
@@ -113,7 +116,6 @@ class Payment_Process_Type
         return false;
     }
     // }}}
-
     // {{{ getType()
     /**
     * getType
@@ -127,7 +129,6 @@ class Payment_Process_Type
       return $this->_type;
     }
     // }}}
-
     // {{{ _validateEmail()
     /**
      * Validate an email address.
@@ -145,7 +146,6 @@ class Payment_Process_Type
         return true;
     }
     // }}}
-
     // {{{ _validateZip()
     /**
      * Validate the zip code.
@@ -166,7 +166,6 @@ class Payment_Process_Type
         return true;
     }
     // }}}
-
 }  
 
 ?>

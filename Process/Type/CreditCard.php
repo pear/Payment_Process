@@ -19,6 +19,12 @@
 //
 // $Id$
 
+/**
+* Payment_Process_Type_CreditCard
+*
+* @author Joe Stump <joe@joestump.net>
+* @package Payment_Process
+*/
 class Payment_Process_Type_CreditCard extends Payment_Process_Type 
 {
     var $_type = 'CreditCard';
@@ -27,32 +33,51 @@ class Payment_Process_Type_CreditCard extends Payment_Process_Type
     var $cvv;
     var $expDate;
 
+    function __construct()
+    {
+        parent::__construct();
+
+    }
+
     function Payment_Process_Type_CreditCard()
     {
-
+        $this->__construct();
     }
 
     // {{{ _validateCardNumber()
+    /**
+    * _validateCardNumber
+    *
+    * Uses Validate_Finance_CreditCard to validate the card number.
+    *
+    * @author Joe Stump <joe@joestump.net>
+    * @return bool
+    * @see Payment_Process_Type_CreditCard::_getValidateTypeMap()
+    * @see Validate_Finance_CreditCard
+    */
     function _validateCardNumber()
     {
-        return (Validate::creditCard($this->cardNumber)); 
+        $types = Payment_Process_Type_CreditCard::_getValidateTypeMap();
+        $validateType = $types[$this->type];
+        return (Validate_Finance_CreditCard::number($this->cardNumber)); 
     }
     // }}}
     // {{{ _validateType()
+    /**
+    * _validateType
+    *
+    * Uses Validate_Finance_CreditCard to validate the type.
+    *
+    * @author Joe Stump <joe@joestump.net>
+    * @return bool
+    * @see Payment_Process_Type_CreditCard::_getValidateTypeMap()
+    * @see Validate_Finance_CreditCard
+    */
     function _validateType()
     {
-        switch ($this->type) {
-            case PAYMENT_PROCESS_CC_MASTERCARD:
-                return ereg('^5[1-5][0-9]{14}$',$this->cardNumber);
-            case PAYMENT_PROCESS_CC_VISA:
-                return ereg('^4[0-9]{12}([0-9]{3})?$',$this->cardNumber);
-            case PAYMENT_PROCESS_CC_AMEX:
-                return ereg('^3[47][0-9]{13}$',$this->cardNumber);
-            case PAYMENT_PROCESS_CC_DISCOVER:
-                return ereg('^6011[0-9]{12}$', $this->cardNumber);
-            default:
-                return false;
-        }
+        $types = Payment_Process_Type_CreditCard::_getValidateTypeMap();
+        $validateType = $types[$this->type];
+        return (Validate_Finance_CreditCard::type($this->cardNumber,$validateType));
     }
     // }}} 
     // {{{ _validateExpDate()
@@ -88,6 +113,30 @@ class Payment_Process_Type_CreditCard extends Payment_Process_Type
         return false;
     }
     // }}} 
+    // {{{ _getValidateTypeMap()
+    /**
+    * _getValidateTypeMap
+    *
+    * Since Validate 0.5.0 the credit card checking code has been moved into
+    * Validate_Finance_CreditCard and has its own credit card types. We use
+    * this map to convert Payment_Process's type constants into types that
+    * Validate_Finance_CreditCard can understand.
+    *
+    * @author Joe Stump <joe@joestump.net>
+    * @return array
+    * @static
+    * @see Validate_Finance_CreditCard
+    */
+    function _getValidateTypeMap()
+    {
+        static $validateMap = array(PAYMENT_PROCESS_CC_VISA => 'Visa',
+                                    PAYMENT_PROCESS_CC_MASTERCARD => 'MasterCard',
+                                    PAYMENT_PROCESS_CC_AMEX => 'AmericanExpress',
+                                    PAYMENT_PROCESS_CC_DISCOVER => 'Discover');
+
+        return $validateMap;
+    }
+    // }}}
 }
 
 ?>
