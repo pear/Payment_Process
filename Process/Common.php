@@ -213,7 +213,8 @@ class Payment_Process_Common extends Payment_Process {
      */
     function setPayment($payment)
     {
-        if (@is_array($this->_typeFieldMap[$payment->getType()]) &&
+        if (isset($this->_typeFieldMap[$payment->getType()]) &&
+            is_array($this->_typeFieldMap[$payment->getType()]) &&
             count($this->_typeFieldMap[$payment->getType()])) {
 
             if (Payment_Process_Type::isValid($payment)) {
