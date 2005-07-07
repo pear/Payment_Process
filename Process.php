@@ -193,6 +193,15 @@ class Payment_Process {
     var $_driver = null;
 
     /**
+     * PEAR::Log instance
+     *
+     * @var     object
+     * @access  protected
+     * @see     Log
+     */
+    var $_log;
+
+    /**
      * Return an instance of a specific processor.
      *
      * @param  string  $type     Name of the processor
@@ -369,8 +378,8 @@ class Payment_Process {
      * See if a value is a defined constant.
      *
      * This function checks to see if $value is defined in one of
-     * PAYMENT_PROCESS_{$class}_*. It's used to verify that e.g. 
-     * $object->action is one of PAYMENT_PROCESS_ACTION_NORMAL, 
+     * PAYMENT_PROCESS_{$class}_*. It's used to verify that e.g.
+     * $object->action is one of PAYMENT_PROCESS_ACTION_NORMAL,
      * PAYMENT_PROCESS_ACTION_AUTHONLY etc.
      *
      * @access private
@@ -385,7 +394,7 @@ class Payment_Process {
         $consts = get_defined_constants();
         $found = false;
         foreach ($consts as $constant => $constVal) {
-            if (strncmp($constClass, $constant, $length) === 0 && 
+            if (strncmp($constClass, $constant, $length) === 0 &&
                 $constVal == $value) {
                 $found = true;
                 break;
@@ -757,6 +766,37 @@ class Payment_Process_Result {
         foreach($this->_fieldMap as $key => $val) {
             $this->$val = $responseArray[$key];
         }
+    }
+
+    /**
+     * Accept an object
+     *
+     * @param   object   $object  Object to accept
+     * @return  boolean  true if accepted, false otherwise
+     */
+    function accept(&$object)
+    {
+        if (is_a($object, 'Log')) {
+            $this->_log =& $object;
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Log a message
+     *
+     * @param   string  $message   Message to log
+     * @param   string  $priority  Message priority
+     * @return  mixed   Return value of Log::log(), or false if no Log instance
+     *                  has been accepted.
+     */
+    function log($message, $priority = null)
+    {
+        if (isset($this->_log) && is_object($this->_log)) {
+            return $this->_log->log($message, $priority);
+        }
+        return false;
     }
 }
 
