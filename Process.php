@@ -20,6 +20,7 @@
 // $Id$
 
 require_once('PEAR.php');
+require_once('Validate.php');
 require_once('Validate/Finance/CreditCard.php');
 require_once('Payment/Process/Type.php');
 
