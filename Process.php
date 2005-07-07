@@ -1,23 +1,27 @@
 <?php
 /* vim: set expandtab tabstop=4 shiftwidth=4: */
-// +----------------------------------------------------------------------+
-// | PHP version 4                                                        |
-// +----------------------------------------------------------------------+
-// | Copyright (c) 1997-2003 The PHP Group                                |
-// +----------------------------------------------------------------------+
-// | This source file is subject to version 3.0 of the PHP license,       |
-// | that is bundled with this package in the file LICENSE, and is        |
-// | available through the world-wide-web at                              |
-// | http://www.php.net/license/3_0.txt.                                  |
-// | If you did not receive a copy of the PHP license and are unable to   |
-// | obtain it through the world-wide-web, please send a note to          |
-// | license@php.net so we can mail you a copy immediately.               |
-// +----------------------------------------------------------------------+
-// | Authors: Ian Eure <ieure@php.net>                                    |
-// |          Joe Stump <joe@joestump.net>                                |
-// +----------------------------------------------------------------------+
-//
-// $Id$
+/**
+ * Main package file
+ *
+ * Long description for file (if any)...
+ *
+ * PHP versions 4 and 5
+ *
+ * LICENSE: This source file is subject to version 3.0 of the PHP license
+ * that is available through the world-wide-web at the following URI:
+ * http://www.php.net/license/3_0.txt.  If you did not receive a copy of
+ * the PHP License and are unable to obtain it through the web, please
+ * send a note to license@php.net so we can mail you a copy immediately.
+ *
+ * @category   Payment
+ * @package    Payment_Process
+ * @author     Ian Eure <ieure@php.net>
+ * @author     Joe Stump <joe@joestump.net>
+ * @copyright  1997-2005 The PHP Group
+ * @license    http://www.php.net/license/3_0.txt  PHP License 3.0
+ * @version    CVS: $Revision$
+ * @link       http://pear.php.net/package/Payment_Process
+ */
 
 require_once('PEAR.php');
 require_once('Validate.php');
@@ -33,28 +37,45 @@ define('PAYMENT_PROCESS_ERROR_INVALID',    -2);
 define('PAYMENT_PROCESS_ERROR_AVS',        -3);
 define('PAYMENT_PROCESS_ERROR_CVV',        -4);
 
-// Transaction actions
-// A normal transaction
+/**
+ * Transaction actions
+ */
+/**
+ * A normal transaction
+ */
 define('PAYMENT_PROCESS_ACTION_NORMAL',   200);
-// Authorize only. No funds are transferred.
+/**
+ * Authorize only. No funds are transferred.
+ */
 define('PAYMENT_PROCESS_ACTION_AUTHONLY', 201);
-// Credit funds back from a previously-charged transaction.
+/**
+ * Credit funds back from a previously-charged transaction.
+ */
 define('PAYMENT_PROCESS_ACTION_CREDIT',   202);
-// Post-authorize an AUTHONLY transaction.
+/**
+ * Post-authorize an AUTHONLY transaction.
+ */
 define('PAYMENT_PROCESS_ACTION_POSTAUTH', 203);
-// Clear a previous transaction
+/**
+ * Clear a previous transaction
+ */
 define('PAYMENT_PROCESS_ACTION_VOID',     204);
 
-// Transaction sources
+/**
+ * Transaction sources
+ */
 define('PAYMENT_PROCESS_SOURCE_POS',      300);
 define('PAYMENT_PROCESS_SOURCE_ONLINE',   301);
 
-// Results
+/**
+ * Result codes
+ */
 define('PAYMENT_PROCESS_RESULT_APPROVED', 400);
 define('PAYMENT_PROCESS_RESULT_DECLINED', 401);
 define('PAYMENT_PROCESS_RESULT_OTHER',    402);
 define('PAYMENT_PROCESS_RESULT_FRAUD',    403);
 define('PAYMENT_PROCESS_RESULT_DUPLICATE',404);
+define('PAYMENT_PROCESS_RESULT_REVIEW',   405);
 
 define('PAYMENT_PROCESS_AVS_MATCH',       500);
 define('PAYMENT_PROCESS_AVS_MISMATCH',    501);
@@ -297,7 +318,7 @@ class Payment_Process {
     {
         $vars = array_keys(get_class_vars(get_class($this)));
         foreach ($vars as $idx => $field) {
-            if (ereg('^_+', $field)) {
+            if ($field{0} == '_') {
                 unset($vars[$idx]);
             }
         }
@@ -348,8 +369,9 @@ class Payment_Process {
      * See if a value is a defined constant.
      *
      * This function checks to see if $value is defined in one of
-     * PAYMENT_PROCESS_{$class}_*. It's used to verify that e.g. $object->action is one of
-     * PAYMENT_PROCESS_ACTION_NORMAL, PAYMENT_PROCESS_ACTION_AUTHONLY etc.
+     * PAYMENT_PROCESS_{$class}_*. It's used to verify that e.g. 
+     * $object->action is one of PAYMENT_PROCESS_ACTION_NORMAL, 
+     * PAYMENT_PROCESS_ACTION_AUTHONLY etc.
      *
      * @access private
      * @param  mixed    $value  Value to check
@@ -358,26 +380,33 @@ class Payment_Process {
      */
     function _isDefinedConst($value, $class)
     {
-        $re = '^PAYMENT_PROCESS_'.strtoupper($class).'_.*';
+        $constClass = 'PAYMENT_PROCESS_'.strtoupper($class).'_';
+        $length = strlen($constClass);
         $consts = get_defined_constants();
+        $found = false;
         foreach ($consts as $constant => $constVal) {
-            if (ereg($re, $constant)) {
-                $valid[] = $constVal;
+            if (strncmp($constClass, $constant, $length) === 0 && 
+                $constVal == $value) {
+                $found = true;
+                break;
             }
         }
-        return @in_array($value, $valid);
+
+        return $found;
     }
 
     /**
      * Statically check a Payment_Result class for success
      *
-     * @author Joe Stump <joe@joestump.net>
-     * @access public
      * @param  mixed  $obj
+     * @return bool
+     * @access public
+     * @static
+     * @author Joe Stump <joe@joestump.net>
      */
     function isSuccess($obj)
     {
-        if (is_a($obj,'Payment_Process_Result')) {
+        if (is_a($obj, 'Payment_Process_Result')) {
             if ($obj->getCode() == PAYMENT_PROCESS_RESULT_APPROVED) {
                 return true;
             }
@@ -389,9 +418,10 @@ class Payment_Process {
     /**
      * Statically check a Payment_Result class for error
      *
-     * @author Joe Stump <joe@joestump.net>
-     * @access public
      * @param  mixed  $obj
+     * @return bool
+     * @access public
+     * @author Joe Stump <joe@joestump.net>
      */
     function isError($obj)
     {
@@ -399,7 +429,7 @@ class Payment_Process {
             return true;
         }
 
-        if (is_a($obj,'Payment_Process_Result')) {
+        if (is_a($obj, 'Payment_Process_Result')) {
             if ($obj->getCode() != PAYMENT_PROCESS_RESULT_APPROVED) {
                 return true;
             }
@@ -430,7 +460,6 @@ class Payment_Process {
  * @version @version@
  */
 class Payment_Process_Result {
-
     /**
      * Processor instance which this result was instantiated from.
      *
@@ -552,7 +581,7 @@ class Payment_Process_Result {
     /**
      * Customer ID
      *
-     * Unique internall customer ID (ie. your company's customer ID used to
+     * Unique internal customer ID (ie. your company's customer ID used to
      * track individual customers).
      *
      * @author Joe Stump <joe@joestump.net>
@@ -600,7 +629,7 @@ class Payment_Process_Result {
     * @author Ian Eure <ieure@php.net>
     * @param string $type
     * @param string $rawResponse
-    * @param mixed $request  
+    * @param mixed $request
     * @return mixed Payment_Process_Result on succes, PEAR_Error on failure
     */
     function &factory($type, $rawResponse, $request)
