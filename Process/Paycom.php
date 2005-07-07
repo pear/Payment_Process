@@ -117,12 +117,6 @@ class Payment_Process_Paycom extends Payment_Process_Common {
      */
     function &process()
     {
-        if($this->_options['debug'] === true) {
-            echo "----------- DATA -----------\n";
-            print_r($this->_data);
-            echo "----------- DATA -----------\n";
-        }
-
         // Sanity check
         $result = $this->validate();
         if(PEAR::isError($result)) {
@@ -138,10 +132,6 @@ class Payment_Process_Paycom extends Payment_Process_Common {
         // Don't die partway through
         PEAR::pushErrorHandling(PEAR_ERROR_RETURN);
 
-        if($this->_options['debug'] === true) {
-            print_r($this->_options);
-        }
-
         $fields = $this->_prepareQueryString();
         $request = & new HTTP_Request($this->_options['authorizeUri']);
         $request->setMethod(HTTP_REQUEST_METHOD_POST);
@@ -150,14 +140,6 @@ class Payment_Process_Paycom extends Payment_Process_Common {
             $request->addPostData($var,$val);
         }
  
-        if($this->_options['debug'] === true) {
-            echo "URL: ".$this->_options['authorizeUri']."\n";
-            echo "------------ CURL FIELDS -------------\n";
-            print_r($fields);
-            echo "------------ CURL FIELDS -------------\n";
-        }
-
-
         $result = $request->sendRequest();
         if (PEAR::isError($result)) {
             PEAR::popErrorHandling();
@@ -191,13 +173,6 @@ class Payment_Process_Paycom extends Payment_Process_Common {
     {
 
         $data = array_merge($this->_options,$this->_data);
-
-        if($this->_options['debug'] === true) {
-            echo "--------- PREPARE QS DATA -----------\n";
-            print_r($this->_data);
-            print_r($data);
-            echo "--------- PREPARE QS DATA -----------\n";
-        }
 
         $return = array();
         $sets = array();

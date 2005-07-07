@@ -203,12 +203,6 @@ class Payment_Process_Bibit extends Payment_Process_Common {
      */
     function &process()
     {
-        if($this->_options['debug'] === true) {
-            echo "----------- DATA -----------\n";
-            print_r($this->_data);
-            echo "----------- DATA -----------\n";
-        }
-
         // Sanity check
         $result = $this->validate();
         if(PEAR::isError($result)) {
@@ -224,10 +218,6 @@ class Payment_Process_Bibit extends Payment_Process_Common {
         // Don't die partway through
         PEAR::pushErrorHandling(PEAR_ERROR_RETURN);
 
-        if ($this->_options['debug'] === true) {
-            print_r($this->_options);
-        }
-
         $fields = $this->_prepareQueryString();
         $curl = & new Net_Curl(isset($this->_options['live']) ? $this->_options['authorizeUri'] : $this->_options['authorizeTestUri']);
         if (PEAR::isError($curl)) {
@@ -237,12 +227,6 @@ class Payment_Process_Bibit extends Payment_Process_Common {
 
         $curl->type = 'PUT';
         $curl->fields = $fields;
-        if($this->_options['debug'] === true) {
-            echo "------------ CURL FIELDS -------------\n";
-            print_r($curl->fields);
-            echo "------------ CURL FIELDS -------------\n";
-        }
-
         $curl->userAgent = 'PEAR Payment_Process_Bibit 0.1';
         $curl->username = $this->_data['x_login'];
         $curl->password = $this->_data['x_password'];
@@ -280,12 +264,6 @@ class Payment_Process_Bibit extends Payment_Process_Common {
     function _prepareQueryString()
     {  
         $data = array_merge($this->_options,$this->_data);
-
-        if($this->_options['debug'] === true) {
-            echo "--------- PREPARE QS DATA -------------\n";
-            print_r($data);
-            echo "--------- PREPARE QS DATA -------------\n";
-        }
 
         $doc = XML_Util::getXMLDeclaration();
         $doc .= '<!DOCTYPE paymentService PUBLIC "-//Bibit//DTD Bibit PaymentService v1//EN" "http://dtd.bibit.com/paymentService_v1.dtd">';
