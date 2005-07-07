@@ -19,13 +19,17 @@
 //
 // $Id$
 
-define('PAYMENT_PROCESS_CC_VISA', 100);
-define('PAYMENT_PROCESS_CC_MASTERCARD', 101);
-define('PAYMENT_PROCESS_CC_AMEX', 102);
-define('PAYMENT_PROCESS_CC_DISCOVER', 103);
+define('PAYMENT_PROCESS_CC_VISA',         100);
+define('PAYMENT_PROCESS_CC_MASTERCARD',   101);
+define('PAYMENT_PROCESS_CC_AMEX',         102);
+define('PAYMENT_PROCESS_CC_DISCOVER',     103);
+define('PAYMENT_PROCESS_CC_JCB',          104);
+define('PAYMENT_PROCESS_CC_DINERS',       105);
+define('PAYMENT_PROCESS_CC_CARTEBLANCHE', 106);
+define('PAYMENT_PROCESS_CC_ENROUTE',      107);
 
-define('PAYMENT_PROCESS_CK_SAVINGS',1000);
-define('PAYMENT_PROCESS_CK_CHECKING',1001);
+define('PAYMENT_PROCESS_CK_SAVINGS',  1000);
+define('PAYMENT_PROCESS_CK_CHECKING', 1001);
 
 /**
  * Payment_Process_Type
@@ -49,6 +53,7 @@ class Payment_Process_Type
     var $phone;
     var $fax;
     var $email;
+    var $ipAddress;
     // }}}
     // {{{ __construct()
     function __construct()
@@ -62,7 +67,7 @@ class Payment_Process_Type
         $this->__construct();
     }
     // }}}
-    // {{{ factory()
+    // {{{ &factory($type)
     /**
     * factory
     *
@@ -81,7 +86,7 @@ class Payment_Process_Type
             if (class_exists($class)) {
                 return new $class();
             }
-        } 
+        }
 
         return PEAR::raiseError('Invalid Payment_Process_Type: '.$type);
     }
@@ -103,10 +108,8 @@ class Payment_Process_Type
             $vars = get_object_vars($obj);
             foreach ($vars as $validate => $value) {
                 $method = '_validate'.ucfirst($validate);
-                if (method_exists($obj,$method)) {
-                    if(!$obj->$method()) {
-                        return false;
-                    } 
+                if (method_exists($obj, $method) && !$obj->$method()) {
+                    return false;
                 }
             }
 
@@ -156,6 +159,7 @@ class Payment_Process_Type
      * @author Ian Eure <ieure@php.net>
      * @access private
      * @return boolean true on success, false otherwise
+     * @todo use Validate_*::postalCode() method
      */
     function _validateZip()
     {
