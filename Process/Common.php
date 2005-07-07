@@ -1,52 +1,54 @@
 <?php
+
 /* vim: set expandtab tabstop=4 shiftwidth=4: */
-// +----------------------------------------------------------------------+
-// | PHP version 4                                                        |
-// +----------------------------------------------------------------------+
-// | Copyright (c) 1997-2003 The PHP Group                                |
-// +----------------------------------------------------------------------+
-// | This source file is subject to version 3.0 of the PHP license,       |
-// | that is bundled with this package in the file LICENSE, and is        |
-// | available through the world-wide-web at                              |
-// | http://www.php.net/license/3_0.txt.                                  |
-// | If you did not receive a copy of the PHP license and are unable to   |
-// | obtain it through the world-wide-web, please send a note to          |
-// | license@php.net so we can mail you a copy immediately.               |
-// +----------------------------------------------------------------------+
-// | Authors: Ian Eure <ieure@php.net>                                    |
-// |          Joe Stump <joe@joestump.net>                                |
-// +----------------------------------------------------------------------+
-//
-// $Id$
+
+/**
+ * Holds code shared between all processors
+ *
+ * PHP versions 4 and 5
+ *
+ * LICENSE: This source file is subject to version 3.0 of the PHP license
+ * that is available through the world-wide-web at the following URI:
+ * http://www.php.net/license/3_0.txt.  If you did not receive a copy of
+ * the PHP License and are unable to obtain it through the web, please
+ * send a note to license@php.net so we can mail you a copy immediately.
+ *
+ * @category   Payment
+ * @package    Payment_Process
+ * @author     Ian Eure <ieure@php.net>
+ * @author     Joe Stump <joe@joestump.net>
+ * @copyright  1997-2005 The PHP Group
+ * @license    http://www.php.net/license/3_0.txt  PHP License 3.0
+ * @version    CVS: $Id$
+ * @link       http://pear.php.net/package/Payment_Process
+ */
 
 require_once 'Payment/Process.php';
 require_once 'Payment/Process/Type.php';
 
 class Payment_Process_Common extends Payment_Process {
     /**
-    * $_typeFieldMap
-    *
-    * @author Joe Stump <joe@joestump.net>
-    * @access protected
-    * @var mixed $_typeFieldMap
-    */
+     * Mapping between API fields and processors'
+     *
+     * @var mixed $_typeFieldMap
+     * @access protected
+     */
     var $_typeFieldMap = array();
 
     /**
-    * $_payment
-    *
-    * An internal reference to the Payment_Process_Type that is currently
-    * being processed.
-    *
-    * @author Joe Stump <joe@joestump.net>
-    * @access protected
-    * @var mixed $_payment Instance of Payment_Type
-    * @see Payment_Process_Common::setPayment()
-    */
+     * Reference to payment type
+     *
+     * An internal reference to the Payment_Process_Type that is currently
+     * being processed.
+     *
+     * @var mixed $_payment Instance of Payment_Type
+     * @access protected
+     * @see Payment_Process_Common::setPayment()
+     */
     var $_payment = null;
 
     /**
-     * Validate data before processing.
+     * Validates data before processing.
      *
      * This function may be overloaded by the processor.
      *
@@ -76,7 +78,7 @@ class Payment_Process_Common extends Payment_Process {
     }
 
     /**
-     * Process the transaction.
+     * Processes the transaction.
      *
      * This function should be overloaded by the processor.
      */
@@ -86,7 +88,7 @@ class Payment_Process_Common extends Payment_Process {
     }
 
     /**
-     * Get transaction result.
+     * Gets transaction result.
      *
      * This function should be overloaded by the processor.
      */
@@ -96,10 +98,10 @@ class Payment_Process_Common extends Payment_Process {
     }
 
     /**
-     * Validate transaction type.
+     * Validates transaction type.
      *
-     * @access private
      * @return boolean true on success, false on failure.
+     * @access private
      */
     function _validateType()
     {
@@ -107,10 +109,10 @@ class Payment_Process_Common extends Payment_Process {
     }
 
     /**
-     * Validate transaction acion.
+     * Validates transaction action.
      *
-     * @access private
      * @return boolean true on success, false on failure.
+     * @access private
      */
     function _validateAction()
     {
@@ -118,10 +120,10 @@ class Payment_Process_Common extends Payment_Process {
     }
 
     /**
-     * Validate transaction source.
+     * Validates transaction source.
      *
-     * @access private
      * @return boolean true on success, false on failure.
+     * @access private
      */
     function _validateSource()
     {
@@ -129,7 +131,7 @@ class Payment_Process_Common extends Payment_Process {
     }
 
     /**
-     * Validate the charge amount.
+     * Validates the charge amount.
      *
      * Charge amount must be 8 characters long, double-precision.
      * Current min/max are rather arbitrarily set to $0.99 and $99999.99,
@@ -148,7 +150,7 @@ class Payment_Process_Common extends Payment_Process {
     }
 
     /**
-     * Prepare the POST data.
+     * Prepares the POST data.
      *
      * This function handles translating the data set in the front-end to the
      * format needed by the back-end. The prepared data is stored in
@@ -157,17 +159,11 @@ class Payment_Process_Common extends Payment_Process {
      * $this->_data correctly. If no field-handler function exists, the data
      * from the front-end is mapped into $_data using $this->_fieldMap.
      *
-     * @access private
      * @return array Data to POST
+     * @access private
      */
     function _prepare()
     {
-        if ($this->_options['debug']) {
-            echo '----------- PREPARE A ----------'."\n";
-            echo print_r($this->_data);
-            echo '----------- PREPARE A ----------'."\n";
-        }
-
         /*
          * FIXME - because this only loops through stuff in the fieldMap, we
          *         can't have handlers for stuff which isn't specified in there.
@@ -199,42 +195,35 @@ class Payment_Process_Common extends Payment_Process {
             }
         }
 
-        if ($this->_options['debug']) {
-            echo '----------- PREPARE ----------'."\n";
-            echo print_r($this->_data);
-            echo '----------- PREPARE ----------'."\n";
-        }
-
         return true;
     }
 
     /**
-    * Set payment
-    *
-    * Returns false if payment could not be set. This usually means the
-    * payment type is not valid  or that the payment type is valid, but did
-    * not validate. It could also mean that the payment type is not supported
-    * by the given processor.
-    *
-    * @author Joe Stump <joe@joestump.net>
-    * @access public
-    * @param mixed $payment Object of Payment_Process_Type
-    * @return bool
-    */
+     * Sets payment
+     *
+     * Returns false if payment could not be set. This usually means the
+     * payment type is not valid  or that the payment type is valid, but did
+     * not validate. It could also mean that the payment type is not supported
+     * by the given processor.
+     *
+     * @param mixed $payment Object of Payment_Process_Type
+     * @return bool
+     * @access public
+     * @author Joe Stump <joe@joestump.net>
+     */
     function setPayment($payment)
     {
-        if (is_array($this->_typeFieldMap[$payment->getType()]) &&
+        if (@is_array($this->_typeFieldMap[$payment->getType()]) &&
             count($this->_typeFieldMap[$payment->getType()])) {
 
             if (Payment_Process_Type::isValid($payment)) {
 
-
                 $this->_payment = $payment;
-                // Map over the payment specific fiels. Check out
+                // Map over the payment specific fields. Check out
                 // $_typeFieldMap for more information.
                 $paymentType = $payment->getType();
                 foreach ($this->_typeFieldMap[$paymentType] as $key => $val) {
-                    if(!isset($this->_data[$val])) {
+                    if (!isset($this->_data[$val])) {
                         $this->_data[$val] = $this->_payment->$key;
                     }
                 }
@@ -247,35 +236,16 @@ class Payment_Process_Common extends Payment_Process {
     }
 
     /**
-     * Handle action
+     * Handles action
      *
      * Actions are defined in $GLOBALS['_Payment_Process_DriverName'] and then
      * handled here. We may decide to abstract the defines in the driver.
      *
-     * @author Joe Stump <joe@joestump.net>
      * @access private
-     * @return void
      */
     function _handleAction()
     {
         $this->_data[$this->_fieldMap['action']] = $GLOBALS['_Payment_Process_'.$this->_driver][$this->action];
-    }
-
-    /**
-     * Print a debug message.
-     *
-     * This will only print the message if 'debug' is set in the Processor
-     * options.
-     *
-     * @param string $msg Message to print
-     * @return void
-     * @author Ian Eure <ieure@php.net>
-     */
-    function debug($msg)
-    {
-        if ($this->_options['debug']) {
-            print $msg."\n";
-        }
     }
 }
 
