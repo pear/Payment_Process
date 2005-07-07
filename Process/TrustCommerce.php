@@ -140,12 +140,6 @@ class Payment_Process_TrustCommerce extends Payment_Process_Common {
      */
     function &process()
     {
-        if($this->_options['debug'] === true) {
-            echo "----------- DATA -----------\n";
-            print_r($this->_data);
-            echo "----------- DATA -----------\n";
-        }
-
         // Sanity check
         $result = $this->validate();
         if(PEAR::isError($result)) {
@@ -160,10 +154,6 @@ class Payment_Process_TrustCommerce extends Payment_Process_Common {
 
         // Don't die partway through
         PEAR::pushErrorHandling(PEAR_ERROR_RETURN);
-
-        if($this->_options['debug'] === true) {
-            print_r($this->_options);
-        }
 
         $fields = $this->_prepareQueryString();
 
@@ -192,12 +182,6 @@ class Payment_Process_TrustCommerce extends Payment_Process_Common {
 
             $curl->type = 'PUT';
             $curl->fields = $fields;
-            if($this->_options['debug'] === true) {
-                echo "------------ CURL FIELDS -------------\n";
-                print_r($curl->fields); 
-                echo "------------ CURL FIELDS -------------\n";
-            }
-
             $curl->userAgent = 'PEAR Payment_Process_TrustCommerce 0.1a';
 
             $result = &$curl->execute();
@@ -258,42 +242,27 @@ class Payment_Process_TrustCommerce extends Payment_Process_Common {
 
         /* amount is expressed in cents with leading zeroes */
         $data['amount'] = $data['amount']*100;
-        if(strlen($data['amount']) == 1)
-        {
+        if (strlen($data['amount']) == 1) {
             $data['amount'] = "00".$data['amount'];
-        }
-        else if(strlen($data['amount']) < 3)
-        {
+        } else if(strlen($data['amount']) < 3) {
             $data['amount'] = "0".$data['amount'];
-        } 
-        else if(strlen($data['amount']) > 8)
-        {
+        } else if(strlen($data['amount']) > 8) {
             $amount_message = 'Amount: '.$data['amount'].' too large.';
             PEAR::pushErrorHandling(PEAR_ERROR_RETURN);
             PEAR::raiseError($amount_message);
             PEAR::popErrorHandling();
-            if($this->_options['debug'] === true) 
-            {
-                die($amount_message);
-            }
         }
         /* end amount mangle */
 
-        if($this->_payment->getType() == 'CreditCard' && $this->action != PAYMENT_PROCESS_ACTION_POSTAUTH)
-        {
-          $data['media'] = 'cc';
-        }
-        if($this->_payment->getType() == 'eCheck')
-        {
-          $data['media'] = 'ach';
+        if ($this->_payment->getType() == 'CreditCard' && 
+            $this->action != PAYMENT_PROCESS_ACTION_POSTAUTH) {
+            $data['media'] = 'cc';
         }
 
-        if($this->_options['debug'] === true) {
-            echo "--------- PREPARE QS DATA -----------\n";
-            print_r($this->_data);
-            print_r($data);
-            echo "--------- PREPARE QS DATA -----------\n";
+        if ($this->_payment->getType() == 'eCheck') {
+            $data['media'] = 'ach';
         }
+
         $return = array();
         $sets = array();
         foreach ($data as $key => $val) {
@@ -306,17 +275,6 @@ class Payment_Process_TrustCommerce extends Payment_Process_Common {
         $this->_options['authorizeUri'] = 'https://vault.trustcommerce.com/trans/?'.implode('&',$sets);
 
         return $return;
-    }
-
-    /**
-    * _handleName
-    *
-    * @author Robert Peake <robert.peake@trustcommerce.com>
-    * @access private
-    */
-    function _handleName()
-    {
-      ;
     }
 }
 
