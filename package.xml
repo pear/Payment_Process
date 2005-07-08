@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
-<!-- $Id: package.xml,v 1.27 2005-07-07 23:39:46 jstump Exp $ -->
+<!-- $Id: package.xml,v 1.28 2005-07-08 00:16:27 jstump Exp $ -->
 <package version="1.0">
     <name>Payment_Process</name>
     <summary>Unified payment processor</summary>
@@ -37,6 +37,7 @@
             * Fixed field encapsulation in AuthorizeNet driver (Bug #2756)
             * Fixed _prepareQueryString() in AuthorizeNet driver (Bug #3820)
             * Fixed undefined index in Common.php (Bug #3821)
+            * Fixed assignment to private variable in Payment_Process::factory() (Bug #3790)
             * Added _validateCvv() to Payment_Process_Type_CreditCard (Bug #3837)
             * Removed code that altered the URI in the AuthorizeNet driver (Bug #3820)
             * Added Payment_Process::accept() and Payment_Process::log() to be a common logging interface for debugging/logging (In response to Bug #3839)
