@@ -227,7 +227,7 @@ class Payment_Process_Common extends Payment_Process {
      * @access public
      * @author Joe Stump <joe@joestump.net>
      */
-    function setPayment($payment)
+    function setPayment(&$payment)
     {
         if (isset($this->_typeFieldMap[$payment->getType()]) &&
             is_array($this->_typeFieldMap[$payment->getType()]) &&
@@ -239,9 +239,23 @@ class Payment_Process_Common extends Payment_Process {
                 // Map over the payment specific fields. Check out
                 // $_typeFieldMap for more information.
                 $paymentType = $payment->getType();
-                foreach ($this->_typeFieldMap[$paymentType] as $key => $val) {
-                    if (!isset($this->_data[$val])) {
-                        $this->_data[$val] = $this->_payment->$key;
+                foreach ($this->_typeFieldMap[$paymentType] as $generic => $specific) {
+                  
+                    $func = '_handle'.ucfirst($generic);
+                    if (method_exists($this, $func)) {
+                        $result = $this->$func();
+                        if (PEAR::isError($result)) {
+                            return $result;
+                        }
+                    } else {
+                        // TODO This may screw things up - the problem is that
+                        // CC information is no longer member variables, so we
+                        // can't overwrite it. You could always handle this 
+                        // with a _handle funciton. I don't think it will cause
+                        // problems, but it could.
+                        if (!isset($this->_data[$specific])) {
+                            $this->_data[$specific] = $this->_payment->$generic;
+                        }
                     }
                 }
 
