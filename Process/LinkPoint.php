@@ -18,10 +18,10 @@
 //
 // $Id$
 
-require_once 'Payment/Process.php';
-require_once 'Payment/Process/Common.php';
-require_once 'Net/Curl.php';
-require_once 'XML/Parser.php';
+require_once('Payment/Process.php');
+require_once('Payment/Process/Common.php');
+require_once('Net/Curl.php');
+require_once('XML/Parser.php');
 
 $GLOBALS['_Payment_Process_LinkPoint'] = array(
     PAYMENT_PROCESS_ACTION_NORMAL   => 'SALE',
@@ -137,9 +137,15 @@ class Payment_Process_LinkPoint extends Payment_Process_Common
      * @see Payment_Process::setOptions()
      * @return void
      */
+    function __construct($options = false)
+    {
+        parent::__construct($options);
+        $this->_driver = 'LinkPoint';
+    }
+
     function Payment_Process_LinkPoint($options = false)
     {
-        $this->setOptions($options);
+        $this->__construct($options);
     }
 
     /**
@@ -184,7 +190,7 @@ class Payment_Process_LinkPoint extends Payment_Process_Common
             return $curl;
         }
 
-        $curl->type = 'PUT';
+        $curl->type = 'POST';
         $curl->fields = $xml;
         $curl->sslCert = $this->_options['keyfile'];
         $curl->userAgent = 'PEAR Payment_Process_LinkPoint 0.1';

@@ -23,8 +23,8 @@
  * @link       http://pear.php.net/package/Payment_Process
  */
 
-require_once 'Payment/Process.php';
-require_once 'Payment/Process/Type.php';
+require_once('Payment/Process.php');
+require_once('Payment/Process/Type.php');
 
 class Payment_Process_Common extends Payment_Process {
     /**
@@ -46,6 +46,23 @@ class Payment_Process_Common extends Payment_Process {
      * @see Payment_Process_Common::setPayment()
      */
     var $_payment = null;
+
+    /**
+     * __construct
+     *
+     * @author Joe Stump <joe@joestump.net>
+     * @access public
+     */
+    function __construct($options = false)
+    {
+        parent::__construct()
+        $this->setOptions($options);
+    }
+
+    function Payemnt_Process_Common($options = false)
+    {
+        $this->__construct();
+    }
 
     /**
      * Validates data before processing.

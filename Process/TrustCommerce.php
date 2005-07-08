@@ -19,9 +19,9 @@
 //
 // $Id$
 
-require_once 'Payment/Process.php';
-require_once 'Payment/Process/Common.php';
-require_once 'Net/Curl.php';
+require_once('Payment/Process.php');
+require_once('Payment/Process/Common.php');
+require_once('Net/Curl.php');
 
 $GLOBALS['_Payment_Process_TrustCommerce'] = array(
     PAYMENT_PROCESS_ACTION_NORMAL   => 'sale',
@@ -128,9 +128,15 @@ class Payment_Process_TrustCommerce extends Payment_Process_Common {
      * @see Payment_Process::setOptions()
      * @return void
      */
+    function __construct($options = false)
+    {
+        parent::__construct($options);
+        $this->_driver = 'TrustCommerce';
+    }
+
     function Payment_Process_TrustCommerce($options = false)
     {
-        $this->setOptions($options);
+        $this->__construct($options);
     }
 
     /**

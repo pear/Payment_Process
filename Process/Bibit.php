@@ -18,11 +18,11 @@
 //
 // $Id$
 
-require_once 'Payment/Process.php';
-require_once 'Payment/Process/Common.php';
-require_once 'Net/Curl.php';
-require_once 'XML/Util.php';
-require_once 'XML/XPath.php';
+require_once('Payment/Process.php');
+require_once('Payment/Process/Common.php');
+require_once('Net/Curl.php');
+require_once('XML/Util.php');
+require_once('XML/XPath.php');
 
 define('PAYMENT_PROCESS_ACTION_BIBIT_AUTH', 300);
 define('PAYMENT_PROCESS_ACTION_BIBIT_REDIRECT', 400);
@@ -190,10 +190,17 @@ class Payment_Process_Bibit extends Payment_Process_Common {
      * @see Payment_Process::setOptions()
      * @return void
      */
+    function __construct($options = false)
+    {
+        parent::__construct();
+        $this->_driver = 'Bibit';
+        $this->_makeRequired('login', 'password', 'ordercode', 'description', 'amount', 'currency', 'exponent', 'cardNumber', 'expDate', 'action');
+
+    }
+
     function Payment_Process_Bibit($options = false)
     {
-        $this->setOptions($options);
-        $this->_makeRequired('login', 'password', 'ordercode', 'description', 'amount', 'currency', 'exponent', 'cardNumber', 'expDate', 'action');
+        $this->__construct($options);
     }
 
     /**

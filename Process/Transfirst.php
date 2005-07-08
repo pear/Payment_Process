@@ -18,9 +18,8 @@
 //
 // $Id$
 
-require_once 'Payment/Process/Common.php';
-//require_once 'HTTP/Request.php';
-require_once 'Net/Curl.php';
+require_once('Payment/Process/Common.php');
+require_once('Net/Curl.php');
 
 // Transfirst transaction types
 // Request authorization only - no funds are transferred.
@@ -126,10 +125,16 @@ class Payment_Process_Transfirst extends Payment_Process_Common {
      * @see Payment_Process::setOptions()
      * @return void
      */
+    function __construct($options = false)
+    {
+        parent::__construct($options);
+        $this->_driver = 'Transfirst';
+        $this->_makeRequired('login', 'password', 'action', 'invoiceNumber', 'customerId', 'amount', 'cardNumber', 'expDate');
+    }
+
     function Payment_Process_Transfirst($options = false)
     {
-        $this->setOptions($options);
-        $this->_makeRequired('login', 'password', 'action', 'invoiceNumber', 'customerId', 'amount', 'cardNumber', 'expDate');
+        $this->__construct($options);
     }
     
     /**

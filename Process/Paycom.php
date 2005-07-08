@@ -18,9 +18,9 @@
 //
 // $Id$
 
-require_once 'Payment/Process.php';
-require_once 'Payment/Process/Common.php';
-require_once 'HTTP/Request.php';
+require_once('Payment/Process.php');
+require_once('Payment/Process/Common.php');
+require_once('HTTP/Request.php');
 
 $GLOBALS['_Payment_Process_Paycom'] = array(
     PAYMENT_PROCESS_ACTION_NORMAL   => 'approveclose',
@@ -105,9 +105,15 @@ class Payment_Process_Paycom extends Payment_Process_Common {
      * @see Payment_Process::setOptions()
      * @return void
      */
+    function __construct($options = false)
+    {
+        parent::__construct($options);
+        $this->_driver = 'Paycom';
+    }
+
     function Payment_Process_Paycom($options = false)
     {
-        $this->setOptions($options);
+        $this->__construct($options);
     }
 
     /**
