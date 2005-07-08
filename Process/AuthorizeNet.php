@@ -1,31 +1,42 @@
 <?php
+
 /* vim: set expandtab tabstop=4 shiftwidth=4: */
-// +----------------------------------------------------------------------+
-// | PHP version 4                                                        |
-// +----------------------------------------------------------------------+
-// | Copyright (c) 1997-2003 The PHP Group                                |
-// +----------------------------------------------------------------------+
-// | This source file is subject to version 3.0 of the PHP license,       |
-// | that is bundled with this package in the file LICENSE, and is        |
-// | available through the world-wide-web at                              |
-// | http://www.php.net/license/3_0.txt.                                  |
-// | If you did not receive a copy of the PHP license and are unable to   |
-// | obtain it through the world-wide-web, please send a note to          |
-// | license@php.net so we can mail you a copy immediately.               |
-// +----------------------------------------------------------------------+
-// | Authors: Joe Stump <joe@joestump.net>                                |
-// +----------------------------------------------------------------------+
-//
-// $Id$
 
-require_once 'Payment/Process.php';
-require_once 'Payment/Process/Common.php';
-require_once 'Net/Curl.php';
+/**
+ * Authorize.Net processor
+ *
+ * PHP versions 4 and 5
+ *
+ * LICENSE: This source file is subject to version 3.0 of the PHP license
+ * that is available through the world-wide-web at the following URI:
+ * http://www.php.net/license/3_0.txt.  If you did not receive a copy of
+ * the PHP License and are unable to obtain it through the web, please
+ * send a note to license@php.net so we can mail you a copy immediately.
+ *
+ * @category   Payment
+ * @package    Payment_Process
+ * @author     Joe Stump <joe@joestump.net> 
+ * @author     Philippe Jausions <Philippe.Jausions@11abacus.com>
+ * @copyright  1997-2005 The PHP Group
+ * @license    http://www.php.net/license/3_0.txt  PHP License 3.0
+ * @version    CVS: $Revision$
+ * @link       http://pear.php.net/package/Payment_Process
+ */
 
+require_once('Payment/Process.php');
+require_once('Payment/Process/Common.php');
+require_once('Net/Curl.php');
+
+/**
+ * Defines global variables
+ *
+ * @define
+ */
 $GLOBALS['_Payment_Process_AuthorizeNet'] = array(
     PAYMENT_PROCESS_ACTION_NORMAL   => 'AUTH_CAPTURE',
     PAYMENT_PROCESS_ACTION_AUTHONLY => 'AUTH_ONLY',
-    PAYMENT_PROCESS_ACTION_POSTAUTH => 'PRIOR_AUTH_CAPTURE'
+    PAYMENT_PROCESS_ACTION_POSTAUTH => 'PRIOR_AUTH_CAPTURE',
+    PAYMENT_PROCESS_ACTION_VOID     => 'VOID'
 );
 
 /**
@@ -38,18 +49,20 @@ $GLOBALS['_Payment_Process_AuthorizeNet'] = array(
  * This is BETA code, and has not been fully tested. It is not recommended
  * that you use it in a production environment without further testing.
  *
- * @package Payment_Process
- * @author Joe Stump <joe@joestump.net>
- * @version @version@
- * @link http://www.authorize.net/
+ * @package    Payment_Process
+ * @author     Joe Stump <joe@joestump.net>
+ * @author     Philippe Jausions <Philippe.Jausions@11abacus.com>
+ * @version    @version@
+ * @link       http://www.authorize.net/
  */
 class Payment_Process_AuthorizeNet extends Payment_Process_Common {
+
 
     /**
      * Front-end -> back-end field map.
      *
      * This array contains the mapping from front-end fields (defined in
-     * the Payment_Process class) to the field names DPILink requires.
+     * the Payment_Process class) to the field names Authorize.Net requires.
      *
      * @see _prepare()
      * @access private
@@ -59,23 +72,26 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
         'login'         => 'x_login',
         'password'      => 'x_password',
         'action'        => 'x_type',
+
+        // Optional
+        'login'         => 'x_login',
         'invoiceNumber' => 'x_invoice_num',
         'customerId'    => 'x_cust_id',
         'amount'        => 'x_amount',
         'description'   => 'x_description',
         'name'          => '',
+        'postalCode'    => 'x_zip',
         'zip'           => 'x_zip',
-
-        // Optional
-        'company' => 'x_company',
-        'address' => 'x_address',
-        'city'    => 'x_city',
-        'state'   => 'x_state',
-        'country' => 'x_country',
-        'phone'   => 'x_phone',
-        'email'   => 'x_email',
-        'ip'      => 'x_customer_ip',
+        'company'       => 'x_company',
+        'address'       => 'x_address',
+        'city'          => 'x_city',
+        'state'         => 'x_state',
+        'country'       => 'x_country',
+        'phone'         => 'x_phone',
+        'email'         => 'x_email',
+        'ip'            => 'x_customer_ip',
     );
+
 
     /**
      * $_typeFieldMap
@@ -110,13 +126,21 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
          'authorizeUri' => 'https://secure.authorize.net/gateway/transact.dll',
          'x_delim_data' => 'TRUE',
          'x_delim_char' => ',',
-         'x_encap_char' => '',
+         'x_encap_char' => '|',
          'x_relay'      => 'FALSE',
          'x_email_customer' => 'FALSE',
-         'x_test_request'   => 'FALSE',
+         'x_test_request'   => 'TRUE',
          'x_currency_code'  => 'USD',
          'x_version'        => '3.1'
     );
+
+    /**
+     * List of possible encapsulation characters
+     *
+     * @var string
+     * @access private
+     */
+    var $_encapChars = '|~#$^*_=+-`{}![]:";<>?/&';
 
     /**
      * Has the transaction been processed?
@@ -140,26 +164,29 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
      * @see Payment_Process::setOptions()
      * @return void
      */
+    function __construct($options = false)
+    {
+        parent::__construct($options);
+        $this->_driver = 'AuthorizeNet';
+        $this->_makeRequired('login', 'password', 'action');
+    }
+
     function Payment_Process_AuthorizeNet($options = false)
     {
-        $this->setOptions($options);
+        $this->__construct($options);
     }
 
     /**
-    * Process the transaction.
-    *
-    * @author Joe Stump <joe@joestump.net> 
-    * @access public
-    * @return mixed Payment_Process_Result on success, PEAR_Error on failure
-    */
+     * Processes the transaction.
+     *
+     * Success here doesn't mean the transaction was approved. It means
+     * the transaction was sent and processed without technical difficulties.
+     *
+     * @return mixed Payment_Process_Result on success, PEAR_Error on failure
+     * @access public
+     */
     function &process()
     {
-        if ($this->_options['debug'] === true) {
-            echo "----------- DATA -----------\n";
-            print_r($this->_data);
-            echo "----------- DATA -----------\n";
-        }
-
         // Sanity check
         $result = $this->validate();
         if (PEAR::isError($result)) {
@@ -172,12 +199,13 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
             return $result;
         }
 
+        $fields = $this->_prepareQueryString();
+        if (PEAR::isError($fields)) {
+            return $fields;
+        }
+
         // Don't die partway through
         PEAR::pushErrorHandling(PEAR_ERROR_RETURN);
-
-        if ($this->_options['debug'] === true) {
-            print_r($this->_options);
-        }
 
         $fields = $this->_prepareQueryString();
         $curl = & new Net_Curl($this->_options['authorizeUri']);
@@ -188,12 +216,6 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
 
         $curl->type = 'POST';
         $curl->fields = $fields;
-        if ($this->_options['debug'] === true) {
-            echo "------------ CURL FIELDS -------------\n";
-            print_r($curl->fields);
-            echo "------------ CURL FIELDS -------------\n";
-        }
-
         $curl->userAgent = 'PEAR Payment_Process_AuthorizeNet 0.1';
 
         $result = &$curl->execute();
@@ -204,7 +226,6 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
             $curl->close();
         }
 
-
         $this->_responseBody = trim($result);
         $this->_processed = true;
 
@@ -212,11 +233,50 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
         PEAR::popErrorHandling();
 
         $response = &Payment_Process_Result::factory($this->_driver,
-                                                     $this->_responseBody, 
+                                                     $this->_responseBody,
                                                      &$this);
 
         if (!PEAR::isError($response)) {
             $response->parse();
+
+            $r = $response->isLegitimate();
+            if (PEAR::isError($r)) {
+                return $r;
+            } elseif ($r === false) {
+                return PEAR::raiseError('Illegitimate response from gateway');
+            }
+        }
+        $response->action = $this->action;
+
+        return $response;
+    }
+
+    /**
+     * Processes a callback from payment gateway
+     *
+     * Success here doesn't mean the transaction was approved. It means
+     * the callback was received and processed without technical difficulties.
+     *
+     * @return mixed Payment_Process_Result on success, PEAR_Error on failure
+     */
+    function &processCallback()
+    {
+        $this->_responseBody = $_POST;
+        $this->_processed = true;
+
+        $response = &Payment_Process_Result::factory($this->_driver,
+                            $this->_responseBody);
+        if (!PEAR::isError($response)) {
+            $response->_request =& $this;
+            $response->parseCallback();
+
+            $r = $response->isLegitimate();
+            if (PEAR::isError($r)) {
+                return $r;
+
+            } elseif ($r === false) {
+                return PEAR::raiseError('Illegitimate callback from gateway.');
+            }
         }
 
         return $response;
@@ -234,6 +294,9 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
 
     /**
      * Prepare the POST query string.
+     *
+     * You will need PHP_Compat::str_split() if you run this processor
+     * under PHP 4.
      *
      * @access private
      * @return string The query string
@@ -257,23 +320,14 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
             }
         }
 
-        if ($this->_options['debug'] === true) {
-            echo "--------- PREPARE QS DATA -----------\n";
-            print_r($this->_data);
-            print_r($data);
-            echo "--------- PREPARE QS DATA -----------\n";
-        }
-
         $return = array();
-        $sets = array();
         foreach ($data as $key => $val) {
-            if (eregi('^x_', $key) && strlen($val)) {
-                $return[$key] = $val;
-                $sets[] = $key . '=' . urlencode($val);
+            if (substr($key,0,2) == 'x_' && 
+                $key != 'x_encap_char' && 
+                strlen($val)) {
+                $return[$key] = rawurlencode($val);
             }
         }
-
-        $this->_options['authorizeUri'] .= '?'.implode('&',$sets);
 
         return $return;
     }
@@ -286,7 +340,7 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
      */
     function _handleName()
     {
-        $parts = explode(' ',$this->_payment->name);
+        $parts = explode(' ', $this->_payment->name);
         $this->_data['x_first_name'] = array_shift($parts);
         $this->_data['x_last_name']  = implode(' ', $parts);
     }
@@ -298,7 +352,8 @@ class Payment_Process_Result_AuthorizeNet extends Payment_Process_Result {
     var $_statusCodeMap = array('1' => PAYMENT_PROCESS_RESULT_APPROVED,
                                 '2' => PAYMENT_PROCESS_RESULT_DECLINED,
                                 '3' => PAYMENT_PROCESS_RESULT_OTHER,
-                                '4' => PAYMENT_PROCESS_RESULT_FRAUD);
+                                '4' => PAYMENT_PROCESS_RESULT_REVIEW
+                                );
 
     /**
      * AuthorizeNet status codes
@@ -468,7 +523,18 @@ class Payment_Process_Result_AuthorizeNet extends Payment_Process_Result {
           '221' => 'This transaction has been declined.',
           '222' => 'This transaction has been declined.',
           '223' => 'This transaction has been declined.',
-          '224' => 'This transaction has been declined.'
+          '224' => 'This transaction has been declined.',
+          '243' => 'Recurring billing is not allowed for this eCheck.Net type',
+          '244' => 'This eCheck.Net type is not allowed for this Bank Account Type.',
+          '245' => 'This eCheck.Net type is not allowed when using the payment gateway hosted payment form.',
+          '246' => 'This eCheck.Net type is not allowed.',
+          '247' => 'This eCheck.Net type is not allowed.',
+          '250' => 'This transaction has been declined.',
+          '251' => 'This transaction has been declined.',
+          '252' => 'Your order has been received. Thank you for your business!',
+          '253' => 'Your order has been received. Thank you for your business!',
+          '254' => 'This transaction has been declined.',
+          '261' => 'An error occurred during processing. Please try again'
     );
 
     var $_avsCodeMap = array(
@@ -526,9 +592,19 @@ class Payment_Process_Result_AuthorizeNet extends Payment_Process_Result {
                            '6'  => 'transactionId',
                            '7'  => 'invoiceNumber',
                            '8'  => 'description',
+                           '9'  => 'amount',
                            '12' => 'customerId',
+                           '37' => 'md5Hash',
                            '38' => 'cvvCode'
     );
+
+    /**
+     * To hold the MD5 hash returned
+     *
+     * @var string
+     * @access private
+     */
+    var $_md5Hash;
 
     function Payment_Process_Response_AuthorizeNet($rawResponse)
     {
@@ -536,24 +612,113 @@ class Payment_Process_Result_AuthorizeNet extends Payment_Process_Result {
     }
 
     /**
-    * parse()
-    * 
-    * @author Joe Stump <joe@joestump.net>
-    * @access public
-    * @return void
-    */
+     * Parses the data received from the payment gateway
+     *
+     * @access public
+     */
     function parse()
     {
-
         $delim = $this->_request->getOption('x_delim_char');
         $encap = $this->_request->getOption('x_encap_char');
 
         $responseArray = explode($encap . $delim . $encap, $this->_rawResponse);
-        $count = (count($responseArray) - 1);
-        $responseArray[0]      = ltrim($responseArray[0], $encap);
-        $responseArray[$count] = rtrim($responseArray[$count], $encap);
+        if ($responseArray === false) {
+            return array();
+        }
+
+        $count = count($responseArray) - 1;
+        if ($responseArray[0]{0} == $encap) {
+            $responseArray[0] = substr($responseArray[0], 1);
+        }
+        if (substr($responseArray[$count], -1) == $encap) {
+            $responseArray[$count] = substr($responseArray[$count], 0, -1);
+        }
+
+        // Save some fields in private members
+        $map = array_flip($this->_fieldMap);
+        $this->_md5Hash = $responseArray[$map['md5Hash']];
+        $this->_amount  = $responseArray[$map['amount']];
 
         $this->_mapFields($responseArray);
+
+        // Adjust result code if needed for DUPLICATE and FRAUD
+        switch ($this->messageCode) {
+            case 11:
+                // Duplicate transactions
+                $this->code = PAYMENT_PROCESS_RESULT_DUPLICATE;
+                break;
+            case 4:
+            case 41:
+            case 250:
+            case 251:
+                // Fraud detected
+                $this->code = PAYMENT_PROCESS_RESULT_FRAUD;
+                break;
+        }
+    }
+
+    /**
+     * Parses the data received from the payment gateway callback
+     *
+     * @access public
+     * @author Philippe Jausions <Philippe.Jausions@11abacus.com>
+     */
+    function parseCallback()
+    {
+        $this->code          = $this->_rawResponse['x_response_code'];
+        $this->messageCode   = $this->_rawResponse['x_response_reason_code'];
+        $this->message       = $this->_rawResponse['x_response_reason_text'];
+        $this->approvalCode  = $this->_rawResponse['x_auth_code'];
+        $this->avsCode       = $this->_rawResponse['x_avs_code'];
+        $this->transactionId = $this->_rawResponse['x_trans_id'];
+        $this->invoiceNumber = $this->_rawResponse['x_invoice_num'];
+        $this->description   = $this->_rawResponse['x_description'];
+        $this->_amount       = $this->_rawResponse['x_amount'];
+        $this->customerId    = $this->_rawResponse['x_cust_id'];
+        $this->_md5Hash      = $this->_rawResponse['x_MD5_Hash'];
+        $this->cvvCode       = $this->_rawResponse['x_cvv2_resp_code'];
+        $map = array_flip($GLOBALS['_Payment_Process_AuthorizeNet']);
+        $this->action        = $map[strtoupper($this->_rawResponse['x_type'])];
+    }
+
+    /**
+     * Validates the legitimacy of the response
+     *
+     * To be able to validate the response, the md5Value option
+     * must have been set in the processor.
+     *
+     * Check if the response is legitimate by matching MD5 hashes.
+     * To avoid MD5 mismatch while the key is being renewed
+     * the md5Value can be an array with 2 indexes: "new" and "old"
+     * respectively holding the new and old MD5 values.
+     *
+     * Note: If you're having problem passing this check: be aware that
+     * the login name is CASE-SENSITIVE!!! (even though you can log in
+     * using it all lowered case...)
+     *
+     * @return mixed TRUE if response is legitimate, FALSE if not, PEAR_Error on error
+     * @access public
+     * @author Philippe Jausions <Philippe.Jausions@11abacus.com>
+     */
+    function isLegitimate()
+    {
+        $md5Value = $this->_request->getOption('md5Value');
+        if (!$md5Value) {
+            return PEAR::raiseError('Missing MD5 value in processor\'s options.');
+        }
+
+        $fields = $this->_request->login . $this->transactionId
+                    . $this->_amount;
+        if (is_array($md5Value)) {
+            if (strcasecmp($this->_md5Hash, md5($md5Value['new'] . $fields)) == 0 || 
+                strcasecmp($this->_md5Hash, md5($md5Value['old'] . $fields)) == 0) {
+
+                return true;
+            }
+        } elseif (strcasecmp($this->_md5Hash, md5($md5Value . $fields)) == 0) {
+            return true;
+        }
+        return false;
     }
 }
 
