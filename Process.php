@@ -214,7 +214,6 @@ class Payment_Process {
         if (include_once "Payment/Process/{$type}.php") {
             if (class_exists($class)) {
                 $object = & new $class($options);
-                $object->_driver = $type;
                 return $object;
             }
         }

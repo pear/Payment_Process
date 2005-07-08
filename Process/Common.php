@@ -55,7 +55,6 @@ class Payment_Process_Common extends Payment_Process {
      */
     function __construct($options = false)
     {
-        parent::__construct()
         $this->setOptions($options);
     }
 
