@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
-<!-- $Id: package.xml,v 1.28 2005-07-08 00:16:27 jstump Exp $ -->
+<!-- $Id: package.xml,v 1.29 2005-07-08 00:25:39 jstump Exp $ -->
 <package version="1.0">
     <name>Payment_Process</name>
     <summary>Unified payment processor</summary>
@@ -38,12 +38,13 @@
             * Fixed _prepareQueryString() in AuthorizeNet driver (Bug #3820)
             * Fixed undefined index in Common.php (Bug #3821)
             * Fixed assignment to private variable in Payment_Process::factory() (Bug #3790)
+            * Fixed typo in `RESULT_INVALID' constant declaration and use. (Bug #3919)
             * Added _validateCvv() to Payment_Process_Type_CreditCard (Bug #3837)
-            * Removed code that altered the URI in the AuthorizeNet driver (Bug #3820)
-            * Added Payment_Process::accept() and Payment_Process::log() to be a common logging interface for debugging/logging (In response to Bug #3839)
+            * Added handler support in Payment_Process_Common::setPayment() (Bug #1265)
+            * Added Payment_Process::accept() and Payment_Process::log() to be a common logging interface for debugging/logging (In response to Bug #3839 and Bug #3791)
             * Added a Bibit driver written by Robin Ericsson <lobbin@localhost.nu>
-            * Remove 'Offline' driver, as it depended on Validate code which doesn't exist in any released version of the Validate package. Use the 'Dummy' driver for testing.
-            * Fix typo in `RESULT_INVALID' constant declaration and use. (Bug #3919)
+            * Removed code that altered the URI in the AuthorizeNet driver (Bug #3820)
+            * Removed 'Offline' driver, as it depended on Validate code which doesn't exist in any released version of the Validate package. Use the 'Dummy' driver for testing.
         ]]></notes>
         <filelist>
             <dir name="/" baseinstalldir="Payment">
