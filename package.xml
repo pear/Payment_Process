@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
-<!-- $Id: package.xml,v 1.29 2005-07-08 00:25:39 jstump Exp $ -->
+<!-- $Id: package.xml,v 1.30 2005-07-12 23:35:53 jstump Exp $ -->
 <package version="1.0">
     <name>Payment_Process</name>
     <summary>Unified payment processor</summary>
@@ -25,6 +25,12 @@
             <name>Robert Peake</name>
             <email>robert@peakepro.com</email>
         </maintainer>
+        <maintainer>
+            <user>jausions</user> 
+            <role>helper</role>
+            <name>Philippe Jausions</name> 
+            <email>Philippe.Jausions@11abacus.com</email>
+        </maintianer>
     </maintainers>
     <release>
         <!-- This release hasn't happened yet. -->
@@ -43,6 +49,7 @@
             * Added handler support in Payment_Process_Common::setPayment() (Bug #1265)
             * Added Payment_Process::accept() and Payment_Process::log() to be a common logging interface for debugging/logging (In response to Bug #3839 and Bug #3791)
             * Added a Bibit driver written by Robin Ericsson <lobbin@localhost.nu>
+            * Added Philippe Jausions as a maintainer. Along with Joe Stump he will be maintaining the AuthorizeNet driver and contributing other core code.
             * Removed code that altered the URI in the AuthorizeNet driver (Bug #3820)
             * Removed 'Offline' driver, as it depended on Validate code which doesn't exist in any released version of the Validate package. Use the 'Dummy' driver for testing.
         ]]></notes>
