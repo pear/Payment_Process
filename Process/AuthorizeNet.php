@@ -685,7 +685,8 @@ class Payment_Process_Result_AuthorizeNet extends Payment_Process_Result {
      * Validates the legitimacy of the response
      *
      * To be able to validate the response, the md5Value option
-     * must have been set in the processor.
+     * must have been set in the processor. If the md5Value is not set this
+     * function will fail gracefully, but this MAY CHANGE IN THE FUTURE!
      *
      * Check if the response is legitimate by matching MD5 hashes.
      * To avoid MD5 mismatch while the key is being renewed
@@ -696,15 +697,16 @@ class Payment_Process_Result_AuthorizeNet extends Payment_Process_Result {
      * the login name is CASE-SENSITIVE!!! (even though you can log in
      * using it all lowered case...)
      *
-     * @return mixed TRUE if response is legitimate, FALSE if not, PEAR_Error on error
      * @access public
      * @author Philippe Jausions <Philippe.Jausions@11abacus.com>
+     * @return mixed TRUE if response is legitimate, FALSE if not, PEAR_Error on error
      */
     function isLegitimate()
     {
         $md5Value = $this->_request->getOption('md5Value');
         if (!$md5Value) {
-            return PEAR::raiseError('Missing MD5 value in processor\'s options.');
+            // For now fail gracefully if it is not set.
+            return true;
         }
 
         $fields = $this->_request->login . $this->transactionId
