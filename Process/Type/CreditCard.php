@@ -126,7 +126,7 @@ class Payment_Process_Type_CreditCard extends Payment_Process_Type
 
         if (Validate::number($month, $monthOptions) &&
             Validate::number($year, $yearOptions)) {
-            if (($month >= $date['mon'] && $year == date['year']) ||
+            if (($month >= $date['mon'] && $year == $date['year']) ||
                 ($year > $date['year'])) {
                 return true;
             }
