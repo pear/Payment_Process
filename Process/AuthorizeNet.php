@@ -207,18 +207,17 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
         // Don't die partway through
         PEAR::pushErrorHandling(PEAR_ERROR_RETURN);
 
-        $fields = $this->_prepareQueryString();
         $curl = & new Net_Curl($this->_options['authorizeUri']);
         if (PEAR::isError($curl)) {
             PEAR::popErrorHandling();
             return $curl;
         }
 
-        $curl->type = 'POST';
+        $curl->type = 'post';
         $curl->fields = $fields;
         $curl->userAgent = 'PEAR Payment_Process_AuthorizeNet 0.1';
 
-        $result = &$curl->execute();
+        $result = $curl->execute();
         if (PEAR::isError($result)) {
             PEAR::popErrorHandling();
             return $result;
@@ -323,9 +322,8 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
         $return = array();
         foreach ($data as $key => $val) {
             if (substr($key,0,2) == 'x_' && 
-                $key != 'x_encap_char' && 
                 strlen($val)) {
-                $return[$key] = rawurlencode($val);
+                $return[$key] = $val;
             }
         }
 
