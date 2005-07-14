@@ -1,9 +1,10 @@
 <?php
 /* vim: set expandtab tabstop=4 shiftwidth=4: */
 /**
- * Main package file
+ * Process.php
  *
- * Long description for file (if any)...
+ * Process.php is a unified OOP abstraction layer for credit card and echeck
+ * processing gateways (similar to what DB does for database calls).
  *
  * PHP versions 4 and 5
  *
@@ -38,24 +39,25 @@ define('PAYMENT_PROCESS_ERROR_AVS',        -3);
 define('PAYMENT_PROCESS_ERROR_CVV',        -4);
 
 /**
- * Transaction actions
- */
-/**
  * A normal transaction
  */
 define('PAYMENT_PROCESS_ACTION_NORMAL',   200);
+
 /**
  * Authorize only. No funds are transferred.
  */
 define('PAYMENT_PROCESS_ACTION_AUTHONLY', 201);
+
 /**
  * Credit funds back from a previously-charged transaction.
  */
 define('PAYMENT_PROCESS_ACTION_CREDIT',   202);
+
 /**
  * Post-authorize an AUTHONLY transaction.
  */
 define('PAYMENT_PROCESS_ACTION_POSTAUTH', 203);
+
 /**
  * Clear a previous transaction
  */
@@ -96,111 +98,6 @@ define('PAYMENT_PROCESS_CVV_NOAPPLY',     603);
  * @version @version@
  */
 class Payment_Process {
-
-    /**
-     * Options.
-     *
-     * @var array
-     * @see setOptions()
-     * @access private;
-     */
-    var $_options = '';
-
-    /**
-     * Your login name to use for authentication to the online processor.
-     *
-     * @var string
-     */
-    var $login = '';
-
-    /**
-     * Your password to use for authentication to the online processor.
-     *
-     * @var string
-     */
-    var $password = '';
-
-    /**
-     * Processing action.
-     *
-     * This should be set to one of the PAYMENT_PROCESS_ACTION_* constants.
-     *
-     * @var int
-     */
-    var $action = '';
-
-    /**
-     * A description of the transaction (used by some processors to send
-     * information to the client, normally not a required field).
-     * @var string
-     */
-    var $description = '';
-
-    /**
-     * The transaction amount.
-     *
-     * @var double
-     */
-    var $amount = 0;
-
-    /**
-     * An invoice number.
-     *
-     * @var mixed string or int
-     */
-    var $invoiceNumber = '';
-
-    /**
-     * Customer identifier
-     *
-     * @var mixed string or int
-     */
-    var $customerId = '';
-
-    /**
-     * Transaction source.
-     *
-     * This should be set to one of the PAYMENT_PROCESS_SOURCE_* constants.
-     *
-     * @var int
-     */
-    var $transactionSource;
-
-    /**
-     * Array of fields which are required.
-     *
-     * @var array
-     * @access private
-     * @see _makeRequired()
-     */
-    var $_required = array();
-
-    /**
-     * Processor-specific data.
-     *
-     * @access private
-     * @var array
-     */
-    var $_data = array();
-
-    /**
-     * $_driver
-     *
-     * @author Joe Stump <joe@joestump.net>
-     * @var string $_driver
-     * @access private
-     */
-    var $_driver = null;
-
-    /**
-     * PEAR::Log instance
-     *
-     * @var     object
-     * @access  protected
-     * @see     Log
-     */
-    var $_log;
-
     /**
      * Return an instance of a specific processor.
      *
@@ -221,72 +118,6 @@ class Payment_Process {
         return PEAR::raiseError('"'.$type.'" processor does not exist',
                                 PAYMENT_PROCESS_ERROR_NOPROCESSOR);
 
-    }
-
-    /**
-     * Set many fields.
-     *
-     * @param  array  $where  Associative array of data to set, in the format
-     *                       'field' => 'value',
-     * @return void
-     */
-    function setFrom($where)
-    {
-        foreach ($this->getFields() as $field) {
-            if (isset($where[$field])) {
-                $this->$field = $where[$field];
-            }
-        }
-    }
-
-    /**
-     * Set a value.
-     *
-     * This will set a value, such as the credit card number. If the requested
-     * field is not part of the basic set of supported fields, it is set in
-     * $_options.
-     *
-     * @param  string  $field  The field to set
-     * @param  string  $value  The value to set
-     * @return void
-     */
-    function set($field, $value)
-    {
-        if (!$this->fieldExists($field)) {
-            return PEAR::raiseError('Field "' . $field . '" does not exist.', PAYMENT_PROCESS_ERROR_INVALID);
-        }
-        $this->$field = $value;
-        return true;
-    }
-
-    /**
-     * Mark a field (or fields) as being required.
-     *
-     * @param  string  $field Field name
-     * @param  string  ...
-     * @return boolean always true.
-     */
-    function _makeRequired()
-    {
-        foreach (func_get_args() as $field) {
-            $this->_required[$field] = true;
-        }
-        return true;
-    }
-
-    /**
-     * Mark a field as being optional.
-     *
-     * @param  string  $field Field name
-     * @param  ...
-     * @return boolean always true.
-     */
-    function _makeOptional()
-    {
-        foreach (func_get_args() as $field) {
-            unset($this->_required[$field]);
-        }
-        return true;
     }
 
     /**
