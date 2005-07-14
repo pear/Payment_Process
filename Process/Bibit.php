@@ -349,8 +349,9 @@ class Payment_Process_Bibit extends Payment_Process_Common {
                                                               'year' => substr($data['x_exp_date'], 3, 4)));
                     $doc .= XML_Util::createEndElement('expiryDate');
                 }
-                if (isset($this->_payment->name)) {
-                    $doc .= XML_Util::createTag('cardHolderName', null, $this->_payment->name);
+                if (isset($this->_payment->firstName) &&
+                    isset($this->_payment->lastName)) {
+                    $doc .= XML_Util::createTag('cardHolderName', null, $this->_payment->firstName.' '.$this->_payment->lastName);
                 }
                 if (isset($data['x_card_code'])) {
                     $doc .= XML_Util::createTag('cvc', null, $data['x_card_code']);

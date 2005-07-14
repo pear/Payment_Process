@@ -56,8 +56,6 @@ $GLOBALS['_Payment_Process_AuthorizeNet'] = array(
  * @link       http://www.authorize.net/
  */
 class Payment_Process_AuthorizeNet extends Payment_Process_Common {
-
-
     /**
      * Front-end -> back-end field map.
      *
@@ -102,6 +100,8 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
     var $_typeFieldMap = array(
 
            'CreditCard' => array(
+                    'firstName' => 'x_first_name',
+                    'lastName' => 'x_last_name',
                     'cardNumber' => 'x_card_num',
                     'cvv'        => 'x_card_code',
                     'expDate'    => 'x_exp_date'
@@ -111,8 +111,7 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
                     'routingCode'   => 'x_bank_aba_code',
                     'accountNumber' => 'x_bank_acct_num',
                     'type'          => 'x_bank_acct_type',
-                    'bankName'      => 'x_bank_name',
-                    'name'          => 'x_bank_acct_name'
+                    'bankName'      => 'x_bank_name'
            )
     );
 
@@ -333,14 +332,17 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
     /**
      * _handleName
      *
+     * If it's an eCheck we need to combine firstName and lastName into a 
+     * single account name.
+     *
      * @author Joe Stump <joe@joestump.net>
      * @access private
      */
     function _handleName()
     {
-        $parts = explode(' ', $this->_payment->name);
-        $this->_data['x_first_name'] = array_shift($parts);
-        $this->_data['x_last_name']  = implode(' ', $parts);
+        if ($this->_payment->getType() == 'eCheck') {
+             $this->_data['x_bank_acct_name'] = $this->_payment->firstName.' '.$this->_payment->lastName;
+        }
     }
 }
 

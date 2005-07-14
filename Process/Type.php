@@ -42,17 +42,95 @@ define('PAYMENT_PROCESS_CK_CHECKING', 1001);
 class Payment_Process_Type
 {
     // {{{ properties
+    /**
+     * $_type
+     *
+     * @var string $type Type of payment (ie. 'CreditCard' or 'eCheck')
+     */
     var $_type = null;
-    var $name;
+
+    /**
+     * $firstName
+     *
+     * @var string $firstName 
+     */
+    var $firstName;
+
+    /**
+     * $lastName
+     *
+     * @var string $lastName 
+     */
+    var $lastName;
+
+    /**
+     * $company
+     *
+     * @var string $company
+     */
     var $company;
+
+    /**
+     * $address
+     * 
+     * @var string $addres
+     */
     var $address;
+
+    /**
+     * $city
+     *
+     * @var string $city
+     */
     var $city;
+
+    /**
+     * $state
+     *
+     * @var string $state State/Province of customer
+     */
     var $state;
+
+    /**
+     * $zip
+     *
+     * @var string $zip Zip/Postal code of customer
+     */
     var $zip;
+
+    /**
+     * $country
+     *
+     * @var string $country Country code of customer (ie. US)
+     */
     var $country;
+
+    /**
+     * $phone
+     *
+     * @var string $phone Phone number of customer
+     */
     var $phone;
+
+    /**
+     * $fax
+     *
+     * @var string $fax Fax number of customer
+     */
     var $fax;
+
+    /**
+     * $city
+     *
+     * @var string $email Email address of customer
+     */
     var $email;
+
+    /**
+     * $ipAddress
+     *
+     * @var string $ipAddress Remote IP address of customer
+     */
     var $ipAddress;
     // }}}
     // {{{ __construct()

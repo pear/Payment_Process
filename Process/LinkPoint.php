@@ -291,10 +291,11 @@ class Payment_Process_LinkPoint extends Payment_Process_Common
                 $xml .= '</creditcard>'."\n";
         }
 
-        if (strlen($this->_payment->name)) {
+        if (isset($this->_payment->firstName) &&
+            isset($this->_payment->lastName)) {
             $xml .= '<billing>'."\n";
             $xml .= '  <userid>'.$this->_payment->customerId.'</userid>'."\n";
-            $xml .= '  <name>'.$this->_payment->name.'</name>'."\n";
+            $xml .= '  <name>'.$this->_payment->firstName.' '.$this->_payment->lastName.'</name>'."\n";
             $xml .= '  <company>'.$this->_payment->company.'</company>'."\n";
             $xml .= '  <address1>'.$this->_payment->address.'</address1>'."\n";
             $xml .= '  <city>'.$this->_payment->city.'</city>'."\n";

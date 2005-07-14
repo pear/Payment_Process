@@ -17,7 +17,8 @@
       if (!PEAR::isError($check)) {
           $check->invoiceNumber = 112345145;
           $check->customerId = 1461264151;
-          $check->name = 'Jose Perez';
+          $check->firstName = 'Jose';
+          $check->lastName = 'Perez';
           $check->type = PAYMENT_PROCESS_CK_CHECKING;
           $check->bankName = 'Bank of USA';
           $check->accountNumber = '2222222222';

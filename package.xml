@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
-<!-- $Id: package.xml,v 1.30 2005-07-12 23:35:53 jstump Exp $ -->
+<!-- $Id: package.xml,v 1.31 2005-07-14 21:54:04 jstump Exp $ -->
 <package version="1.0">
     <name>Payment_Process</name>
     <summary>Unified payment processor</summary>
@@ -40,6 +40,7 @@
         <notes><![CDATA[
             * Closed bug #2896
             * Moved validation code in Payment_Process_Type_CreditCard to use the new Validate_Finance_CreditCard package (Bug #4765)
+            * Removed Payment_Process_Type::$name and replaced it with Payment_Process_Type::$firstName and Payment_Process_Type::$lastName respectively
             * Fixed field encapsulation in AuthorizeNet driver (Bug #2756)
             * Fixed _prepareQueryString() in AuthorizeNet driver (Bug #3820)
             * Fixed undefined index in Common.php (Bug #3821)
