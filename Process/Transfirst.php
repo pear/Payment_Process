@@ -85,7 +85,7 @@ class Payment_Process_Transfirst extends Payment_Process_Common {
         'expDate'           => "expirationDate",
         'zip'               => "cardHolderZip",
         // Common Type
-        'name'              => "cardHolderName",
+//         'name'              => "cardHolderName",
         'address'           => "cardHolderAddress",
         'city'              => "cardHolderCity",
         'state'             => "cardHolderState",
@@ -136,7 +136,7 @@ class Payment_Process_Transfirst extends Payment_Process_Common {
     {
         $this->__construct($options);
     }
-    
+
     /**
      * Prepare the data.
      *
@@ -148,6 +148,7 @@ class Payment_Process_Transfirst extends Payment_Process_Common {
         if ($this->_options['testTransaction']) {
             $this->_data['testTransaction'] = $this->_options['testTransaction'];
         }
+        $this->_handleCardHolderName();
         return parent::_prepare();
     }
 
@@ -183,7 +184,7 @@ class Payment_Process_Transfirst extends Payment_Process_Common {
             PEAR::popErrorHandling();
             return $res;
         }
-        
+
         $this->_processed = true;
 
         // Restore error handling
@@ -293,6 +294,19 @@ class Payment_Process_Transfirst extends Payment_Process_Common {
     }
 
     /**
+     * Map firstName & lastName
+     *
+     * P_P now has split firstName/lastName fields, instead of 'name.' This
+     * handles concatenating them into the Transfirst cardHolderName field.
+     *
+     * @return  void
+     */
+    function _handleCardHolderName()
+    {
+        $this->_data['cardHolderName'] = $this->firstName . ' ' . $this->lastName;
+    }
+
+    /**
      * Validate the merchant account login.
      *
      * The Transfirst docs specify that the login is exactly eight digits.
@@ -358,7 +372,7 @@ class Payment_Process_Transfirst extends Payment_Process_Common {
             'max_length' => 15
         ));
     }
-    
+
     /**
      * Validate the zip code.
      *
@@ -451,7 +465,7 @@ class Payment_Process_Result_Transfirst extends Payment_Process_Result {
         'Y' => "Address and 5-digit zip match",
         'Z' => "5-digit zip match"
     );
-    
+
     /**
      * Status code map
      *
@@ -486,7 +500,7 @@ class Payment_Process_Result_Transfirst extends Payment_Process_Result {
         '5' => "Response provided by issuer",
         '9' => "Automated referral service (ARS) stand-in"
     );
-    
+
     var $_fieldMap = array(
         0  => '_null',                    // TF Internal Message Format
         1  => '_acctNo',                  // TF Account number
@@ -502,15 +516,15 @@ class Payment_Process_Result_Transfirst extends Payment_Process_Result {
         11 => 'customerId',               // The Customer Number passed by the original request
         12 => 'invoiceNumber',            // The Order Number passed by the original request.
         13 => '_urn',                     // A number that uniquely identifies an individual transaction.  Assigned by TF and can be used when referencing a specific transaction.
-        14 => '_authResponse',            // A number provided by the issuing bank indicating the authorization is valid and funds have been reserved for transfer to the merchant’s account at a later time.
+        14 => '_authResponse',            // A number provided by the issuing bank indicating the authorization is valid and funds have been reserved for transfer to the merchants account at a later time.
         15 => '_authSource',              // A code that defines the source where an authorization was captured.
         16 => '_authCharacteristic',      // A code that defines the qualification level for the authorized transaction.
         17 => 'approvalCode',             // Assigned by Visa or MasterCard, used to uniquely identify and link together all related information and used to authorize and clear a transaction.
         18 => '_validationCode',          // Assigned by V.I.P. System that is used to determine the accuracy of the authorization data.
-        19 => '_sicCatCode',              // A merchant’s industry classification.  Example - Mail Order/Phone Order Merchants (Direct Market) = 5969.
+        19 => '_sicCatCode',              // A merchants industry classification.  Example - Mail Order/Phone Order Merchants (Direct Market) = 5969.
         20 => '_currencyCode',            // 840 indicate US Currency to date this is the only valid value.
         21 => 'avsCode',                  // A value that indicates the level of Address Verification that was validated.
-        22 => '_merchantStoreNo',         // Identifies the specific terminal used at a location – 1-4 Merchant store #, 5-8 specific terminal at store.
+        22 => '_merchantStoreNo',         // Identifies the specific terminal used at a location  1-4 Merchant store #, 5-8 specific terminal at store.
         23 => 'cvvCode'                   // A two-digit value, indicating the result of the card verification based on the CVV2 code provided by the cardholder.
     );
 
