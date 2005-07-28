@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
-<!-- $Id: package.xml,v 1.34 2005-07-28 02:55:41 jstump Exp $ -->
+<!-- $Id: package.xml,v 1.35 2005-07-28 02:56:15 jstump Exp $ -->
 <package version="1.0">
     <name>Payment_Process</name>
     <summary>Unified payment processor</summary>
@@ -53,6 +53,7 @@
             * Added Philippe Jausions as a maintainer. Along with Joe Stump he will be maintaining the AuthorizeNet driver and contributing other core code.
             * Removed code that altered the URI in the AuthorizeNet driver (Bug #3820)
             * Removed 'Offline' driver, as it depended on Validate code which doesn't exist in any released version of the Validate package. Use the 'Dummy' driver for testing.
+            * AuthorizeNet driver now relies on Net_Curl 1.2.0 stable
         ]]></notes>
         <filelist>
             <dir name="/" baseinstalldir="Payment">
