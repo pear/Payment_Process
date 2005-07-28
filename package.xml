@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
-<!-- $Id: package.xml,v 1.35 2005-07-28 02:56:15 jstump Exp $ -->
+<!-- $Id: package.xml,v 1.36 2005-07-28 03:55:53 ieure Exp $ -->
 <package version="1.0">
     <name>Payment_Process</name>
     <summary>Unified payment processor</summary>
@@ -25,35 +25,19 @@
             <email>robert@peakepro.com</email>
         </maintainer>
         <maintainer>
-            <user>jausions</user> 
+            <user>jausions</user>
             <role>helper</role>
-            <name>Philippe Jausions</name> 
+            <name>Philippe Jausions</name>
             <email>Philippe.Jausions@11abacus.com</email>
         </maintainer>
     </maintainers>
     <release>
         <!-- This release hasn't happened yet. -->
-        <version>0.6.0</version>
+        <version>0.6.1dev1</version>
         <state>beta</state>
-        <date>2005-07-28</date>
+        <date>2005-xx-yy</date>
         <notes><![CDATA[
-            * Closed bug #2896
-            * Moved validation code in Payment_Process_Type_CreditCard to use the new Validate_Finance_CreditCard package (Bug #4765)
-            * Moved all common code out of Payment_Process and into Payment_Process_Common
-            * Removed Payment_Process_Type::$name and replaced it with Payment_Process_Type::$firstName and Payment_Process_Type::$lastName respectively
-            * Fixed field encapsulation in AuthorizeNet driver (Bug #2756)
-            * Fixed _prepareQueryString() in AuthorizeNet driver (Bug #3820)
-            * Fixed undefined index in Common.php (Bug #3821)
-            * Fixed assignment to private variable in Payment_Process::factory() (Bug #3790)
-            * Fixed typo in `RESULT_INVALID' constant declaration and use. (Bug #3919)
-            * Added _validateCvv() to Payment_Process_Type_CreditCard (Bug #3837)
-            * Added handler support in Payment_Process_Common::setPayment() (Bug #1265)
-            * Added Payment_Process::accept() and Payment_Process::log() to be a common logging interface for debugging/logging (In response to Bug #3839 and Bug #3791)
-            * Added a Bibit driver written by Robin Ericsson <lobbin@localhost.nu>
-            * Added Philippe Jausions as a maintainer. Along with Joe Stump he will be maintaining the AuthorizeNet driver and contributing other core code.
-            * Removed code that altered the URI in the AuthorizeNet driver (Bug #3820)
-            * Removed 'Offline' driver, as it depended on Validate code which doesn't exist in any released version of the Validate package. Use the 'Dummy' driver for testing.
-            * AuthorizeNet driver now relies on Net_Curl 1.2.0 stable
+            - Removed PHP_Compat dependency.
         ]]></notes>
         <filelist>
             <dir name="/" baseinstalldir="Payment">
@@ -80,7 +64,6 @@
         </filelist>
         <deps>
             <dep type="pkg" optional="yes" rel="ge" version="1.2.0">Net_Curl</dep>
-            <dep type="pkg" optional="yes" rel="ge" version="1.2.0">PHP_Compat</dep>
             <dep type="php" optional="no" rel="ge" version="4.2.0"/>
             <dep type="pkg" optional="no" rel="ge" version="0.5.0">Validate</dep>
             <dep type="pkg" optional="no" rel="ge" version="0.5.0">Validate_Finance_CreditCard</dep>
@@ -88,6 +71,60 @@
     </release>
 
     <changelog>
+        <release>
+            <version>0.6.0</version>
+            <state>beta</state>
+            <date>2005-07-28</date>
+            <notes><![CDATA[
+                * Closed bug #2896
+                * Moved validation code in Payment_Process_Type_CreditCard to use the new Validate_Finance_CreditCard package (Bug #4765)
+                * Moved all common code out of Payment_Process and into Payment_Process_Common
+                * Removed Payment_Process_Type::$name and replaced it with Payment_Process_Type::$firstName and Payment_Process_Type::$lastName respectively
+                * Fixed field encapsulation in AuthorizeNet driver (Bug #2756)
+                * Fixed _prepareQueryString() in AuthorizeNet driver (Bug #3820)
+                * Fixed undefined index in Common.php (Bug #3821)
+                * Fixed assignment to private variable in Payment_Process::factory() (Bug #3790)
+                * Fixed typo in `RESULT_INVALID' constant declaration and use. (Bug #3919)
+                * Added _validateCvv() to Payment_Process_Type_CreditCard (Bug #3837)
+                * Added handler support in Payment_Process_Common::setPayment() (Bug #1265)
+                * Added Payment_Process::accept() and Payment_Process::log() to be a common logging interface for debugging/logging (In response to Bug #3839 and Bug #3791)
+                * Added a Bibit driver written by Robin Ericsson <lobbin@localhost.nu>
+                * Added Philippe Jausions as a maintainer. Along with Joe Stump he will be maintaining the AuthorizeNet driver and contributing other core code.
+                * Removed code that altered the URI in the AuthorizeNet driver (Bug #3820)
+                * Removed 'Offline' driver, as it depended on Validate code which doesn't exist in any released version of the Validate package. Use the 'Dummy' driver for testing.
+                * AuthorizeNet driver now relies on Net_Curl 1.2.0 stable
+            ]]></notes>
+            <filelist>
+                <dir name="/" baseinstalldir="Payment">
+                    <file role="php">Process.php</file>
+                        <dir name="Process">
+                            <file role="php">Common.php</file>
+                            <file role="php">AuthorizeNet.php</file>
+                            <file role="php">Transfirst.php</file>
+                            <file role="php">TrustCommerce.php</file>
+                            <file role="php">Dummy.php</file>
+                            <file role="php">Type.php</file>
+                            <dir name="Type">
+                                <file role="php">CreditCard.php</file>
+                                <file role="php">eCheck.php</file>
+                            </dir>
+                        </dir>
+                </dir>
+                <dir name="examples" baseinstalldir="docs/Payment_Process">
+                    <file role="doc">Payment_Process-example.php</file>
+                    <file role="doc">creditcard.php</file>
+                    <file role="doc">echeck.php</file>
+                    <file role="doc">TrustCommerce_creditcard.php</file>
+                </dir>
+            </filelist>
+            <deps>
+                <dep type="pkg" optional="yes" rel="ge" version="1.2.0">Net_Curl</dep>
+                <dep type="pkg" optional="yes" rel="ge" version="1.2.0">PHP_Compat</dep>
+                <dep type="php" optional="no" rel="ge" version="4.2.0"/>
+                <dep type="pkg" optional="no" rel="ge" version="0.5.0">Validate</dep>
+                <dep type="pkg" optional="no" rel="ge" version="0.5.0">Validate_Finance_CreditCard</dep>
+            </deps>
+        </release>
         <release>
             <version>0.5.8</version>
             <state>beta</state>
