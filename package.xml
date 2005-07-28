@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
-<!-- $Id: package.xml,v 1.32 2005-07-14 22:38:26 jstump Exp $ -->
+<!-- $Id: package.xml,v 1.33 2005-07-28 02:52:56 jstump Exp $ -->
 <package version="1.0">
     <name>Payment_Process</name>
     <summary>Unified payment processor</summary>
     <description>Payment_Process is a gateway-independent framework for processing credit cards, e-checks and eventually other forms of payments as well.</description>
     <license>PHP License, v3.0</license>
-
     <maintainers>
         <maintainer>
             <user>ieure</user>
@@ -30,13 +29,13 @@
             <role>helper</role>
             <name>Philippe Jausions</name> 
             <email>Philippe.Jausions@11abacus.com</email>
-        </maintianer>
+        </maintainer>
     </maintainers>
     <release>
         <!-- This release hasn't happened yet. -->
         <version>0.6.0</version>
         <state>beta</state>
-        <date>2004-11-18</date>
+        <date>2005-07-28</date>
         <notes><![CDATA[
             * Closed bug #2896
             * Moved validation code in Payment_Process_Type_CreditCard to use the new Validate_Finance_CreditCard package (Bug #4765)

@@ -417,7 +417,6 @@ class Payment_Process_Bibit extends Payment_Process_Common {
         $doc .= XML_Util::createEndElement('paymentService');
 
         $doc1 = domxml_open_mem($doc);
-        echo $doc1->dump_mem(true);
 
         return $doc;
     }

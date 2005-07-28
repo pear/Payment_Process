@@ -405,7 +405,6 @@ class Payment_Process_Result_LinkPoint extends Payment_Process_Result
             $this->cvvCode = substr($xml->response['r_avs'],2,1);
             $this->customerId = $this->_request->customerId;
             $this->invoiceNumber = $this->_request->invoiceNumber;
-            print_r($xml->response);
             $this->_mapFields($xml->response);
 
             // switch to DECLINED since a duplicate isn't *really* fraud
