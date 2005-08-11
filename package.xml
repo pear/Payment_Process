@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
-<!-- $Id: package.xml,v 1.36 2005-07-28 03:55:53 ieure Exp $ -->
+<!-- $Id: package.xml,v 1.37 2005-08-11 00:12:07 jstump Exp $ -->
 <package version="1.0">
     <name>Payment_Process</name>
     <summary>Unified payment processor</summary>
@@ -33,11 +33,13 @@
     </maintainers>
     <release>
         <!-- This release hasn't happened yet. -->
-        <version>0.6.1dev1</version>
+        <version>0.6.1</version>
         <state>beta</state>
-        <date>2005-xx-yy</date>
+        <date>2005-08-10</date>
         <notes><![CDATA[
-            - Removed PHP_Compat dependency.
+            * Removed PHP_Compat dependency.
+            * Added missing Bibit.php driver file.
+            * Added missing LinkPoint.php driver file.
         ]]></notes>
         <filelist>
             <dir name="/" baseinstalldir="Payment">
@@ -45,6 +47,8 @@
                 <dir name="Process">
                     <file role="php">Common.php</file>
                     <file role="php">AuthorizeNet.php</file>
+                    <file role="php">Bibit.php</file>
+                    <file role="php">LinkPoint.php</file>
                     <file role="php">Transfirst.php</file>
                     <file role="php">TrustCommerce.php</file>
                     <file role="php">Dummy.php</file>
@@ -69,7 +73,6 @@
             <dep type="pkg" optional="no" rel="ge" version="0.5.0">Validate_Finance_CreditCard</dep>
         </deps>
     </release>
-
     <changelog>
         <release>
             <version>0.6.0</version>
