@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
-<!-- $Id: package.xml,v 1.38 2005-08-11 00:18:50 jstump Exp $ -->
+<!-- $Id: package.xml,v 1.39 2005-08-11 00:19:34 jstump Exp $ -->
 <package version="1.0">
     <name>Payment_Process</name>
     <summary>Unified payment processor</summary>
@@ -40,6 +40,7 @@
             * Removed PHP_Compat dependency.
             * Added missing Bibit.php driver file.
             * Added missing LinkPoint.php driver file.
+            * Added optional dependency for XML_Parser for LinkPoint driver.
         ]]></notes>
         <filelist>
             <dir name="/" baseinstalldir="Payment">
