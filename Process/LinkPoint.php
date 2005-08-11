@@ -398,7 +398,7 @@ class Payment_Process_Result_LinkPoint extends Payment_Process_Result
     */
     function parse()
     {
-        $xml = & new XML_Parser_LinkPoint();
+        $xml = & new Payment_Processor_LinkPoint_XML_Parser();
         $xml->parseString('<response>'.$this->_rawResponse.'</response>');
         if (is_array($xml->response) && count($xml->response)) {
             $this->avsCode = substr($xml->response['r_avs'],0,2);
@@ -416,19 +416,19 @@ class Payment_Process_Result_LinkPoint extends Payment_Process_Result
 }
 
 /**
- * XML_Parser_LinkPoint
+ * Payment_Processor_LinkPoint_XML_Parser
  *
  * XML Parser for the LinkPoint response
  *
  * @author Joe Stump <joe@joestump.net>
  * @package Payment_Process
  */
-class XML_Parser_LinkPoint extends XML_Parser
+class Payment_Processor_LinkPoint_XML_Parser extends XML_Parser
 {
     var $response = array();
     var $tag = null;
 
-    function XML_Parser_LinkPoint()
+    function Payment_Processor_LinkPoint_XML_Parser()
     {
         $this->XML_Parser();
     }
