@@ -1,22 +1,27 @@
 <?php
 /* vim: set expandtab tabstop=4 shiftwidth=4: */
-// +----------------------------------------------------------------------+
-// | PHP version 4                                                        |
-// +----------------------------------------------------------------------+
-// | Copyright (c) 1997-2003 The PHP Group                                |
-// +----------------------------------------------------------------------+
-// | This source file is subject to version 3.0 of the PHP license,       |
-// | that is bundled with this package in the file LICENSE, and is        |
-// | available through the world-wide-web at                              |
-// | http://www.php.net/license/3_0.txt.                                  |
-// | If you did not receive a copy of the PHP license and are unable to   |
-// | obtain it through the world-wide-web, please send a note to          |
-// | license@php.net so we can mail you a copy immediately.               |
-// +----------------------------------------------------------------------+
-// | Authors: Joe Stump <joe@joestump.net>                                |
-// +----------------------------------------------------------------------+
-//
-// $Id$
+
+/**
+ * LinkPoint processor
+ *
+ * PHP versions 4 and 5
+ *
+ * LICENSE: This source file is subject to version 3.0 of the PHP license
+ * that is available through the world-wide-web at the following URI:
+ * http://www.php.net/license/3_0.txt.  If you did not receive a copy of
+ * the PHP License and are unable to obtain it through the web, please
+ * send a note to license@php.net so we can mail you a copy immediately.
+ *
+ * @category   Payment
+ * @package    Payment_Process
+ * @author     Joe Stump <joe@joestump.net> 
+ * @copyright  1997-2005 The PHP Group
+ * @license    http://www.php.net/license/3_0.txt  PHP License 3.0
+ * @version    CVS: $Revision$
+ * @link       http://pear.php.net/package/Payment_Process
+ * @link       http://www.linkpoint.net/
+ */
+
 
 require_once('Payment/Process.php');
 require_once('Payment/Process/Common.php');
@@ -143,6 +148,14 @@ class Payment_Process_LinkPoint extends Payment_Process_Common
         $this->_driver = 'LinkPoint';
     }
 
+    /**
+     * Payment_Process_LinkPoint
+     *
+     * @author Joe Stump <joe@joestump.net>
+     * @access public
+     * @param array $options
+     * @return void
+     */
     function Payment_Process_LinkPoint($options = false)
     {
         $this->__construct($options);
@@ -151,6 +164,8 @@ class Payment_Process_LinkPoint extends Payment_Process_Common
     /**
      * Process the transaction.
      *
+     * @author Joe Stump <joe@joestump.net> 
+     * @access public
      * @return mixed Payment_Process_Result on success, PEAR_Error on failure
      */
     function &process()
@@ -193,8 +208,14 @@ class Payment_Process_LinkPoint extends Payment_Process_Common
         $curl->type = 'POST';
         $curl->fields = $xml;
         $curl->sslCert = $this->_options['keyfile'];
-        $curl->verifyPeer = false;
-        $curl->verifyHost = 0;
+
+        // LinkPoint's staging server has a boned certificate. If they are
+        // testing against staging we need to turn off SSL host verification.
+        if ($this->_options['host'] == 'staging.linkpt.net') {
+            $curl->verifyPeer = false;
+            $curl->verifyHost = 0;
+        }
+
         $curl->userAgent = 'PEAR Payment_Process_LinkPoint 0.1';
 
         $result = &$curl->execute();
@@ -220,7 +241,6 @@ class Payment_Process_LinkPoint extends Payment_Process_Common
         }
 
         return $response;
-
     }
 
     /**
@@ -315,6 +335,14 @@ class Payment_Process_LinkPoint extends Payment_Process_Common
     }
 }
 
+/**
+ * Payment_Process_Result_LinkPoint
+ * 
+ * LinkPoint result class 
+ *
+ * @author Joe Stump <joe@joestump.net>
+ * @package Payment_Process
+ */
 class Payment_Process_Result_LinkPoint extends Payment_Process_Result
 {
 
@@ -426,24 +454,72 @@ class Payment_Process_Result_LinkPoint extends Payment_Process_Result
  */
 class Payment_Processor_LinkPoint_XML_Parser extends XML_Parser
 {
+    /**
+     * $response
+     * 
+     * @var array $response Raw response as an array
+     * @access public
+     */
     var $response = array();
+
+    /**
+     * $log
+     *
+     * @var string $tag Current tag
+     * @access private
+     */
     var $tag = null;
 
+    /**
+     * Payment_Processor_LinkPoint_XML_Parser
+     *
+     * @author Joe Stump <joe@joestump.net>
+     * @access public
+     * @return void
+     * @see XML_Parser
+     */
     function Payment_Processor_LinkPoint_XML_Parser()
     {
         $this->XML_Parser();
     }
 
+    /**
+     * startHandler
+     *
+     * @author Joe Stump <joe@joestump.net>
+     * @access public
+     * @param resource $xp XML processor handler
+     * @param string $elem Name of XML entity
+     * @return void
+     */
     function startHandler($xp, $elem, &$attribs)
     {
         $this->tag = $elem;
     }
 
+    /**
+     * endHandler
+     *
+     * @author Joe Stump <joe@joestump.net>
+     * @access public
+     * @param resource $xp XML processor handler
+     * @param string $elem Name of XML entity
+     * @return void
+     */
     function endHandler($xp, $elem)
     {
 
     }
 
+    /**
+     * defaultHandler
+     *
+     * @author Joe Stump <joe@joestump.net>
+     * @access public
+     * @param resource $xp XML processor handler
+     * @param string $data
+     * @return void
+     */
     function defaultHandler($xp,$data)
     {
         $this->response[strtolower($this->tag)] = $data;
