@@ -185,20 +185,21 @@ class Payment_Process_LinkPoint extends Payment_Process_Common
                '/LSGSXML';
 
         $curl = & new Net_Curl($url);
-        if (PEAR::isError($curl)) {
-            PEAR::popErrorHandling();
-            return $curl;
+        $result = $curl->create();
+        if (PEAR::isError($result)) {
+            return $result;
         }
 
         $curl->type = 'POST';
         $curl->fields = $xml;
         $curl->sslCert = $this->_options['keyfile'];
+        $curl->verifyPeer = false;
+        $curl->verifyHost = 0;
         $curl->userAgent = 'PEAR Payment_Process_LinkPoint 0.1';
 
         $result = &$curl->execute();
         if (PEAR::isError($result)) {
-            PEAR::popErrorHandling();
-            return $result;
+            return PEAR::raiseError('cURL error: '.$result->getMessage());
         } else {
             $curl->close();
         }
