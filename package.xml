@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
-<!-- $Id: package.xml,v 1.40 2005-08-12 15:17:05 jstump Exp $ -->
+<!-- $Id: package.xml,v 1.41 2005-09-07 22:50:32 jstump Exp $ -->
 <package version="1.0">
     <name>Payment_Process</name>
     <summary>Unified payment processor</summary>
@@ -32,13 +32,12 @@
         </maintainer>
     </maintainers>
     <release>
-        <version>0.6.2</version>
+        <version>0.6.3</version>
         <state>beta</state>
-        <date>2005-08-12</date>
+        <date>2005-09-07</date>
         <notes><![CDATA[
-            * Updated LinkPoint driver 
-            * Added LinkPoint example
-            * Minor documentation fixes
+            * Updated all validate functions and validation to return PEAR_Error instead of simple bool to provide better error messaging
+            * Validation upgrade BREAKS BACKWARD COMPATIBILITY (see examples/creditcard.php lines 29-34) for Payment_Process_Type::isValid() and setting payments with setPayment() in your gateway
         ]]></notes>
         <filelist>
             <dir name="/" baseinstalldir="Payment">
@@ -76,6 +75,50 @@
     </release>
 
     <changelog>
+        <release>
+            <version>0.6.2</version>
+            <state>beta</state>
+            <date>2005-08-12</date>
+            <notes><![CDATA[
+                * Updated LinkPoint driver 
+                * Added LinkPoint example
+                * Minor documentation fixes
+            ]]></notes>
+            <filelist>
+                <dir name="/" baseinstalldir="Payment">
+                    <file role="php">Process.php</file>
+                    <dir name="Process">
+                        <file role="php">Common.php</file>
+                        <file role="php">AuthorizeNet.php</file>
+                        <file role="php">Bibit.php</file>
+                        <file role="php">LinkPoint.php</file>
+                        <file role="php">Transfirst.php</file>
+                        <file role="php">TrustCommerce.php</file>
+                        <file role="php">Dummy.php</file>
+                        <file role="php">Type.php</file>
+                        <dir name="Type">
+                            <file role="php">CreditCard.php</file>
+                            <file role="php">eCheck.php</file>
+                        </dir>
+                    </dir>
+                </dir>
+                <dir name="examples" baseinstalldir="docs/Payment_Process">
+                    <file role="doc">Payment_Process-example.php</file>
+                    <file role="doc">creditcard.php</file>
+                    <file role="doc">linkpoint.php</file>
+                    <file role="doc">echeck.php</file>
+                    <file role="doc">TrustCommerce_creditcard.php</file>
+                </dir>
+            </filelist>
+            <deps>
+                <dep type="pkg" optional="yes" rel="ge" version="1.2.6">XML_Parser</dep>
+                <dep type="pkg" optional="yes" rel="ge" version="1.2.0">Net_Curl</dep>
+                <dep type="php" optional="no" rel="ge" version="4.2.0"/>
+                <dep type="pkg" optional="no" rel="ge" version="0.5.0">Validate</dep>
+                <dep type="pkg" optional="no" rel="ge" version="0.5.0">Validate_Finance_CreditCard</dep>
+            </deps>
+        </release>
+
         <release>
             <version>0.6.1</version>
             <state>beta</state>

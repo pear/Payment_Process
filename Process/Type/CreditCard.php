@@ -20,16 +20,16 @@
 // $Id$
 
 /**
-* Payment_Process_Type_CreditCard
-*
-* @author Joe Stump <joe@joestump.net>
-* @package Payment_Process
-*/
+ * Payment_Process_Type_CreditCard
+ *
+ * @author Joe Stump <joe@joestump.net>
+ * @package Payment_Process
+ */
 class Payment_Process_Type_CreditCard extends Payment_Process_Type 
 {
     var $_type = 'CreditCard';
-    var $type;
     var $cardNumber;
+    var $type;
     var $cvv;
     var $expDate;
 
@@ -44,47 +44,52 @@ class Payment_Process_Type_CreditCard extends Payment_Process_Type
         $this->__construct();
     }
 
-    // {{{ _validateCardNumber()
     /**
-    * _validateCardNumber
-    *
-    * Uses Validate_Finance_CreditCard to validate the card number.
-    *
-    * @author Joe Stump <joe@joestump.net>
-    * @return bool
-    * @see Payment_Process_Type_CreditCard::_getValidateTypeMap()
-    * @see Validate_Finance_CreditCard
-    */
+     * _validateCardNumber
+     *
+     * Uses Validate_Finance_CreditCard to validate the card number.
+     *
+     * @author Joe Stump <joe@joestump.net>
+     * @return mixed PEAR_Error on failure, true on success
+     * @see Payment_Process_Type_CreditCard::_getValidateTypeMap()
+     * @see Validate_Finance_CreditCard
+     */
     function _validateCardNumber()
     {
-        return Validate_Finance_CreditCard::number($this->cardNumber); 
+        if (!Validate_Finance_CreditCard::number($this->cardNumber)) {
+            return PEAR::raiseError('Invalid credit card number');
+        }
+
+        return true;
     }
-    // }}}
-    // {{{ _validateType()
+
     /**
-    * _validateType
-    *
-    * Uses Validate_Finance_CreditCard to validate the type.
-    *
-    * @author Joe Stump <joe@joestump.net>
-    * @return bool
-    * @see Payment_Process_Type_CreditCard::_getValidateTypeMap()
-    * @see Validate_Finance_CreditCard
-    */
+     * _validateType
+     *
+     * Uses Validate_Finance_CreditCard to validate the type.
+     *
+     * @author Joe Stump <joe@joestump.net>
+     * @return mixed PEAR_Error on failure, true on success
+     * @see Payment_Process_Type_CreditCard::_getValidateTypeMap()
+     * @see Validate_Finance_CreditCard
+     */
     function _validateType()
     {
         if (!($type = $this->_mapType())) {
-            return false;
+            return PEAR::raiseError('Invalid type map provided in driver');
         }
 
-        return Validate_Finance_CreditCard::type($this->cardNumber, $type);
+        if (!Validate_Finance_CreditCard::type($this->cardNumber, $type)) {
+            return PEAR::raiseError('Credit card type not recognized or does not match the card number given');
+        }
+
+        return true;
     }
-    // }}} 
-    // {{{ _validateCvv()
+
     /**
      * Validates the card verification value
      *
-     * @return bool FALSE is CVV was set and is not valid, TRUE otherwise
+     * @return bool PEAR_Error is CVV was set and is not valid, TRUE otherwise
      * @access protected
      */
     function _validateCvv()
@@ -94,13 +99,16 @@ class Payment_Process_Type_CreditCard extends Payment_Process_Type
         }
 
         if (!($type = $this->_mapType())) {
-            return false;
+            return PEAR::raiseError('Invalid type map provided in driver');
         }
 
-        return Validate_Finance_CreditCard::cvv($this->cvv, $type);
+        if (!Validate_Finance_CreditCard::cvv($this->cvv, $type)) {
+            return PEAR::raiseError('CVV code is invalid or does not match the card type');
+        }
+
+        return true;
     }
-    // }}}
-    // {{{ _validateExpDate()
+
     /**
      * Validate the card's expiration date.
      *
@@ -112,7 +120,7 @@ class Payment_Process_Type_CreditCard extends Payment_Process_Type
     {
         list($month, $year) = explode('/', $this->expDate);
         if (!is_numeric($month) || !is_numeric($year)) {
-            return false;
+            return PEAR::raiseError('Invalid expiration date provided');
         }
         
         $monthOptions = array('min'     => 1,
@@ -132,10 +140,9 @@ class Payment_Process_Type_CreditCard extends Payment_Process_Type
             }
         }
                                                                                 
-        return false;
+        return PEAR::raiseError('Invalid expiration date provided');
     }
-    // }}} 
-    // {{{ _mapType()
+
     /**
      * Maps a PAYMENT_PROCESS_CC_* constant with a with a value suitable
      * to Validate_Finance_CreditCard package
@@ -166,7 +173,6 @@ class Payment_Process_Type_CreditCard extends Payment_Process_Type
             return false;
         }
     }
-    // }}}
 }
 
 ?>

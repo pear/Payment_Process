@@ -201,37 +201,39 @@ class Payment_Process_Common {
             is_array($this->_typeFieldMap[$payment->getType()]) &&
             count($this->_typeFieldMap[$payment->getType()])) {
 
-            if (Payment_Process_Type::isValid($payment)) {
+            $result = Payment_Process_Type::isValid($payment);
+            if (PEAR::isError($result)) {
+                return $result;
+            }
 
-                $this->_payment = $payment;
-                // Map over the payment specific fields. Check out
-                // $_typeFieldMap for more information.
-                $paymentType = $payment->getType();
-                foreach ($this->_typeFieldMap[$paymentType] as $generic => $specific) {
+            $this->_payment = $payment;
+            // Map over the payment specific fields. Check out
+            // $_typeFieldMap for more information.
+            $paymentType = $payment->getType();
+            foreach ($this->_typeFieldMap[$paymentType] as $generic => $specific) {
                   
-                    $func = '_handle'.ucfirst($generic);
-                    if (method_exists($this, $func)) {
-                        $result = $this->$func();
-                        if (PEAR::isError($result)) {
-                            return $result;
-                        }
-                    } else {
-                        // TODO This may screw things up - the problem is that
-                        // CC information is no longer member variables, so we
-                        // can't overwrite it. You could always handle this 
-                        // with a _handle funciton. I don't think it will cause
-                        // problems, but it could.
-                        if (!isset($this->_data[$specific])) {
-                            $this->_data[$specific] = $this->_payment->$generic;
-                        }
+                $func = '_handle'.ucfirst($generic);
+                if (method_exists($this, $func)) {
+                    $result = $this->$func();
+                    if (PEAR::isError($result)) {
+                        return $result;
+                    }
+                } else {
+                    // TODO This may screw things up - the problem is that
+                    // CC information is no longer member variables, so we
+                    // can't overwrite it. You could always handle this 
+                    // with a _handle funciton. I don't think it will cause
+                    // problems, but it could.
+                    if (!isset($this->_data[$specific])) {
+                        $this->_data[$specific] = $this->_payment->$generic;
                     }
                 }
-
-                return true;
             }
+
+            return true;
         }
 
-        return false;
+        return PEAR::raiseError('Invalid type field map');
     }
     // }}}
     // {{{ setFrom($where)

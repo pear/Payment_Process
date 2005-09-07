@@ -182,19 +182,22 @@ class Payment_Process_Type
     */
     function isValid($obj)
     {
-        if (is_a($obj,'Payment_Process_Type')) {
-            $vars = get_object_vars($obj);
-            foreach ($vars as $validate => $value) {
-                $method = '_validate'.ucfirst($validate);
-                if (method_exists($obj, $method) && !$obj->$method()) {
-                    return false;
-                }
-            }
-
-            return true;
+        if (!is_a($obj,'Payment_Process_Type')) {
+            return PEAR::raiseError('Not a valid payment type');
         }
 
-        return false;
+        $vars = get_object_vars($obj);
+        foreach ($vars as $validate => $value) {
+            $method = '_validate'.ucfirst($validate);
+            if (method_exists($obj, $method)) {
+                $result = $obj->$method();
+                if (PEAR::isError($result)) {
+                    return $result;
+                }
+            }
+        }
+
+        return true;
     }
     // }}}
     // {{{ getType()

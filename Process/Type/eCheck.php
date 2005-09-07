@@ -28,17 +28,17 @@
 class Payment_Process_Type_eCheck extends Payment_Process_Type
 {
     /** 
-    * $_type
-    *
-    * @var string $_type
-    */
+     * $_type
+     *
+     * @var string $_type
+     */
     var $_type = 'eCheck';
 
     /**
-    * $type
-    *
-    * @var $type
-    */
+     * $type
+     *
+     * @var $type
+     */
     var $type;
     var $accountNumber;
     var $routingCode;
@@ -53,17 +53,29 @@ class Payment_Process_Type_eCheck extends Payment_Process_Type
 
     function _validateAccountNumber()
     {
-        return (isset($this->accountNumber));
+        if (!isset($this->accountNumber)) {
+            return PEAR::raiseError('Account number is required');
+        }
+
+        return true;
     }
 
     function _validateRoutingCode()
     {
-        return (isset($this->routingCode));
+        if (!isset($this->routingCode)) {
+            return PEAR::raiseError('Routing code is required');
+        }
+
+        return true;
     }
 
     function _validateBankName()
     {
-        return (isset($this->bankName));
+        if (!isset($this->bankName)) {
+            return PEAR::raiseError('Bank name is required');
+        }
+
+        return true;
     }
 }
 
