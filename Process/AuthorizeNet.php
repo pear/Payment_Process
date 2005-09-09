@@ -128,7 +128,6 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
          'x_encap_char' => '|',
          'x_relay'      => 'FALSE',
          'x_email_customer' => 'FALSE',
-         'x_test_request'   => 'TRUE',
          'x_currency_code'  => 'USD',
          'x_version'        => '3.1'
     );
@@ -641,8 +640,12 @@ class Payment_Process_Result_AuthorizeNet extends Payment_Process_Result {
 
         $this->_mapFields($responseArray);
 
-        // Adjust result code if needed for DUPLICATE and FRAUD
+        // Adjust result code/message if needed based on raw code
         switch ($this->messageCode) {
+            case 33:
+                // Something is missing so we send the raw message back
+                $this->_statusCodeMessages[33] = $this->message;
+                break;
             case 11:
                 // Duplicate transactions
                 $this->code = PAYMENT_PROCESS_RESULT_DUPLICATE;

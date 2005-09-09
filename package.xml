@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
-<!-- $Id: package.xml,v 1.41 2005-09-07 22:50:32 jstump Exp $ -->
+<!-- $Id: package.xml,v 1.42 2005-09-09 00:39:38 jstump Exp $ -->
 <package version="1.0">
     <name>Payment_Process</name>
     <summary>Unified payment processor</summary>
@@ -38,6 +38,8 @@
         <notes><![CDATA[
             * Updated all validate functions and validation to return PEAR_Error instead of simple bool to provide better error messaging
             * Validation upgrade BREAKS BACKWARD COMPATIBILITY (see examples/creditcard.php lines 29-34) for Payment_Process_Type::isValid() and setting payments with setPayment() in your gateway
+            * Altered AuthorizeNet driver to report better error messages when message code is 33 (missing required field)
+            * Test mode in AuthorizeNet no longer turned on by default
         ]]></notes>
         <filelist>
             <dir name="/" baseinstalldir="Payment">
