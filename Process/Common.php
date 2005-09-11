@@ -176,7 +176,7 @@ class Payment_Process_Common {
      * @author Joe Stump <joe@joestump.net>
      * @access public
      */
-    function Payemnt_Process_Common($options = false)
+    function Payment_Process_Common($options = false)
     {
         $this->__construct();
     }
