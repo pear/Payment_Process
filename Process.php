@@ -499,7 +499,7 @@ class Payment_Process_Result {
 
         $paymentType = $this->_request->_payment->_type;
         if ($this->_request->getOption('cvvCheck') === true &&
-            $paymentType == PAYMENT_PROCESS_TYPE_CREDITCARD) {
+            $paymentType == 'CreditCard') {
 
             if ($this->getCvvCode() != PAYMENT_PROCESS_CVV_MATCH) {
                 return PEAR::raiseError('CVV check failed',
