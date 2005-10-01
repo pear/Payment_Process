@@ -56,7 +56,7 @@ class Payment_Process_Type_CreditCard extends Payment_Process_Type
      */
     function _validateCardNumber()
     {
-        if (!Validate_Finance_CreditCard::number($this->cardNumber)) {
+        if (!Validate_Finance_CreditCard::number($this->cardNumber, $this->_mapType())) {
             return PEAR::raiseError('Invalid credit card number');
         }
 
