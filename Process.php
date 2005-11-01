@@ -1,7 +1,9 @@
 <?php
+
 /* vim: set expandtab tabstop=4 shiftwidth=4: */
+
 /**
- * Process.php
+ * Main package file
  *
  * Process.php is a unified OOP abstraction layer for credit card and echeck
  * processing gateways (similar to what DB does for database calls).
@@ -20,7 +22,7 @@
  * @author     Joe Stump <joe@joestump.net>
  * @copyright  1997-2005 The PHP Group
  * @license    http://www.php.net/license/3_0.txt  PHP License 3.0
- * @version    CVS: $Revision$
+ * @version    CVS: $Id$
  * @link       http://pear.php.net/package/Payment_Process
  */
 
@@ -29,7 +31,9 @@ require_once('Validate.php');
 require_once('Validate/Finance/CreditCard.php');
 require_once('Payment/Process/Type.php');
 
-// Error codes
+/**
+ * Error codes
+ */
 define('PAYMENT_PROCESS_ERROR_NOTIMPLEMENTED', -100);
 define('PAYMENT_PROCESS_ERROR_NOFIELD',        -101);
 define('PAYMENT_PROCESS_ERROR_NOPROCESSOR',    -102);
@@ -38,6 +42,9 @@ define('PAYMENT_PROCESS_ERROR_INVALID',    -2);
 define('PAYMENT_PROCESS_ERROR_AVS',        -3);
 define('PAYMENT_PROCESS_ERROR_CVV',        -4);
 
+/**
+ * Transaction actions
+ */
 /**
  * A normal transaction
  */
@@ -224,13 +231,12 @@ class Payment_Process {
         $consts = get_defined_constants();
         $found = false;
         foreach ($consts as $constant => $constVal) {
-            if (strncmp($constClass, $constant, $length) === 0 &&
-                $constVal == $value) {
+            if (strncmp($constClass, $constant, $length) === 0
+                  && $constVal == $value) {
                 $found = true;
                 break;
             }
         }
-
         return $found;
     }
 
