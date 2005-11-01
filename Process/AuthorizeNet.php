@@ -15,22 +15,20 @@
  *
  * @category   Payment
  * @package    Payment_Process
- * @author     Joe Stump <joe@joestump.net> 
+ * @author     Joe Stump <joe@joestump.net>                                |
  * @author     Philippe Jausions <Philippe.Jausions@11abacus.com>
  * @copyright  1997-2005 The PHP Group
  * @license    http://www.php.net/license/3_0.txt  PHP License 3.0
- * @version    CVS: $Revision$
+ * @version    CVS: $Id$
  * @link       http://pear.php.net/package/Payment_Process
  */
 
-require_once('Payment/Process.php');
-require_once('Payment/Process/Common.php');
-require_once('Net/Curl.php');
+require_once 'Payment/Process.php';
+require_once 'Payment/Process/Common.php';
+require_once 'Net/Curl.php';
 
 /**
  * Defines global variables
- *
- * @define
  */
 $GLOBALS['_Payment_Process_AuthorizeNet'] = array(
     PAYMENT_PROCESS_ACTION_NORMAL   => 'AUTH_CAPTURE',
@@ -55,7 +53,8 @@ $GLOBALS['_Payment_Process_AuthorizeNet'] = array(
  * @version    @version@
  * @link       http://www.authorize.net/
  */
-class Payment_Process_AuthorizeNet extends Payment_Process_Common {
+class Payment_Process_AuthorizeNet extends Payment_Process_Common
+{
     /**
      * Front-end -> back-end field map.
      *
@@ -90,7 +89,6 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
         'ip'            => 'x_customer_ip',
     );
 
-
     /**
      * $_typeFieldMap
      *
@@ -100,18 +98,18 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
     var $_typeFieldMap = array(
 
            'CreditCard' => array(
-                    'firstName' => 'x_first_name',
-                    'lastName' => 'x_last_name',
-                    'cardNumber' => 'x_card_num',
-                    'cvv'        => 'x_card_code',
-                    'expDate'    => 'x_exp_date'
+                'firstName'  => 'x_first_name',
+                'lastName'   => 'x_last_name',
+                'cardNumber' => 'x_card_num',
+                'cvv'        => 'x_card_code',
+                'expDate'    => 'x_exp_date'
            ),
 
            'eCheck' => array(
-                    'routingCode'   => 'x_bank_aba_code',
-                    'accountNumber' => 'x_bank_acct_num',
-                    'type'          => 'x_bank_acct_type',
-                    'bankName'      => 'x_bank_name'
+                'routingCode'   => 'x_bank_aba_code',
+                'accountNumber' => 'x_bank_acct_num',
+                'type'          => 'x_bank_acct_type',
+                'bankName'      => 'x_bank_name'
            )
     );
 
@@ -317,21 +315,38 @@ class Payment_Process_AuthorizeNet extends Payment_Process_Common {
             }
         }
 
+        // Keep a trace of characters we will get back
+        // so we can set an appropriate encapsulation character
+        $chars = '';
+
         $return = array();
         foreach ($data as $key => $val) {
-            if (substr($key,0,2) == 'x_' && 
-                strlen($val)) {
-                $return[$key] = $val;
+            if (substr($key, 0, 2) == 'x_'
+                  && $key != 'x_encap_char'
+                  && strlen($val)) {
+                $return[] = $key . '=' . rawurlencode($val);
+                $chars .= $val;
             }
         }
 
-        return $return;
+        // Find an appropriate encapsulation character
+        $encap = str_replace(array_unique(str_split($chars)), '', $data['x_encap_char']{0} . $this->_encapChars);
+
+        if (strlen($encap) == 0) {
+            $encap = $data['x_encap_char']{0};
+        } else {
+            $encap = $encap{0};
+        }
+        $this->_options['x_encap_char'] = $encap;
+        $return[] = 'x_encap_char=' . rawurlencode($encap);
+
+        return implode('&', $return);
     }
 
     /**
      * _handleName
      *
-     * If it's an eCheck we need to combine firstName and lastName into a 
+     * If it's an eCheck we need to combine firstName and lastName into a
      * single account name.
      *
      * @author Joe Stump <joe@joestump.net>
@@ -553,19 +568,19 @@ class Payment_Process_Result_AuthorizeNet extends Payment_Process_Result {
     );
 
     var $_avsCodeMessages = array(
-        'A' => 'Address matches, ZIP does not',
+        'A' => 'Address matches, postal code does not',
         'B' => 'Address information not provided',
-        'E' => 'AVS Error',
+        'E' => 'Address Verification System Error',
         'G' => 'Non-U.S. Card Issuing Bank',
-        'N' => 'No match',
-        'P' => 'AVS not applicable',
+        'N' => 'No match on street address nor postal code',
+        'P' => 'Address Verification System not applicable',
         'R' => 'Retry - System unavailable or timeout',
         'S' => 'Service not supported by issuer',
         'U' => 'Address information unavailable',
-        'W' => '9-digit zip matches, Address (street) does not',
-        'X' => 'Address and 9-digit zip match',
-        'Y' => 'Address and 5-digit zip match',
-        'Z' => '5-digit zip matches, Address (street) does not'
+        'W' => '9-digit postal code matches, street address does not',
+        'X' => 'Address and 9-digit postal code match',
+        'Y' => 'Address and 5-digit postal code match',
+        'Z' => '5-digit postal code matches, street address does not'
     );
 
     var $_cvvCodeMap = array('M' => PAYMENT_PROCESS_CVV_MATCH,
@@ -576,8 +591,8 @@ class Payment_Process_Result_AuthorizeNet extends Payment_Process_Result {
     );
 
     var $_cvvCodeMessages = array(
-        'M' => 'CVV codes match',
-        'N' => 'CVV codes do not match',
+        'M' => 'CVV code matches',
+        'N' => 'CVV code does not match',
         'P' => 'CVV code was not processed',
         'S' => 'CVV code should have been present',
         'U' => 'Issuer unable to process request',
@@ -700,9 +715,9 @@ class Payment_Process_Result_AuthorizeNet extends Payment_Process_Result {
      * the login name is CASE-SENSITIVE!!! (even though you can log in
      * using it all lowered case...)
      *
+     * @return mixed TRUE if response is legitimate, FALSE if not, PEAR_Error on error
      * @access public
      * @author Philippe Jausions <Philippe.Jausions@11abacus.com>
-     * @return mixed TRUE if response is legitimate, FALSE if not, PEAR_Error on error
      */
     function isLegitimate()
     {
@@ -715,7 +730,7 @@ class Payment_Process_Result_AuthorizeNet extends Payment_Process_Result {
         $fields = $this->_request->login . $this->transactionId
                     . $this->_amount;
         if (is_array($md5Value)) {
-            if (strcasecmp($this->_md5Hash, md5($md5Value['new'] . $fields)) == 0 || 
+            if (strcasecmp($this->_md5Hash, md5($md5Value['new'] . $fields)) == 0 ||
                 strcasecmp($this->_md5Hash, md5($md5Value['old'] . $fields)) == 0) {
 
                 return true;
