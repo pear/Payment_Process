@@ -603,7 +603,9 @@ class Payment_Process_Common {
                 // a _handle funciton. I don't think it will cause problems,
                 // but it could.
                 if (!isset($this->_data[$specific])) {
-                    $this->_data[$specific] = $this->$generic;
+                    if (isset($this->$generic)) {
+                        $this->_data[$specific] = $this->$generic;
+                    }
 
                     // Form of payments data overrides those set in the
                     // Payment_Process_Common.
