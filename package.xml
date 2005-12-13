@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
-<!-- $Id: package.xml,v 1.43 2005-09-13 15:24:56 jstump Exp $ -->
+<!-- $Id: package.xml,v 1.44 2005-12-13 00:29:27 jstump Exp $ -->
 <package version="1.0">
     <name>Payment_Process</name>
     <summary>Unified payment processor</summary>
@@ -32,16 +32,12 @@
         </maintainer>
     </maintainers>
     <release>
-        <version>0.6.3</version>
+        <version>0.6.4</version>
         <state>beta</state>
-        <date>2005-09-07</date>
+        <date>2005-12-12</date>
         <notes><![CDATA[
-            * Updated all validate functions and validation to return PEAR_Error instead of simple bool to provide better error messaging
-            * Validation upgrade BREAKS BACKWARD COMPATIBILITY (see examples/creditcard.php lines 29-34) for Payment_Process_Type::isValid() and setting payments with setPayment() in your gateway
-            * Altered AuthorizeNet driver to report better error messages when message code is 33 (missing required field)
-            * Test mode in AuthorizeNet no longer turned on by default
-            * Fixed mispelled Payment_Process_Common() (Bug #5360)
-            * Fixed use of undefined PAYMENT_PROCESS_TYPE_CREDITCARD (Bug #5375)
+            * Fixed undefined property notices in Payment_Process_Common
+            * Added package2.xml
         ]]></notes>
         <filelist>
             <dir name="/" baseinstalldir="Payment">
@@ -77,8 +73,53 @@
             <dep type="pkg" optional="no" rel="ge" version="0.5.0">Validate_Finance_CreditCard</dep>
         </deps>
     </release>
-
     <changelog>
+        <release>
+            <version>0.6.3</version>
+            <state>beta</state>
+            <date>2005-09-07</date>
+            <notes><![CDATA[
+                * Updated all validate functions and validation to return PEAR_Error instead of simple bool to provide better error messaging
+                * Validation upgrade BREAKS BACKWARD COMPATIBILITY (see examples/creditcard.php lines 29-34) for Payment_Process_Type::isValid() and setting payments with setPayment() in your gateway
+                * Altered AuthorizeNet driver to report better error messages when message code is 33 (missing required field)
+                * Test mode in AuthorizeNet no longer turned on by default
+                * Fixed mispelled Payment_Process_Common() (Bug #5360)
+                * Fixed use of undefined PAYMENT_PROCESS_TYPE_CREDITCARD (Bug #5375)
+            ]]></notes>
+            <filelist>
+                <dir name="/" baseinstalldir="Payment">
+                    <file role="php">Process.php</file>
+                    <dir name="Process">
+                        <file role="php">Common.php</file>
+                        <file role="php">AuthorizeNet.php</file>
+                        <file role="php">Bibit.php</file>
+                        <file role="php">LinkPoint.php</file>
+                        <file role="php">Transfirst.php</file>
+                        <file role="php">TrustCommerce.php</file>
+                        <file role="php">Dummy.php</file>
+                        <file role="php">Type.php</file>
+                        <dir name="Type">
+                            <file role="php">CreditCard.php</file>
+                            <file role="php">eCheck.php</file>
+                        </dir>
+                    </dir>
+                </dir>
+                <dir name="examples" baseinstalldir="docs/Payment_Process">
+                    <file role="doc">Payment_Process-example.php</file>
+                    <file role="doc">creditcard.php</file>
+                    <file role="doc">linkpoint.php</file>
+                    <file role="doc">echeck.php</file>
+                    <file role="doc">TrustCommerce_creditcard.php</file>
+                </dir>
+            </filelist>
+            <deps>
+                <dep type="pkg" optional="yes" rel="ge" version="1.2.6">XML_Parser</dep>
+                <dep type="pkg" optional="yes" rel="ge" version="1.2.0">Net_Curl</dep>
+                <dep type="php" optional="no" rel="ge" version="4.2.0"/>
+                <dep type="pkg" optional="no" rel="ge" version="0.5.0">Validate</dep>
+                <dep type="pkg" optional="no" rel="ge" version="0.5.0">Validate_Finance_CreditCard</dep>
+            </deps>
+        </release>
         <release>
             <version>0.6.2</version>
             <state>beta</state>
@@ -122,7 +163,6 @@
                 <dep type="pkg" optional="no" rel="ge" version="0.5.0">Validate_Finance_CreditCard</dep>
             </deps>
         </release>
-
         <release>
             <version>0.6.1</version>
             <state>beta</state>
@@ -263,7 +303,6 @@
                 <dep type="pkg" optional="no" rel="ge" version="0.2.0">Validate</dep>
             </deps>
         </release>
-
         <release>
             <version>0.5.7</version>
             <state>beta</state>
