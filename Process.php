@@ -122,8 +122,9 @@ class Payment_Process {
             }
         }
 
-        return PEAR::raiseError('"'.$type.'" processor does not exist',
+        $ret = PEAR::raiseError('"'.$type.'" processor does not exist',
                                 PAYMENT_PROCESS_ERROR_NOPROCESSOR);
+        return $ret;
 
     }
 
@@ -485,7 +486,8 @@ class Payment_Process_Result {
             return $ret;
         }
 
-        return PEAR::raiseError('Invalid response type: '.$type.'('.$class.')');
+        $ret = PEAR::raiseError('Invalid response type: '.$type.'('.$class.')');
+        return $ret;
     }
 
     /**
