@@ -481,7 +481,8 @@ class Payment_Process_Result {
     {
         $class = 'Payment_Process_Result_'.$type;
         if (class_exists($class)) {
-            return new $class($rawResponse, $request);
+            $ret = new $class($rawResponse, $request);
+            return $ret;
         }
 
         return PEAR::raiseError('Invalid response type: '.$type.'('.$class.')');

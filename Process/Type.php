@@ -162,7 +162,8 @@ class Payment_Process_Type
         $file = 'Payment/Process/Type/'.$type.'.php';
         if (include_once($file)) {
             if (class_exists($class)) {
-                return new $class();
+                $ret = new $class();
+                return $ret;
             }
         }
 
