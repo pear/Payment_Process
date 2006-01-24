@@ -167,7 +167,8 @@ class Payment_Process_Type
             }
         }
 
-        return PEAR::raiseError('Invalid Payment_Process_Type: '.$type);
+        $ret = PEAR::raiseError('Invalid Payment_Process_Type: '.$type);
+        return $ret;
     }
     // }}}
     // {{{ isValid()
