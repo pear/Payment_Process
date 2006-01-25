@@ -36,11 +36,11 @@
         <email>Philippe.Jausions@11abacus.com</email>
         <active>yes</active>
     </helper>
-    <date>2005-12-12</date>
+    <date>2006-01-25</date>
     <time>16:03:42</time>
     <version>
-        <release>0.6.4</release>
-        <api>0.6.4</api>
+        <release>0.6.5</release>
+        <api>0.6.5</api>
     </version>
     <stability>
         <release>beta</release>
@@ -48,8 +48,7 @@
     </stability>
     <license uri="http://www.opensource.org/licenses/php.php">PHP License v3.0</license>
     <notes><![CDATA[
-        * Fixed undefined property notices in Payment_Process_Common
-        * Added package2.xml
+        * Fix more returning of non-variables by reference.
     ]]></notes>
 
     <contents>
