@@ -75,6 +75,9 @@ define('PAYMENT_PROCESS_ACTION_VOID',     204);
  */
 define('PAYMENT_PROCESS_SOURCE_POS',      300);
 define('PAYMENT_PROCESS_SOURCE_ONLINE',   301);
+define('PAYMENT_PROCESS_SOURCE_PHONE',    302);
+define('PAYMENT_PROCESS_SOURCE_MAIL',     303);
+
 
 /**
  * Result codes
