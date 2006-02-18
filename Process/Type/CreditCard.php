@@ -88,7 +88,7 @@ class Payment_Process_Type_CreditCard extends Payment_Process_Type
      *
      * @author Joe Stump <joe@joestump.net>
      * @return mixed PEAR_Error on failure, TRUE on success
-     * @see Payment_Process_Type_CreditCard::_getValidateTypeMap()
+     * @see Payment_Process_Type_CreditCard::_mapType()
      * @see Validate_Finance_CreditCard
      */
     function _validateCardNumber()
@@ -107,7 +107,7 @@ class Payment_Process_Type_CreditCard extends Payment_Process_Type
      *
      * @author Joe Stump <joe@joestump.net>
      * @return mixed PEAR_Error on failure, TRUE on success
-     * @see Payment_Process_Type_CreditCard::_getValidateTypeMap()
+     * @see Payment_Process_Type_CreditCard::_mapType()
      * @see Validate_Finance_CreditCard
      */
     function _validateType()
@@ -176,7 +176,7 @@ class Payment_Process_Type_CreditCard extends Payment_Process_Type
                 return true;
             }
         }
-    
+
         return PEAR::raiseError('Invalid expiration date provided');
     }
 
