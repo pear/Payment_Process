@@ -41,6 +41,7 @@ define('PAYMENT_PROCESS_ERROR_INCOMPLETE', -1);
 define('PAYMENT_PROCESS_ERROR_INVALID',    -2);
 define('PAYMENT_PROCESS_ERROR_AVS',        -3);
 define('PAYMENT_PROCESS_ERROR_CVV',        -4);
+define('PAYMENT_PROCESS_ERROR_COMMUNICATION',  -200);
 
 /**
  * Transaction actions
