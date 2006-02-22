@@ -27,10 +27,10 @@
 /**
  * Required includes
  */
-require_once('Payment/Process.php');
-require_once('Payment/Process/Common.php');
-require_once('Net/Curl.php');
-require_once('XML/Parser.php');
+require_once 'Payment/Process.php';
+require_once 'Payment/Process/Common.php';
+require_once 'Net/Curl.php';
+require_once 'XML/Parser/Simple.php';
 
 /**
  * Global (private) configuration
@@ -87,7 +87,6 @@ class Payment_Process_Litle extends Payment_Process_Common
         'amount'            => 'amount',
         'transactionSource' => 'orderSource',
         'customerId'        => 'customerId',
-        'name'              => 'name',
         'description'       => 'descriptor',
         'address'           => 'addressLine1',
         'city'              => 'city',
@@ -106,6 +105,7 @@ class Payment_Process_Litle extends Payment_Process_Common
     var $_typeFieldMap = array(
 
         'CreditCard' => array(
+            'name'       => 'name',
             'type'       => 'type',
             'cardNumber' => 'number',
             'cvv'        => 'cardValidationNum',
@@ -243,8 +243,8 @@ class Payment_Process_Litle extends Payment_Process_Common
      */
     function _handleExpDate()
     {
-        $this->_data[$this->_fieldMap['expDate']] = substr($this->expDate, 0, 2)
-                                                    . substr($this->expDate, -2);
+        $this->_data[$this->_typeFieldMap['CreditCard']['expDate']]
+            = substr($this->_payment->expDate, 0, 2) . substr($this->_payment->expDate, -2);
     }
 
     /**
@@ -289,11 +289,13 @@ class Payment_Process_Litle extends Payment_Process_Common
     function &process()
     {
         if (!strlen($this->_options['merchantId'])) {
-            return PEAR::raiseError('Missing merchant Id option value');
+            return PEAR::raiseError('Missing merchant Id option value',
+                                        PAYMENT_PROCESS_ERROR_INCOMPLETE);
         }
 
         if (!strlen($this->_options['reportGroup'])) {
-            return PEAR::raiseError('Missing report group option value');
+            return PEAR::raiseError('Missing report group option value',
+                                        PAYMENT_PROCESS_ERROR_INCOMPLETE);
         }
 
         // Sanity check
@@ -311,7 +313,6 @@ class Payment_Process_Litle extends Payment_Process_Common
         // Don't die partway through
         PEAR::pushErrorHandling(PEAR_ERROR_RETURN);
 
-
         $xml = $this->_prepareQueryString();
         if (PEAR::isError($xml)) {
             return $xml;
@@ -319,6 +320,9 @@ class Payment_Process_Litle extends Payment_Process_Common
 
         $url = 'https://'.$this->_options['host'].':'.$this->_options['port'].
                '/vap/communicator/online';
+
+        //echo '<p>HERE::' . basename(__FILE__) . '(' . __LINE__ . ')</p>';
+        //echo '<pre>' . nl2br(htmlspecialchars($xml)) . '</pre>';
 
         $curl =& new Net_Curl($url);
         $result = $curl->create();
@@ -341,13 +345,15 @@ class Payment_Process_Litle extends Payment_Process_Common
         $this->_responseBody = trim($result);
         $this->_processed = true;
 
+        //echo '<p>HERE::' . basename(__FILE__) . '(' . __LINE__ . ')</p>';
+        //echo '<pre>' . nl2br(htmlspecialchars($this->_responseBody)) . '</pre>';
+
         // Restore error handling
         PEAR::popErrorHandling();
 
         $response = &Payment_Process_Result::factory($this->_driver,
                                                      $this->_responseBody,
                                                      &$this);
-
         if (!PEAR::isError($response)) {
             $result = $response->parse();
             if (PEAR::isError($result)) {
@@ -413,14 +419,15 @@ class Payment_Process_Litle extends Payment_Process_Common
                 $tag = 'void';
                 break;
             default:
-                return PEAR::raiseError('Unsupported or invalid action');
+                return PEAR::raiseError('Unsupported or invalid action',
+                                            PAYMENT_PROCESS_ERROR_INVALID);
         }
 
         // Generate a merchant-side transaction ID (must be unique for all transactions)
         // For portability across all back-end processor, we generate one here.
         // Eventually, the user of the package should be able to overwrite this value.
         // Litle specifications limit the ID to 25 chars.
-        $id = date('Ymd:His') . '-' . $data['orderId'] . '-' . md5(mt_rand());
+        $id = gmmktime() . '-' . $data['orderId'] . '-' . md5(mt_rand());
         $id = substr($id, 0, 25);
 
         $xml .= '<' . $tag . ' id="' . htmlspecialchars($id) . '" reportGroup="'
@@ -465,9 +472,8 @@ class Payment_Process_Litle extends Payment_Process_Common
     function _prepareBillToAddress()
     {
         $xml = '';
-        if (isset($this->_payment->firstName) && isset($this->_payment->lastName)) {
-            $$xml .= '  <name>' . $this->_xml_escape($this->_payment->firstName)
-                 . ' ' . $this->_xml_escape($this->_payment->lastName).'</name>'."\n";
+        if (isset($this->_payment->name)) {
+            $xml .= '  <name>'.$this->_xml_escape($this->_payment->name).'</name>'."\n";
         }
         if (isset($this->_payment->address)) {
             $xml .= '  <addressLine1>'.$this->_xml_escape($this->_payment->address)
@@ -592,7 +598,7 @@ class Payment_Process_Result_Litle extends Payment_Process_Result
         '124' => 'Call JBS',
         '125' => 'Call Visa/MasterCard',
         '126' => 'Call issuer - Update cardholder data',
-        '130' => '', // Call (number...) To be replaced by actual message
+        '130' => 'Call issuer', // Call (number...) To be replaced by actual message
         '140' => 'Update cardholder data',
         '301' => 'Invalid account number',
         '302' => 'Account number does not match payment type',
@@ -612,7 +618,7 @@ class Payment_Process_Result_Litle extends Payment_Process_Result
         '354' => '3DS transaction not supported for merchant',
         '355' => 'Failed velocity check',
         '360' => 'No transaction found with specified litleTxnId',
-        '361' => 'Transaction found buy already referenced by another deposit',
+        '361' => 'Transaction found but already referenced by another deposit',
         '362' => 'Transaction not voided - Already settled',
         '370' => 'Internal system error - Call Litle & Co.',
     );
@@ -635,9 +641,9 @@ class Payment_Process_Result_Litle extends Payment_Process_Result
         '20' => PAYMENT_PROCESS_AVS_MISMATCH,
         '30' => PAYMENT_PROCESS_AVS_ERROR,
         '31' => PAYMENT_PROCESS_AVS_ERROR,
-        '32' => PAYMENT_PROCESS_AVS_ERROR,
+        '32' => PAYMENT_PROCESS_AVS_NOAPPLY,
         '33' => PAYMENT_PROCESS_AVS_ERROR,
-        '34' => PAYMENT_PROCESS_AVS_ERROR,
+        '34' => PAYMENT_PROCESS_AVS_NOAPPLY,
         '40' => PAYMENT_PROCESS_AVS_ERROR,
     );
 
@@ -667,9 +673,9 @@ class Payment_Process_Result_Litle extends Payment_Process_Result
      */
     var $_cvvCodeMap = array('M' => PAYMENT_PROCESS_CVV_MATCH,
                              'N' => PAYMENT_PROCESS_CVV_MISMATCH,
-                             'P' => PAYMENT_PROCESS_CVV_ERROR,
+                             'P' => PAYMENT_PROCESS_CVV_NOAPPLY,
                              'S' => PAYMENT_PROCESS_CVV_ERROR,
-                             'U' => PAYMENT_PROCESS_CVV_ERROR,
+                             'U' => PAYMENT_PROCESS_CVV_NOAPPLY,
                              ''  => PAYMENT_PROCESS_CVV_ERROR
     );
 
@@ -700,27 +706,41 @@ class Payment_Process_Result_Litle extends Payment_Process_Result
     {
         $xmlParser =& new Payment_Processor_Litle_XML_Parser();
         $xmlParser->folding = false;
-        $result = $xmlParser->parseString($this->_rawResponse);
-        if (!PEAR::isError($result)) {
-            $this->customerId = $this->_request->customerId;
-            $this->invoiceNumber = $this->_request->invoiceNumber;
-            $this->_mapFields($xmlParser->response);
+        $result = $xmlParser->parseString($this->_rawResponse, true);
+
+        //$result = $xmlParser->parse();
+        $response = $xmlParser->response;
+        $xmlParser->free();
+        if (PEAR::isError($result)) {
+            return $result;
         }
+
+        // Check the gateway sent back an understandable response
+        // and accepted the request
+        if (!is_array($response)
+            || !array_key_exists('litleOnlineResponse', $response)
+            || !is_array($response['litleOnlineResponse'])
+            || !array_key_exists('response', $response['litleOnlineResponse'])) {
+            return PEAR::raiseError('Malformed response from gateway');
+
+        } elseif ($response['litleOnlineResponse']['response'] == '1') {
+            return PEAR::raiseError($response['litleOnlineResponse']['message']);
+
+        } elseif ($response['litleOnlineResponse']['response'] != '0') {
+            return PEAR::raiseError('Malformed response from gateway');
+        }
+
+        $this->customerId = $this->_request->customerId;
+        $this->invoiceNumber = $this->_request->invoiceNumber;
+        $this->_mapFields($response);
 
         $this->messageCode = $this->code;
-
-        // Check the gateway accepted the response
-        if (isset($xmlParser->response['litleOnlineResponse']['response'])
-            && $xmlParser->response['litleOnlineResponse']['response'] == '1') {
-
-            return PEAR::raiseError($xmlParser->response['litleOnlineResponse']['message']);
-        }
 
         // Adjust result code/message if needed based on raw code
         switch ($this->messageCode) {
             case 130:
                 // Get the message with the full phone number
-                $this->_statusCodeMessages[$this->messageCode] = xmlParser->response['message'];
+                $this->_statusCodeMessages[$this->messageCode] = $response['message'];
                 break;
         }
 
@@ -742,13 +762,14 @@ class Payment_Process_Result_Litle extends Payment_Process_Result
                 $tag = 'void';
                 break;
             default:
-                return PEAR::raiseError('Unsupported or invalid action');
+                return PEAR::raiseError('Unsupported or invalid action',
+                                            PAYMENT_PROCESS_ERROR_INVALID);
         }
-        if (isset($xmlParser->response[$tag . 'Response']['duplicate'])) {
+        if (isset($response[$tag . 'Response']['duplicate'])) {
             $this->code = 'DUPLICATE';
         }
 
-        $xmlParser->free();
+        return true;
     }
 }
 
@@ -757,9 +778,9 @@ class Payment_Process_Result_Litle extends Payment_Process_Result
  *
  * XML Parser for the Litle response
  *
- * @package Payment_Process
+ * @package Payment_Process_Litle
  */
-class Payment_Processor_Litle_XML_Parser extends XML_Parser
+class Payment_Processor_Litle_XML_Parser extends XML_Parser_Simple
 {
     /**
      * Holds raw response as an array
@@ -770,69 +791,31 @@ class Payment_Processor_Litle_XML_Parser extends XML_Parser
     var $response = array();
 
     /**
-     * Current tag
-     *
-     * @var string $tag
-     * @access private
-     */
-    var $_tag = null;
-
-    /**
      * Payment_Processor_Litle_XML_Parser
      *
-     * @return void
      * @access public
-     * @see XML_Parser
+     * @see XML_Parser_Simple
      */
     function Payment_Processor_Litle_XML_Parser()
     {
-        $this->XML_Parser();
+        $this->XML_Parser_Simple();
     }
 
     /**
-     * Handler for start of tag event
+     * Handles the tag once completed
      *
-     * @param resource $xp XML processor handler
-     * @param string   $elem Name of XML tag
-     * @param array    &$attribs list of attributes name/value pairs
-     * @return void
+     * @param string $name tag name
+     * @param array  $attribs attributes of the tag
+     * @param string $data CDATA
      * @access public
      */
-    function startHandler($xp, $elem, &$attribs)
+    function handleElement($name, $attribs, $data)
     {
-        $this->_tag = $elem;
         if (is_array($attribs) && count($attribs)) {
-            $this->response[$this->_tag] &= $attribs;
-        }
-    }
+            $this->response[$name] = $attribs;
 
-    /**
-     * Handler for end of tag event
-     *
-     * @param resource $xp XML processor handler
-     * @param string $elem Name of XML tag
-     * @return void
-     * @access public
-     */
-    function endHandler($xp, $elem)
-    {
-    }
-
-    /**
-     * Default handler for CDATA
-     *
-     * @param resource $xp XML processor handler
-     * @param string $data
-     * @return void
-     * @access public
-     */
-    function defaultHandler($xp, $data)
-    {
-        if (!array_key_exist($this->_tag, $this->response)) {
-            $this->response[$this->_tag] = '';
-
-        } elseif (is_string($this->response[$this->_tag])) {
-            $this->response[$this->_tag] .= $data;
+        } elseif (strlen(trim($data))) {
+            $this->response[$name] = $data;
         }
     }
 }
