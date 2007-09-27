@@ -26,10 +26,14 @@
  * @link       http://pear.php.net/package/Payment_Process
  */
 
-require_once('PEAR.php');
-require_once('Validate.php');
-require_once('Validate/Finance/CreditCard.php');
-require_once('Payment/Process/Type.php');
+/** Include PEAR for error handling */
+require_once 'PEAR.php';
+/** Include Validate */
+require_once 'Validate.php';
+/** Inclue Validate_Finance_CreditCard for Credit Card number validation */
+require_once 'Validate/Finance/CreditCard.php';
+/** Include Payment_Process_Type */
+require_once 'Payment/Process/Type.php';
 
 /**
  * Error codes
