@@ -18,11 +18,11 @@
 //
 // $Id$
 
-require_once('Payment/Process.php');
-require_once('Payment/Process/Common.php');
-require_once('Net/Curl.php');
-require_once('XML/Util.php');
-require_once('XML/XPath.php');
+require_once 'Payment/Process.php';
+require_once 'Payment/Process/Common.php';
+require_once 'Net/Curl.php';
+require_once 'XML/Util.php';
+require_once 'XML/XPath.php';
 
 define('PAYMENT_PROCESS_ACTION_BIBIT_AUTH', 300);
 define('PAYMENT_PROCESS_ACTION_BIBIT_REDIRECT', 400);
