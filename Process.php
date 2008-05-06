@@ -10,43 +10,71 @@
  *
  * PHP versions 4 and 5
  *
- * LICENSE: This source file is subject to version 3.0 of the PHP license
- * that is available through the world-wide-web at the following URI:
- * http://www.php.net/license/3_0.txt.  If you did not receive a copy of
- * the PHP License and are unable to obtain it through the web, please
- * send a note to license@php.net so we can mail you a copy immediately.
+ * LICENSE:
+ * 
+ * Redistribution and use in source and binary forms, with or without modification,
+ * are permitted provided that the following conditions are met:
+ * 
+ * 1. Redistributions of source code must retain the above copyright notice, this 
+ *    list of conditions and the following disclaimer.
  *
- * @category   Payment
- * @package    Payment_Process
- * @author     Ian Eure <ieure@php.net>
- * @author     Joe Stump <joe@joestump.net>
- * @copyright  1997-2005 The PHP Group
- * @license    http://www.php.net/license/3_0.txt  PHP License 3.0
- * @version    CVS: $Id$
- * @link       http://pear.php.net/package/Payment_Process
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation 
+ *    and/or other materials provided with the distribution.
+ *
+ * 3. The name of the authors may not be used to endorse or promote products 
+ *    derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHORS ``AS IS'' AND ANY EXPRESS OR IMPLIED 
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO 
+ * EVENT SHALL THE AUTHORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+ * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER 
+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ * @category  Payment
+ * @package   Payment_Process
+ * @author    Ian Eure <ieure@php.net>
+ * @author    Joe Stump <joe@joestump.net>
+ * @copyright 1997-2005 The PHP Group
+ * @license   http://www.opensource.org/licenses/bsd-license.php BSD License
+ * @version   CVS: $Id$
+ * @link      http://pear.php.net/package/Payment_Process
  */
 
-/** Include PEAR for error handling */
+/**
+ * Include PEAR for error handling 
+ */
 require_once 'PEAR.php';
-/** Include Validate */
+/**
+ * Include Validate 
+ */
 require_once 'Validate.php';
-/** Inclue Validate_Finance_CreditCard for Credit Card number validation */
+/**
+ * Inclue Validate_Finance_CreditCard for Credit Card number validation 
+ */
 require_once 'Validate/Finance/CreditCard.php';
-/** Include Payment_Process_Type */
+/**
+ * Include Payment_Process_Type 
+ */
 require_once 'Payment/Process/Type.php';
 
 /**
  * Error codes
  */
 define('PAYMENT_PROCESS_ERROR_NOTIMPLEMENTED', -100);
-define('PAYMENT_PROCESS_ERROR_NOFIELD',        -101);
-define('PAYMENT_PROCESS_ERROR_NOPROCESSOR',    -102);
-define('PAYMENT_PROCESS_ERROR_INCOMPLETE',  -1);
-define('PAYMENT_PROCESS_ERROR_INVALID',     -2);
-define('PAYMENT_PROCESS_ERROR_AVS',         -3);
-define('PAYMENT_PROCESS_ERROR_CVV',         -4);
+define('PAYMENT_PROCESS_ERROR_NOFIELD', -101);
+define('PAYMENT_PROCESS_ERROR_NOPROCESSOR', -102);
+define('PAYMENT_PROCESS_ERROR_INCOMPLETE', -1);
+define('PAYMENT_PROCESS_ERROR_INVALID', -2);
+define('PAYMENT_PROCESS_ERROR_AVS', -3);
+define('PAYMENT_PROCESS_ERROR_CVV', -4);
 define('PAYMENT_PROCESS_ERROR_UNSUPPORTED', -5);
-define('PAYMENT_PROCESS_ERROR_COMMUNICATION',  -200);
+define('PAYMENT_PROCESS_ERROR_COMMUNICATION', -200);
 
 /**
  * Transaction actions
@@ -54,7 +82,7 @@ define('PAYMENT_PROCESS_ERROR_COMMUNICATION',  -200);
 /**
  * A normal transaction
  */
-define('PAYMENT_PROCESS_ACTION_NORMAL',   200);
+define('PAYMENT_PROCESS_ACTION_NORMAL', 200);
 
 /**
  * Authorize only. No funds are transferred.
@@ -64,7 +92,7 @@ define('PAYMENT_PROCESS_ACTION_AUTHONLY', 201);
 /**
  * Credit funds back from a previously-charged transaction.
  */
-define('PAYMENT_PROCESS_ACTION_CREDIT',   202);
+define('PAYMENT_PROCESS_ACTION_CREDIT', 202);
 
 /**
  * Post-authorize an AUTHONLY transaction.
@@ -74,15 +102,15 @@ define('PAYMENT_PROCESS_ACTION_POSTAUTH', 203);
 /**
  * Clear a previous transaction
  */
-define('PAYMENT_PROCESS_ACTION_VOID',     204);
+define('PAYMENT_PROCESS_ACTION_VOID', 204);
 
 /**
  * Transaction sources
  */
-define('PAYMENT_PROCESS_SOURCE_POS',      300);
-define('PAYMENT_PROCESS_SOURCE_ONLINE',   301);
-define('PAYMENT_PROCESS_SOURCE_PHONE',    302);
-define('PAYMENT_PROCESS_SOURCE_MAIL',     303);
+define('PAYMENT_PROCESS_SOURCE_POS', 300);
+define('PAYMENT_PROCESS_SOURCE_ONLINE', 301);
+define('PAYMENT_PROCESS_SOURCE_PHONE', 302);
+define('PAYMENT_PROCESS_SOURCE_MAIL', 303);
 
 
 /**
@@ -90,35 +118,39 @@ define('PAYMENT_PROCESS_SOURCE_MAIL',     303);
  */
 define('PAYMENT_PROCESS_RESULT_APPROVED', 400);
 define('PAYMENT_PROCESS_RESULT_DECLINED', 401);
-define('PAYMENT_PROCESS_RESULT_OTHER',    402);
-define('PAYMENT_PROCESS_RESULT_FRAUD',    403);
-define('PAYMENT_PROCESS_RESULT_DUPLICATE',404);
-define('PAYMENT_PROCESS_RESULT_REVIEW',   405);
+define('PAYMENT_PROCESS_RESULT_OTHER', 402);
+define('PAYMENT_PROCESS_RESULT_FRAUD', 403);
+define('PAYMENT_PROCESS_RESULT_DUPLICATE', 404);
+define('PAYMENT_PROCESS_RESULT_REVIEW', 405);
 
-define('PAYMENT_PROCESS_AVS_MATCH',       500);
-define('PAYMENT_PROCESS_AVS_MISMATCH',    501);
-define('PAYMENT_PROCESS_AVS_ERROR',       502);
-define('PAYMENT_PROCESS_AVS_NOAPPLY',     503);
+define('PAYMENT_PROCESS_AVS_MATCH', 500);
+define('PAYMENT_PROCESS_AVS_MISMATCH', 501);
+define('PAYMENT_PROCESS_AVS_ERROR', 502);
+define('PAYMENT_PROCESS_AVS_NOAPPLY', 503);
 
-define('PAYMENT_PROCESS_CVV_MATCH',       600);
-define('PAYMENT_PROCESS_CVV_MISMATCH',    601);
-define('PAYMENT_PROCESS_CVV_ERROR',       602);
-define('PAYMENT_PROCESS_CVV_NOAPPLY',     603);
+define('PAYMENT_PROCESS_CVV_MATCH', 600);
+define('PAYMENT_PROCESS_CVV_MISMATCH', 601);
+define('PAYMENT_PROCESS_CVV_ERROR', 602);
+define('PAYMENT_PROCESS_CVV_NOAPPLY', 603);
 
 /**
  * Payment_Process
  *
- * @author Ian Eure <ieure@php.net>
- * @package Payment_Process
  * @category Payment
- * @version @version@
+ * @package  Payment_Process
+ * @author   Ian Eure <ieure@php.net>
+ * @license  http://www.opensource.org/licenses/bsd-license.php BSD License
+ * @version  Release: @package_version@
+ * @link     http://pear.php.net/package/Payment_Process
  */
-class Payment_Process {
+class Payment_Process
+{
     /**
      * Return an instance of a specific processor.
      *
-     * @param  string  $type     Name of the processor
-     * @param  array   $options  Options for the processor
+     * @param string $type    Name of the processor
+     * @param array  $options Options for the processor
+     * 
      * @return mixed Instance of the processor object, or a PEAR_Error object.
      */
     function &factory($type, $options = false)
@@ -140,7 +172,8 @@ class Payment_Process {
     /**
      * Determine if a field is required.
      *
-     * @param  string $field Field to check
+     * @param string $field Field to check
+     * 
      * @return boolean true if required, false if optional.
      */
     function isRequired($field)
@@ -151,9 +184,10 @@ class Payment_Process {
     /**
      * Determines if a field exists.
      *
-     * @author Ian Eure <ieure@php.net>
-     * @param  string  $field  Field to check
+     * @param string $field Field to check
+     * 
      * @return boolean true if field exists, false otherwise
+     * @author Ian Eure <ieure@php.net>
      */
     function fieldExists($field)
     {
@@ -185,11 +219,12 @@ class Payment_Process {
     /**
      * Set class options.
      *
-     * @author Ian Eure <ieure@php.net>
-     * @param  Array  $options         Options to set
-     * @param  Array  $defaultOptions  Default options
+     * @param array $options        Options to set
+     * @param array $defaultOptions Default options
+     * 
      * @return void
-     */
+     * @author Ian Eure <ieure@php.net>
+     *      */
     function setOptions($options = false, $defaultOptions = false)
     {
         $defaultOptions = $defaultOptions ? $defaultOptions : $this->_defaultOptions;
@@ -199,9 +234,11 @@ class Payment_Process {
     /**
      * Get an option value.
      *
-     * @author Ian Eure <ieure@php.net>
-     * @param  string  $option  Option to get
+     * @param string $option Option to get
+     * 
      * @return mixed   Option value
+     * @access public
+     * @author Ian Eure <ieure@php.net>
      */
     function getOption($option)
     {
@@ -211,10 +248,12 @@ class Payment_Process {
     /**
      * Set an option value
      *
-     * @author Joe Stump <joe@joestump.net>
+     * @param string $option Option name to set
+     * @param mixed  $value  Value to set
+     * 
+     * @return void
      * @access public
-     * @param  string  $option  Option name to set
-     * @param  mixed   $value   Value to set
+     * @author Joe Stump <joe@joestump.net>
      */
     function setOption($option,$value)
     {
@@ -229,17 +268,19 @@ class Payment_Process {
      * $object->action is one of PAYMENT_PROCESS_ACTION_NORMAL,
      * PAYMENT_PROCESS_ACTION_AUTHONLY etc.
      *
+     * @param mixed $value Value to check
+     * @param mixed $class Constant class to check
+     * 
+     * @return boolean TRUE if it is defined, FALSE otherwise.
      * @access private
-     * @param  mixed    $value  Value to check
-     * @param  mixed    $class  Constant class to check
-     * @return boolean  true if it is defined, false otherwise.
      */
     function _isDefinedConst($value, $class)
     {
         $constClass = 'PAYMENT_PROCESS_'.strtoupper($class).'_';
+        
         $length = strlen($constClass);
         $consts = get_defined_constants();
-        $found = false;
+        $found  = false;
         foreach ($consts as $constant => $constVal) {
             if (strncmp($constClass, $constant, $length) === 0
                   && $constVal == $value) {
@@ -253,7 +294,8 @@ class Payment_Process {
     /**
      * Statically check a Payment_Result class for success
      *
-     * @param  mixed  $obj
+     * @param mixed $obj Object to check
+     * 
      * @return bool
      * @access public
      * @static
@@ -273,7 +315,8 @@ class Payment_Process {
     /**
      * Statically check a Payment_Result class for error
      *
-     * @param  mixed  $obj
+     * @param mixed $obj Object to check
+     * 
      * @return bool
      * @access public
      * @author Joe Stump <joe@joestump.net>
@@ -298,7 +341,7 @@ class Payment_Process {
  * Payment_Process_Result
  *
  * The core result class that should be returned from each driver's process()
- * function. This should be extended as Payment_Process_Result_DriverName and
+ * function. This should be exte33nded as Payment_Process_Result_DriverName and
  * then have the appropriate fields mapped out accordingly.
  *
  * Take special care to appropriately create a parse() function in your result
@@ -309,12 +352,15 @@ class Payment_Process {
  * be accessed directly and then uses the function wrappers to return uniform
  * Payment_Process codes.
  *
- * @author Joe Stump <joe@joestump.net>
- * @package Payment_Process
  * @category Payment
- * @version @version@
+ * @package  Payment_Process
+ * @author   Joe Stump <joe@joestump.net>
+ * @license  http://www.opensource.org/licenses/bsd-license.php BSD License
+ * @version  Release: @package_version@
+ * @link     http://pear.php.net/package/Payment_Process
  */
-class Payment_Process_Result {
+class Payment_Process_Result
+{
     /**
      * Processor instance which this result was instantiated from.
      *
@@ -471,21 +517,29 @@ class Payment_Process_Result {
      */
     var $cvvMessage = 'No CVV message from gateway';
 
+    /**
+     * Class constructor
+     *
+     * @param string $rawResponse Raw response
+     * @param mixed  $request     Request
+     */ 
     function Payment_Process_Result($rawResponse, $request)
     {
         $this->_rawResponse = $rawResponse;
-        $this->_request = $request;
+        $this->_request     = $request;
     }
+
 
     /**
     * factory
     *
+    * @param string $type        Type
+    * @param string $rawResponse Raw response
+    * @param mixed  $request     Request
+    * 
+    * @return mixed Payment_Process_Result on succes, PEAR_Error on failure
     * @author Joe Stump <joe@joestump.net>
     * @author Ian Eure <ieure@php.net>
-    * @param string $type
-    * @param string $rawResponse
-    * @param mixed $request
-    * @return mixed Payment_Process_Result on succes, PEAR_Error on failure
     */
     function &factory($type, $rawResponse, $request)
     {
@@ -537,6 +591,7 @@ class Payment_Process_Result {
     /**
      * parse
      *
+     * @return mixed
      * @abstract
      * @author Joe Stump <joe@joestump.net>
      * @access public
@@ -550,10 +605,11 @@ class Payment_Process_Result {
     /**
      * parseCallback
      *
+     * @return   mixed
      * @abstract
-     * @author Joe Stump <joe@joestump.net>
-     * @access public
-     * @see Payment_Process_Common::processCallback()
+     * @author   Joe Stump <joe@joestump.net>
+     * @access   public
+     * @see      Payment_Process_Common::processCallback()
      */
     function parseCallback()
     {
@@ -569,9 +625,10 @@ class Payment_Process_Result {
      * driver result class and implement this if your gateway provides such
      * a mechanism. Any information required should be passed via $options.
      *
+     * @return   mixed
      * @abstract
-     * @author Joe Stump <joe@joestump.net>
-     * @access public
+     * @author   Joe Stump <joe@joestump.net>
+     * @access   public
      */
     function isLegitimate()
     {
@@ -582,6 +639,7 @@ class Payment_Process_Result {
     /**
      * getCode
      *
+     * @return integer one of PAYMENT_PROCESS_RESULT_* constant
      * @author Joe Stump <joe@joestump.net>
      * @access public
      */
@@ -608,28 +666,49 @@ class Payment_Process_Result {
     {
         if (isset($this->_statusCodeMessages[$this->messageCode])) {
             return $this->_statusCodeMessages[$this->messageCode];
-        } elseif(strlen($this->message)) {
+        } elseif (strlen($this->message)) {
             return $this->message;
         } else {
             return 'No message reported';
         }
     }
 
+    /**
+     * Returns the AVS code
+     *
+     * @return integer one of PAYMENT_PROCESS_AVS_* constants
+     */
     function getAVSCode()
     {
         return $this->_avsCodeMap[$this->avsCode];
     }
-
+    
+    /**
+     * Returns the AVS message
+     *
+     * @return string
+     */
     function getAVSMessage()
     {
         return $this->_avsCodeMessages[$this->avsCode];
     }
 
+    
+    /**
+     * Return the CVV match code
+     *
+     * @return integer One of PAYMENT_PROCESS_CVV_* constants 
+     */
     function getCvvCode()
     {
         return $this->_cvvCodeMap[$this->cvvCode];
     }
 
+    /**
+     * Returns the CVV match message
+     *
+     * @return string
+     */
     function getCvvMessage()
     {
         return $this->_cvvCodeMessages[$this->cvvCode];
@@ -637,22 +716,28 @@ class Payment_Process_Result {
 
     /**
      * _mapFields
-     *
+     * 
+     * @param mixed $responseArray Response array
+     * 
+     * @return void
      * @author Joe Stump <joe@joestump.net>
      * @access private
-     * @param mixed $responseArray
      */
-    function _mapFields($responseArray) {
-        foreach($this->_fieldMap as $key => $val) {
-            $this->$val = $responseArray[$key];
+    function _mapFields($responseArray) 
+    {
+        foreach ($this->_fieldMap as $key => $val) {
+            $this->$val = (array_key_exists($key, $responseArray))
+                          ? $responseArray[$key]
+                          : null;
         }
     }
 
     /**
      * Accept an object
      *
-     * @param   object   $object  Object to accept
-     * @return  boolean  true if accepted, false otherwise
+     * @param object &$object Object to accept
+     * 
+     * @return boolean  TRUE if accepted, FALSE otherwise
      */
     function accept(&$object)
     {
@@ -666,10 +751,11 @@ class Payment_Process_Result {
     /**
      * Log a message
      *
-     * @param   string  $message   Message to log
-     * @param   string  $priority  Message priority
-     * @return  mixed   Return value of Log::log(), or false if no Log instance
-     *                  has been accepted.
+     * @param string $message  Message to log
+     * @param string $priority Message priority
+     * 
+     * @return mixed  Return value of Log::log(), or false if no Log instance
+     *                has been accepted.
      */
     function log($message, $priority = null)
     {
