@@ -1,5 +1,0 @@
-- Create QuickForm elements for credit cards and eChecks
-- Remove $foo = & $this as this will no longer work in PHP5
-- Update to PHP5
-- Create classes to hold payment information, billing info, etc...
-- PEAR Coding Standard clean up
