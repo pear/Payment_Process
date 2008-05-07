@@ -8,31 +8,31 @@
  * PHP versions 4 and 5
  *
  * LICENSE:
- * 
+ *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- * 
- * 1. Redistributions of source code must retain the above copyright notice, this 
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  *    list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation 
+ *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
  *
- * 3. The name of the authors may not be used to endorse or promote products 
+ * 3. The name of the authors may not be used to endorse or promote products
  *    derived from this software without specific prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHORS ``AS IS'' AND ANY EXPRESS OR IMPLIED 
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO 
- * EVENT SHALL THE AUTHORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHORS ``AS IS'' AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
+ * EVENT SHALL THE AUTHORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
  * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
- * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER 
- * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+ * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * @category  Payment
  * @package   Payment_Process
  * @author    Ian Eure <ieure@php.net>
@@ -43,10 +43,24 @@
  * @link      http://pear.php.net/package/Payment_Process
  */
 
-require_once('Payment/Process.php');
-require_once('Payment/Process/Type.php');
+require_once 'Payment/Process.php';
+require_once 'Payment/Process/Type.php';
 
-class Payment_Process_Common {
+/**
+ * Base class for processor
+ * 
+ * @category  Payment
+ * @package   Payment_Process
+ * @author    Ian Eure <ieure@php.net>
+ * @author    Joe Stump <joe@joestump.net>
+ * @copyright 1997-2005 The PHP Group
+ * @license   http://www.opensource.org/licenses/bsd-license.php BSD License
+ * @version   Release: @package_version@
+ * @link      http://pear.php.net/package/Payment_Process
+ * @abstract
+ */
+class Payment_Process_Common
+{
     // {{{ Private Properties
     /**
      * Options.
@@ -82,7 +96,7 @@ class Payment_Process_Common {
      * @access private
      */
     var $_driver = null;
-    
+
     /**
      * PEAR::Log instance
      *
@@ -126,7 +140,7 @@ class Payment_Process_Common {
      * @var string
      */
     var $password = '';
-    
+
     /**
      * Processing action.
      *
@@ -142,7 +156,7 @@ class Payment_Process_Common {
      * @var string
      */
     var $description = '';
-    
+
     /**
      * The transaction amount.
      *
@@ -156,14 +170,14 @@ class Payment_Process_Common {
      * @var mixed string or int
      */
     var $invoiceNumber = '';
-    
+
     /**
      * Customer identifier
      *
      * @var mixed string or int
      */
     var $customerId = '';
-    
+
     /**
      * Transaction source.
      *
@@ -179,6 +193,8 @@ class Payment_Process_Common {
      *
      * PHP 5.x constructor
      *
+     * @param array $options Options
+     * 
      * @author Joe Stump <joe@joestump.net>
      * @access public
      */
@@ -193,6 +209,8 @@ class Payment_Process_Common {
      *
      * PHP 4.x constructor
      *
+     * @param array $options options
+     * 
      * @author Joe Stump <joe@joestump.net>
      * @access public
      */
@@ -210,7 +228,8 @@ class Payment_Process_Common {
      * not validate. It could also mean that the payment type is not supported
      * by the given processor.
      *
-     * @param mixed $payment Object of Payment_Process_Type
+     * @param mixed &$payment Object of Payment_Process_Type
+     * 
      * @return bool
      * @access public
      * @author Joe Stump <joe@joestump.net>
@@ -231,7 +250,7 @@ class Payment_Process_Common {
             // $_typeFieldMap for more information.
             $paymentType = $payment->getType();
             foreach ($this->_typeFieldMap[$paymentType] as $generic => $specific) {
-                  
+
                 $func = '_handle'.ucfirst($generic);
                 if (method_exists($this, $func)) {
                     $result = $this->$func();
@@ -241,7 +260,7 @@ class Payment_Process_Common {
                 } else {
                     // TODO This may screw things up - the problem is that
                     // CC information is no longer member variables, so we
-                    // can't overwrite it. You could always handle this 
+                    // can't overwrite it. You could always handle this
                     // with a _handle funciton. I don't think it will cause
                     // problems, but it could.
                     if (!isset($this->_data[$specific])) {
@@ -260,8 +279,9 @@ class Payment_Process_Common {
     /**
      * Set many fields.
      *
-     * @param  array  $where  Associative array of data to set, in the format
-     *                       'field' => 'value',
+     * @param array $where Associative array of data to set, in the format
+     *                     'field' => 'value',
+     * 
      * @return void
      */
     function setFrom($where)
@@ -278,10 +298,13 @@ class Payment_Process_Common {
      * Processes the transaction.
      *
      * This function should be overloaded by the processor.
+     * 
+     * @return mixed
      */
     function process()
     {
-        return PEAR::raiseError("process() is not implemented in this processor.", PAYMENT_PROCESS_ERROR_NOTIMPLEMENTED);
+        return PEAR::raiseError("process() is not implemented in this processor.", 
+                                PAYMENT_PROCESS_ERROR_NOTIMPLEMENTED);
     }
     // }}}
     // {{{ &processCallback()
@@ -305,7 +328,7 @@ class Payment_Process_Common {
     /**
      * validate
      *
-     * Validates data before processing. This function may be overloaded by 
+     * Validates data before processing. This function may be overloaded by
      * the processor.
      *
      * @return boolean true if validation succeeded, PEAR_Error if it failed.
@@ -341,8 +364,9 @@ class Payment_Process_Common {
      * field is not part of the basic set of supported fields, it is set in
      * $_options.
      *
-     * @param  string  $field  The field to set
-     * @param  string  $value  The value to set
+     * @param string $field The field to set
+     * @param string $value The value to set
+     * 
      * @return void
      */
     function set($field, $value)
@@ -358,26 +382,28 @@ class Payment_Process_Common {
     /**
      * Determine if a field is required.
      *
-     * @param  string $field Field to check
+     * @param string $field Field to check
+     * 
      * @return boolean true if required, false if optional.
      */
     function isRequired($field)
     {
         return (isset($this->_required[$field]));
-    }   
+    }
     // }}}
     // {{{ fieldExists($field)
     /**
      * Determines if a field exists.
      *
+     * @param string $field Field to check
+     * 
+     * @return boolean TRUE if field exists, FALSE otherwise
      * @author Ian Eure <ieure@php.net>
-     * @param  string  $field  Field to check
-     * @return boolean true if field exists, false otherwise
      */
     function fieldExists($field)
     {
         return @in_array($field, $this->getFields());
-    }   
+    }
     // }}}
     // {{{ getFields()
     /**
@@ -386,9 +412,9 @@ class Payment_Process_Common {
      * This function returns an array containing all the possible fields which
      * may be set.
      *
+     * @return array Array of valid fields.
      * @author Ian Eure <ieure@php.net>
      * @access public
-     * @return array Array of valid fields.
      */
     function getFields()
     {
@@ -396,7 +422,7 @@ class Payment_Process_Common {
         foreach ($vars as $idx => $field) {
             if ($field{0} == '_') {
                 unset($vars[$idx]);
-            }   
+            }
         }
 
         return $vars;
@@ -406,23 +432,26 @@ class Payment_Process_Common {
     /**
      * Set class options.
      *
-     * @author Ian Eure <ieure@php.net>
-     * @param  Array  $options         Options to set
-     * @param  Array  $defaultOptions  Default options
+     * @param array $options        Options to set
+     * @param array $defaultOptions Default options
+     * 
      * @return void
+     * @author Ian Eure <ieure@php.net>
      */
     function setOptions($options = false, $defaultOptions = false)
     {
-        $defaultOptions = $defaultOptions ? $defaultOptions : $this->_defaultOptions;           $this->_options = @array_merge($defaultOptions, $options);
-    }   
+        $defaultOptions = $defaultOptions ? $defaultOptions : $this->_defaultOptions;
+        $this->_options = @array_merge($defaultOptions, $options);
+    }
     // }}}
     // {{{ getOption($option)
     /**
      * Get an option value.
      *
+     * @param string $option Option to get
+     * 
+     * @return mixed  Option value
      * @author Ian Eure <ieure@php.net>
-     * @param  string  $option  Option to get
-     * @return mixed   Option value
      */
     function getOption($option)
     {
@@ -433,10 +462,12 @@ class Payment_Process_Common {
     /**
      * Set an option value
      *
+     * @param string $option Option name to set
+     * @param mixed  $value  Value to set
+     * 
+     * @return mixed
      * @author Joe Stump <joe@joestump.net>
      * @access public
-     * @param  string  $option  Option name to set
-     * @param  mixed   $value   Value to set
      */
     function setOption($option,$value)
     {
@@ -448,10 +479,14 @@ class Payment_Process_Common {
      * Gets transaction result.
      *
      * This function should be overloaded by the processor.
+     * 
+     * @return mixed
+     * @abstract
      */
     function getResult()
     {
-        return PEAR::raiseError("getResult() is not implemented in this processor.", PAYMENT_PROCESS_ERROR_NOTIMPLEMENTED);
+        return PEAR::raiseError("getResult() is not implemented in this processor.", 
+                                PAYMENT_PROCESS_ERROR_NOTIMPLEMENTED);
     }
     // }}}
     // {{{ _isDefinedConstant($value, $class)
@@ -463,17 +498,19 @@ class Payment_Process_Common {
      * $object->action is one of PAYMENT_PROCESS_ACTION_NORMAL,
      * PAYMENT_PROCESS_ACTION_AUTHONLY etc.
      *
+     * @param mixed $value Value to check
+     * @param mixed $class Constant class to check
+     * 
+     * @return boolean TRUE if it is defined, FALSE otherwise.
      * @access private
-     * @param  mixed    $value  Value to check
-     * @param  mixed    $class  Constant class to check
-     * @return boolean  true if it is defined, false otherwise.
-     */         
+     */
     function _isDefinedConst($value, $class)
-    {   
+    {
         $constClass = 'PAYMENT_PROCESS_'.strtoupper($class).'_';
+        
         $length = strlen($constClass);
         $consts = get_defined_constants();
-        $found = false;
+        $found  = false;
         foreach ($consts as $constant => $constVal) {
             if (strncmp($constClass, $constant, $length) === 0 &&
                 $constVal == $value) {
@@ -489,8 +526,9 @@ class Payment_Process_Common {
     /**
      * Mark a field (or fields) as being required.
      *
-     * @param  string  $field Field name
-     * @param  string  ...
+     * @param string $field Field name
+     * @param string ...
+     * 
      * @return boolean always true.
      */
     function _makeRequired()
@@ -505,23 +543,24 @@ class Payment_Process_Common {
     /**
      * Mark a field as being optional.
      *
-     * @param  string  $field Field name
-     * @param  ...
-     * @return boolean always true.
+     * @param string $field Field name
+     * @param string ...
+     * 
+     * @return boolean always TRUE.
      */
     function _makeOptional()
     {
         foreach (func_get_args() as $field) {
             unset($this->_required[$field]);
-        }   
+        }
         return true;
-    }   
+    }
     // }}}
     // {{{ _validateType()
     /**
      * Validates transaction type.
      *
-     * @return boolean true on success, false on failure.
+     * @return boolean TRUE on success, FALSE on failure.
      * @access private
      */
     function _validateType()
@@ -580,6 +619,7 @@ class Payment_Process_Common {
      * Actions are defined in $GLOBALS['_Payment_Process_DriverName'] and then
      * handled here. We may decide to abstract the defines in the driver.
      *
+     * @return void
      * @access private
      */
     function _handleAction()
@@ -603,7 +643,7 @@ class Payment_Process_Common {
      */
     function _prepare()
     {
-        /*
+        /**
          * FIXME - because this only loops through stuff in the fieldMap, we
          *         can't have handlers for stuff which isn't specified in there.
          *         But the whole point of having a _handler() is that you need
@@ -617,11 +657,13 @@ class Payment_Process_Common {
                     return $result;
                 }
             } else {
-                // TODO This may screw things up - the problem is that
-                // CC information is no longer member variables, so we
-                // can't overwrite it. You could always handle this with
-                // a _handle funciton. I don't think it will cause problems,
-                // but it could.
+                /**
+                 * @todo This may screw things up - the problem is that
+                 *       CC information is no longer member variables, so we
+                 *       can't overwrite it. You could always handle this with
+                 *       a _handle funciton. I don't think it will cause problems,
+                 *       but it could.
+                 */
                 if (!isset($this->_data[$specific])) {
                     if (isset($this->$generic)) {
                         $this->_data[$specific] = $this->$generic;

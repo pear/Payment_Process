@@ -8,31 +8,31 @@
  * PHP versions 4 and 5
  *
  * LICENSE:
- * 
+ *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- * 
- * 1. Redistributions of source code must retain the above copyright notice, this 
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  *    list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation 
+ *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
  *
- * 3. The name of the authors may not be used to endorse or promote products 
+ * 3. The name of the authors may not be used to endorse or promote products
  *    derived from this software without specific prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHORS ``AS IS'' AND ANY EXPRESS OR IMPLIED 
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO 
- * EVENT SHALL THE AUTHORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHORS ``AS IS'' AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
+ * EVENT SHALL THE AUTHORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
  * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
- * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER 
- * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+ * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * @category  Payment
  * @package   Payment_Process
  * @author    Ian Eure <ieure@php.net>
@@ -48,8 +48,12 @@
 /**
  * Payment_Process_Type_CreditCard
  *
- * @author Joe Stump <joe@joestump.net>
- * @package Payment_Process
+ * @category Payment
+ * @package  Payment_Process
+ * @author   Joe Stump <joe@joestump.net>
+ * @license  http://www.opensource.org/licenses/bsd-license.php BSD License
+ * @version  Release: @package_version@
+ * @link     http://pear.php.net/package/Payment_Process
  */
 class Payment_Process_Type_CreditCard extends Payment_Process_Type
 {
@@ -90,12 +94,18 @@ class Payment_Process_Type_CreditCard extends Payment_Process_Type
      */
     var $expDate;
 
+    /**
+     * Class constructor
+     */
     function __construct()
     {
-        require_once 'Validate/Finance/CreditCard.php';
+        include_once 'Validate/Finance/CreditCard.php';
         parent::__construct();
     }
 
+    /**
+     * PHP4-style constructor
+     */
     function Payment_Process_Type_CreditCard()
     {
         $this->__construct();
@@ -184,15 +194,16 @@ class Payment_Process_Type_CreditCard extends Payment_Process_Type
         $monthOptions = array('min'     => 1,
                               'max'     => 12,
                               'decimal' => false);
+
         $date = getdate();
 
-        $yearOptions  = array('min'     => $date['year'],
-                              'decimal' => false);
+        $yearOptions = array('min'     => $date['year'],
+                             'decimal' => false);
 
-        if (Validate::number($month, $monthOptions) &&
-            Validate::number($year, $yearOptions)) {
-            if (($month >= $date['mon'] && $year == $date['year']) ||
-                ($year > $date['year'])) {
+        if (Validate::number($month, $monthOptions)
+            && Validate::number($year, $yearOptions)) {
+            if (($month >= $date['mon'] && $year == $date['year'])
+                || ($year > $date['year'])) {
                 return true;
             }
         }
@@ -210,24 +221,24 @@ class Payment_Process_Type_CreditCard extends Payment_Process_Type
     function _mapType()
     {
         switch ($this->type) {
-            case PAYMENT_PROCESS_CC_MASTERCARD:
-                return 'MasterCard';
-            case PAYMENT_PROCESS_CC_VISA:
-                return 'Visa';
-            case PAYMENT_PROCESS_CC_AMEX:
-                return 'Amex';
-            case PAYMENT_PROCESS_CC_DISCOVER:
-                return 'Discover';
-            case PAYMENT_PROCESS_CC_JCB:
-                return 'JCB';
-            case PAYMENT_PROCESS_CC_DINERS:
-                return 'Diners';
-            case PAYMENT_PROCESS_CC_ENROUTE:
-                return 'EnRoute';
-            case PAYMENT_PROCESS_CC_CARTEBLANCHE:
-                return 'CarteBlanche';
-            default:
-                return false;
+        case PAYMENT_PROCESS_CC_MASTERCARD:
+            return 'MasterCard';
+        case PAYMENT_PROCESS_CC_VISA:
+            return 'Visa';
+        case PAYMENT_PROCESS_CC_AMEX:
+            return 'Amex';
+        case PAYMENT_PROCESS_CC_DISCOVER:
+            return 'Discover';
+        case PAYMENT_PROCESS_CC_JCB:
+            return 'JCB';
+        case PAYMENT_PROCESS_CC_DINERS:
+            return 'Diners';
+        case PAYMENT_PROCESS_CC_ENROUTE:
+            return 'EnRoute';
+        case PAYMENT_PROCESS_CC_CARTEBLANCHE:
+            return 'CarteBlanche';
+        default:
+            return false;
         }
     }
 }

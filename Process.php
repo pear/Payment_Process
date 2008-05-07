@@ -11,29 +11,29 @@
  * PHP versions 4 and 5
  *
  * LICENSE:
- * 
+ *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- * 
- * 1. Redistributions of source code must retain the above copyright notice, this 
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  *    list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation 
+ *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
  *
- * 3. The name of the authors may not be used to endorse or promote products 
+ * 3. The name of the authors may not be used to endorse or promote products
  *    derived from this software without specific prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHORS ``AS IS'' AND ANY EXPRESS OR IMPLIED 
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO 
- * EVENT SHALL THE AUTHORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHORS ``AS IS'' AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
+ * EVENT SHALL THE AUTHORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
  * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
- * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER 
- * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+ * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  *
  * @category  Payment
@@ -47,19 +47,19 @@
  */
 
 /**
- * Include PEAR for error handling 
+ * Include PEAR for error handling
  */
 require_once 'PEAR.php';
 /**
- * Include Validate 
+ * Include Validate
  */
 require_once 'Validate.php';
 /**
- * Inclue Validate_Finance_CreditCard for Credit Card number validation 
+ * Inclue Validate_Finance_CreditCard for Credit Card number validation
  */
 require_once 'Validate/Finance/CreditCard.php';
 /**
- * Include Payment_Process_Type 
+ * Include Payment_Process_Type
  */
 require_once 'Payment/Process/Type.php';
 
@@ -150,7 +150,7 @@ class Payment_Process
      *
      * @param string $type    Name of the processor
      * @param array  $options Options for the processor
-     * 
+     *
      * @return mixed Instance of the processor object, or a PEAR_Error object.
      */
     function &factory($type, $options = false)
@@ -173,7 +173,7 @@ class Payment_Process
      * Determine if a field is required.
      *
      * @param string $field Field to check
-     * 
+     *
      * @return boolean true if required, false if optional.
      */
     function isRequired($field)
@@ -185,7 +185,7 @@ class Payment_Process
      * Determines if a field exists.
      *
      * @param string $field Field to check
-     * 
+     *
      * @return boolean true if field exists, false otherwise
      * @author Ian Eure <ieure@php.net>
      */
@@ -221,7 +221,7 @@ class Payment_Process
      *
      * @param array $options        Options to set
      * @param array $defaultOptions Default options
-     * 
+     *
      * @return void
      * @author Ian Eure <ieure@php.net>
      *      */
@@ -235,7 +235,7 @@ class Payment_Process
      * Get an option value.
      *
      * @param string $option Option to get
-     * 
+     *
      * @return mixed   Option value
      * @access public
      * @author Ian Eure <ieure@php.net>
@@ -250,7 +250,7 @@ class Payment_Process
      *
      * @param string $option Option name to set
      * @param mixed  $value  Value to set
-     * 
+     *
      * @return void
      * @access public
      * @author Joe Stump <joe@joestump.net>
@@ -270,14 +270,14 @@ class Payment_Process
      *
      * @param mixed $value Value to check
      * @param mixed $class Constant class to check
-     * 
+     *
      * @return boolean TRUE if it is defined, FALSE otherwise.
      * @access private
      */
     function _isDefinedConst($value, $class)
     {
         $constClass = 'PAYMENT_PROCESS_'.strtoupper($class).'_';
-        
+
         $length = strlen($constClass);
         $consts = get_defined_constants();
         $found  = false;
@@ -295,7 +295,7 @@ class Payment_Process
      * Statically check a Payment_Result class for success
      *
      * @param mixed $obj Object to check
-     * 
+     *
      * @return bool
      * @access public
      * @static
@@ -316,7 +316,7 @@ class Payment_Process
      * Statically check a Payment_Result class for error
      *
      * @param mixed $obj Object to check
-     * 
+     *
      * @return bool
      * @access public
      * @author Joe Stump <joe@joestump.net>
@@ -522,7 +522,7 @@ class Payment_Process_Result
      *
      * @param string $rawResponse Raw response
      * @param mixed  $request     Request
-     */ 
+     */
     function Payment_Process_Result($rawResponse, $request)
     {
         $this->_rawResponse = $rawResponse;
@@ -536,7 +536,7 @@ class Payment_Process_Result
     * @param string $type        Type
     * @param string $rawResponse Raw response
     * @param mixed  $request     Request
-    * 
+    *
     * @return mixed Payment_Process_Result on succes, PEAR_Error on failure
     * @author Joe Stump <joe@joestump.net>
     * @author Ian Eure <ieure@php.net>
@@ -682,7 +682,7 @@ class Payment_Process_Result
     {
         return $this->_avsCodeMap[$this->avsCode];
     }
-    
+
     /**
      * Returns the AVS message
      *
@@ -693,11 +693,11 @@ class Payment_Process_Result
         return $this->_avsCodeMessages[$this->avsCode];
     }
 
-    
+
     /**
      * Return the CVV match code
      *
-     * @return integer One of PAYMENT_PROCESS_CVV_* constants 
+     * @return integer One of PAYMENT_PROCESS_CVV_* constants
      */
     function getCvvCode()
     {
@@ -716,14 +716,14 @@ class Payment_Process_Result
 
     /**
      * _mapFields
-     * 
+     *
      * @param mixed $responseArray Response array
-     * 
+     *
      * @return void
      * @author Joe Stump <joe@joestump.net>
      * @access private
      */
-    function _mapFields($responseArray) 
+    function _mapFields($responseArray)
     {
         foreach ($this->_fieldMap as $key => $val) {
             $this->$val = (array_key_exists($key, $responseArray))
@@ -736,7 +736,7 @@ class Payment_Process_Result
      * Accept an object
      *
      * @param object &$object Object to accept
-     * 
+     *
      * @return boolean  TRUE if accepted, FALSE otherwise
      */
     function accept(&$object)
@@ -753,7 +753,7 @@ class Payment_Process_Result
      *
      * @param string $message  Message to log
      * @param string $priority Message priority
-     * 
+     *
      * @return mixed  Return value of Log::log(), or false if no Log instance
      *                has been accepted.
      */
