@@ -224,7 +224,7 @@ class Payment_Process
      *
      * @return void
      * @author Ian Eure <ieure@php.net>
-     *      */
+     */
     function setOptions($options = false, $defaultOptions = false)
     {
         $defaultOptions = $defaultOptions ? $defaultOptions : $this->_defaultOptions;

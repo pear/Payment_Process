@@ -48,6 +48,7 @@
     <license uri="http://www.opensource.org/licenses/bsd-license.php">BSD License</license>
     <notes>
  * Updated to BSD license
+ * PEAR coding standard clean up
     </notes>
 
     <contents>
@@ -74,39 +75,61 @@
                 <dir name="Type">
                     <file baseinstalldir="Payment" 
                           name="CreditCard.php" 
-                          role="php" />
+                          role="php">
+                        <tasks:replace from="@package_version@" to="version" type="package-info"/>
+                    </file>
                     <file baseinstalldir="Payment" 
                           name="eCheck.php" 
-                          role="php" />
+                          role="php">
+                        <tasks:replace from="@package_version@" to="version" type="package-info"/>
+                    </file>
                 </dir> 
                 <file baseinstalldir="Payment" 
                       name="AuthorizeNet.php" 
-                      role="php" />
+                      role="php">
+                    <tasks:replace from="@package_version@" to="version" type="package-info"/>
+                </file>
                 <file baseinstalldir="Payment" 
                       name="Bibit.php" 
-                      role="php" />
+                      role="php">
+                    <tasks:replace from="@package_version@" to="version" type="package-info"/>
+                </file>
                 <file baseinstalldir="Payment" 
                       name="Common.php" 
-                      role="php" />
+                      role="php">
+                    <tasks:replace from="@package_version@" to="version" type="package-info"/>
+                </file>
                 <file baseinstalldir="Payment" 
                       name="Dummy.php" 
-                      role="php" />
+                      role="php">
+                    <tasks:replace from="@package_version@" to="version" type="package-info"/>
+                </file>
                 <file baseinstalldir="Payment" 
                       name="LinkPoint.php" 
-                      role="php" />
+                      role="php">
+                    <tasks:replace from="@package_version@" to="version" type="package-info"/>
+                </file>
                 <file baseinstalldir="Payment" 
                       name="Transfirst.php" 
-                      role="php" />
+                      role="php">
+                    <tasks:replace from="@package_version@" to="version" type="package-info"/>
+                </file>
                 <file baseinstalldir="Payment" 
                       name="TrustCommerce.php" 
-                      role="php" />
+                      role="php">
+                    <tasks:replace from="@package_version@" to="version" type="package-info"/>
+                </file>
                 <file baseinstalldir="Payment" 
                       name="Type.php" 
-                      role="php" />
+                      role="php">
+                    <tasks:replace from="@package_version@" to="version" type="package-info"/>
+                </file>
             </dir> 
             <file baseinstalldir="Payment" 
                   name="Process.php" 
-                  role="php" />
+                  role="php">
+                <tasks:replace from="@package_version@" to="version" type="package-info"/>
+            </file>
         </dir> 
     </contents>
     <dependencies>
@@ -156,6 +179,7 @@
             <license uri="http://www.opensource.org/licenses/bsd-license.php">BSD License</license>
             <notes>
  * Updated license to BSD
+ * PEAR coding standard clean up
             </notes>
         </release>
         <release>
