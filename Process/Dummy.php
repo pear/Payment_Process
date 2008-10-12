@@ -98,7 +98,6 @@ class Payment_Process_Dummy extends Payment_Process_Common
         }
 
         if ($this->_options['randomResult']) {
-            srand(microtime());
             $n       = rand(0, count($this->_returnValues) - 1);
             $code    = &$this->_returnValues[$n]['code'];
             $message = &$this->_returnValues[$n]['message'];
