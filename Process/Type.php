@@ -269,7 +269,7 @@ class Payment_Process_Type
     function _validateZip()
     {
         if (isset($this->zip) && strtolower($this->country) == 'us') {
-            return ereg('^[0-9]{5}(-[0-9]{4})?$', $this->zip);
+            return preg_match('/^[0-9]{5}(-[0-9]{4})?$/', $this->zip);
         }
 
         return true;
