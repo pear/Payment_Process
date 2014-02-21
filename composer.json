@@ -1,0 +1,47 @@
+{
+    "authors": [
+        {
+            "email": "jausions@php.net",
+            "name": "Philippe Jausions",
+            "role": "Lead"
+        },
+        {
+            "email": "ieure@php.net",
+            "name": "Ian Eure",
+            "role": "Lead"
+        },
+        {
+            "email": "jstump@php.net",
+            "name": "Joe Stump",
+            "role": "Lead"
+        },
+        {
+            "email": "robert@peakepro.com",
+            "name": "Robert Peake",
+            "role": "Helper"
+        }
+    ],
+    "autoload": {
+        "classmap": [
+            "./"
+        ]
+    },
+    "description": "More info available on: http://pear.php.net/package/Payment_Process",
+    "license": "BSD License",
+    "name": "pear/payment_process",
+    "support": {
+        "issues": "http://pear.php.net/bugs/search.php?cmd=display&package_name[]=Payment_Process",
+        "source": "https://github.com/pear/Payment_Process"
+    },
+    "type": "library",
+    "require": {
+        "pear/pear_exception": "*",
+        "pear/validate": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "*"
+    },
+    "suggest": {
+        "pear/xml_parser": "Install optionally via your project's composer.json"
+    }
+}
